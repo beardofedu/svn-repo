@@ -1,0 +1,1204 @@
+<!-- -*- sgml -*- -->
+
+<reference id="svn.ref.reposhooks">
+      <!--
+  <title>Subversion Repository Hook Reference</title>
+      -->
+  <title>Subversion 仓库钩子参考手册</title>
+
+  <partintro>
+
+      <!--
+    <para>Subversion repositories provide a number of event hooks
+      which are essentially opportunities for administrators to extend
+      Subversion's functionality at key moments of key operations.
+      Repository hooks are implemented as programs executed by
+      Subversion itself at those key moments&mdash;before and after a
+      commit, before and after a user locks a file, and so on.</para>
+      -->
+    <para>Subversion 仓库提供了很多事件钩子, 利用这些钩子, 管理员可以在
+      特定操作的特定时间点扩展 Subversion 的功能. 仓库钩子被实现成由
+      Subversion 在特定时间点执行的程序, 这些时间点包括在提交之前或之后,
+      用户锁定文件之前或之后, 等等.</para>
+    
+      <!--
+    <para>For each hook it provides, Subversion will attempt to
+      execute the program of that hook's name which is found in
+      the <filename>hooks/</filename> subdirectory of the repository's
+      on-disk directory structure.  For example, on a Unix system, the
+      start-commit hook script would be installed at
+      <filename><replaceable>REPOS_PATH</replaceable>/hooks/start-commit</filename>,
+      where it could be a binary executable program, a shell script, a
+      Python program, etc.  On a Windows system, the program would be
+      installed in the same location, but would be
+      named <filename>START-COMMIT.EXE</filename>
+      or <filename>START-COMMIT.BAT</filename> instead of
+      simply <filename>start-commit</filename>.</para>
+      -->
+    <para>对于每一种钩子, Subversion 都会尝试去执行以钩子命名的程序, 这些
+      程序文件位于仓库目录的 <filename>hooks/</filename> 子目录内. 例如, 在
+      一个 Unix 系统中, 钩子 start-commit 对应的程序文件是
+      <filename><replaceable>REPOS_PATH</replaceable>/hooks/start-commit</filename>,
+      它可以是一个二进制可执行程序, shell 脚本 或 Python 脚本等. 在 Windows
+      系统中, 钩子 start-commit 对应的程序文件仍然在相同的目录内, 但文件的名
+      字变成了 <filename>START-COMMIT.EXE</filename> 或
+      <filename>START-COMMIT.BAT</filename>, 而不是 Unix 中的
+      <filename>start-commit</filename>.</para>
+
+      <!--
+    <para>This reference guide describes the various hooks which
+      Subversion offers to administrators, detailing when the hook is
+      invoked, its input parameters, and how its behavior affects the
+      Subversion workflow.</para>
+      -->
+    <para>本章介绍 Subversion 提供的各种钩子, 包括这些钩子何时被调用, 钩子
+      的输入参数, 以及钩子的行为将会如何影响 Subversion 的工作流.</para>
+
+  </partintro>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.start-commit">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>start-commit</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>start-commit</refname>
+      <!--
+      <refpurpose>Notification of the beginning of a commit.</refpurpose>
+      -->
+      <refpurpose>开始一个新提交的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>start-commit
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>USER</replaceable>
+        <replaceable>CAPABILITIES</replaceable>
+        <replaceable>TXN-NAME</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+      
+      <!--
+      <para>The start-commit hook is run immediately after the
+        commit transaction is created and its initial properties
+        set.  It is typically used as an early termination
+        mechanism, avoiding what could be a lengthy commit process
+        which would eventually fail at a later phase anyway due to a
+        user's lack of commit privileges or some other commit
+        metadata validation failure.</para>
+      -->
+      <para>提交事务创建完, 并且初始属性设置完成后, 紧接着就开始执行钩子
+        start-commit. 它的典型用法是作为早期的终止机制, 避免浪费大量的
+        时间等待一个已经确定最终会失败的提交结束, 提交失败的原因可能是用户
+        缺少提交权限, 或者是某些提交元数据验证失败.</para>
+
+      <!--
+      <para>If the start-commit hook program returns a nonzero exit
+        value, the commit process is stopped, the commit transaction
+        is destroyed, and anything printed to
+        <filename>stderr</filename> is marshalled back to the
+        client.</para>
+      -->
+      <para>如果钩子 start-commit 的退出值不为零, 提交过程就会中止, 提交
+        事务也会被销毁, 任何打印到 <filename>stderr</filename> 的信息
+        都会返回给客户端.</para>
+
+      <!--
+      <para>The start-commit hook is not a suitable place to
+        evaluate the substance of a particular commit, as it is
+        invoked before any file or directory change information has
+        been transmitted.  Use the pre-commit hook script (which is
+        described in <xref linkend="svn.ref.reposhooks.pre-commit"
+        /> elsewhere in this reference) for that purpose.</para>
+      -->
+    <para>钩子 start-commit 并非是评价特定提交的实质内容的合适地方,
+      因为它在传送文件或目录的修改信息之前被调用, 此时管理员应该使用
+      钩子 pre-commit (见本章的 <xref linkend="svn.ref.reposhooks.pre-commit"
+        />).</para>
+
+      <note>
+      <!--
+        <para>Prior to Subversion 1.8, the Subversion invoked the
+          start-commit hook <emphasis>before</emphasis> creating the
+          commit transaction.  Failure of the script resulted in that
+          transaction not being created at all.  This was changed in
+          Subversion 1.8, though, to allow implementations of the
+          start-commit hook access to the transaction's properties,
+          which can include (among other things) the revision log
+          associated with the commit.</para>
+      -->
+        <para>在 Subversion 1.8 之前, Subversion 是在创建提交事务
+          <emphasis>之前</emphasis> 调用钩子 start-commit, 如果钩子返回
+          失败, 提交事务就不会被创建. 从 Subversion 1.8 开始不再如此,
+          这是为了让钩子 start-commit 能够访问事务的属性, 事务的属性包括
+          提交的日志消息等.</para>
+      </note>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input Parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username attempting the commit</para>
+      -->
+          <para>尝试向仓库提交的已认证的用户名</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Colon-separated list of
+            capabilities that a client passes to the server,
+            including <literal>depth</literal>,
+            <literal>mergeinfo</literal>, and
+            <literal>log-revprops</literal> (new in Subversion 1.5)</para>
+      -->
+          <para>以冒号分隔的特性 (capabilities) 列表, 这些特性由客户端传递
+            给服务器, 包括 <literal>depth</literal>,
+            <literal>mergeinfo</literal> 和 <literal>log-revprops</literal>
+            (<literal>log-revprops</literal> 在 Subversion 1.5 引入)</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Commit transaction name (new in Subversion 1.8)</para>
+      -->
+          <para>提交事务名 (在 Subversion 1.8 引入)</para>
+        </listitem>
+      </orderedlist>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      -->
+      <title>常见用法</title>
+
+      <!--
+      <para>Access control (e.g., temporarily lock out commits for
+        some reason).</para>
+      -->
+      <para>访问控制 (例如临时禁止向仓库提交修改).</para>
+
+      <!--
+      <para>A means to allow access only from clients that have
+        certain capabilities.</para>
+      -->
+      <para>只允许支持某些特性的客户端向仓库提交修改.</para>
+    </refsect1>
+
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.pre-commit">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>pre-commit</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>pre-commit</refname>
+      <!--
+      <refpurpose>Notification just prior to commit completion.</refpurpose>
+      -->
+      <refpurpose>提交即将完成的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>pre-commit
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>TXN-NAME</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>pre-commit</literal> hook is run just
+        before a commit transaction is promoted to a new revision.
+        Typically, this hook is used to protect against commits that
+        are disallowed due to content or location (e.g., your
+        site might require that all commits to a certain branch
+        include a ticket number from the bug tracker, or that the
+        incoming log message is nonempty).</para>
+      -->
+      <para>钩子 pre-commit 在提交事务即将生成一个新的版本号之前被调用.
+        它的典型用法是禁止内容不符合要求的提交 (例如你的公司可能要求所有
+        的提交日志消息都要包含来自问题跟踪系统的单号, 或者要求日志消息不
+        能为空).</para>
+
+      <!--
+      <para>If the <literal>pre-commit</literal> hook program
+        returns a nonzero exit value, the commit is aborted, the
+        commit transaction is removed, and anything printed to
+        <filename>stderr</filename> is marshalled back to the client.</para>
+      -->
+      <para>如果钩子 pre-commit 的退出值不为零, 提交过程就会中止, 提交事务
+        也会被销毁, 任何打印到 <filename>stderr</filename> 的信息都会返回
+        给客户端.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Commit transaction name</para>
+      -->
+          <para>提交事务名</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Additionally, Subversion passes any lock tokens provided
+        by the committing client to the hook script via standard
+        input.  When present, these are formatted as a single line
+        containing the string <literal>LOCK-TOKENS:</literal>,
+        followed by additional lines&mdash;one per lock
+        token&mdash;which contain the lock token information.  Each
+        lock token information line consists of the URI-escaped
+        repository filesystem path associated with the lock,
+        followed by the pipe (<literal>|</literal>) separator
+        character, and finally the lock token string.</para>
+      -->
+      <para>此外, Subversion 还会把客户端可能提供的所有锁令牌通过标准输入
+        <filename>stdin</filename> 传递给钩子程序. 如果提供了锁令牌, 它们
+        的格式将会是这样: 首先是一行 <literal>LOCK-TOKENS</literal>, 接下
+        来是锁令牌, 每个锁令牌占据单独的一行. 每个锁令牌行都包含了以下这
+        信息: 与锁有关的仓库文件系统路径, 这些路径已经是经过转码后的 URI;
+        然后是管道符 (<literal>|</literal>); 最后是锁令牌字符串.</para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Change validation and control</para>
+      -->
+      <title>常见用法</title>
+      <para>控制和检查修改</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.post-commit">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>post-commit</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>post-commit</refname>
+      <!--
+      <refpurpose>Notification of a successful commit.</refpurpose>
+      -->
+      <refpurpose>成功提交的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>post-commit
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>REVISION</replaceable>
+        <replaceable>TXN-NAME</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>post-commit</literal> hook is run after the
+        transaction is committed and a new revision is created.  Most
+        people use this hook to send out descriptive emails about
+        the commit or to notify some other tool (such as an issue
+        tracker) that a commit has happened.  Some configurations
+        also use this hook to trigger backup processes.</para>
+      -->
+      <para>事务提交并且新的版本号生成后, Subversion 就会执行钩子
+        post-commit. 大多数管理员都会利用 post-commit 向团队成员发送关
+        于新提交的邮件, 或者通知其他工具 (例如一个问题跟踪系统) 有新的提交
+        生成. 有些管理员还会用 post-commit 触发备份操作.</para>
+
+      <!--
+      <para>If the <literal>post-commit</literal> hook returns a
+        nonzero exit status, the commit <emphasis>will
+        not</emphasis> be aborted since it has already
+        completed.  However, anything that the hook printed
+        to <filename>stderr</filename> will be marshalled back to the
+        client, making it easier to diagnose hook failures.</para>
+      -->
+      <para>如果钩子 post-commit 的退出值不为零, 提交过程将
+        <emphasis>不会</emphasis> 中止, 因为这时候提交已经完成了. 但是,
+        钩子打印到 <filename>stderr</filename> 的信息都会返回给客户端, 以
+        便分析钩子失败的原因.</para>
+            
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Revision number created by the commit</para>
+      -->
+          <para>新版号的整数编号</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Name of the transaction that has become the revision triggering
+            the post-commit hook.</para>
+      -->
+          <para>已经变成版本号的事务名, 正是该版本号触发了本次钩子的运行.
+          </para>
+        </listitem>
+      </orderedlist>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Commit notification; tool integration</para>
+      -->
+      <title>常见用法</title>
+      <para>提交通知; 工具集成</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.pre-revprop-change">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>pre-revprop-change</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>pre-revprop-change</refname>
+      <!--
+      <refpurpose>Notification of a revision property change
+        attempt.</refpurpose>
+      -->
+      <refpurpose>版本号属性即将被修改的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>pre-revprop-change
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>REVISION</replaceable>
+        <replaceable>USER</replaceable>
+        <replaceable>PROPNAME</replaceable>
+        <replaceable>ACTION</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>pre-revprop-change</literal> hook is run
+        immediately prior to the modification of a revision property
+        when performed outside the scope of a normal commit.  Unlike
+        the other hooks, the default state of this one is to deny
+        the proposed action.  The hook must actually exist and
+        return a zero exit value before a revision property
+        modification can happen.</para>
+      -->
+      <para>钩子 pre-revprop-change 在版本号属性即将被修改之前调用, 这
+        里所说的版本号修改不是通常提交的一部分. 和其他钩子不同的是,
+        pre-revprop-change 的默认行为是禁止修改版本号属性. 为了允许修改
+        版本号属性, pre-revprop-change 必须显式地以零作为退出值.</para>
+
+      <!--
+      <para>If the <literal>pre-revprop-change</literal> hook doesn't
+        exist, isn't executable, or returns a nonzero exit value, no
+        change to the property will be made, and anything printed
+        to <filename>stderr</filename> is marshalled back to the
+        client.</para>
+      -->
+      <para>如果 pre-revprop-change 没有退出, 或者不可执行, 或者退出值不
+        为零, Subversion 将禁止修改版本号属性, 钩子打印到
+        <filename>stderr</filename> 的信息都会返回给客户端.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Revision whose property is about to be modified</para>
+      -->
+          <para>即将被修改的版本号的整数编号</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username attempting the property change</para>
+      -->
+          <para>试图修改版本号属性的已认证的用户名</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Name of the property changed</para>
+      -->
+          <para>即将被修改的版本号属性的名字</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Change description: <literal>A</literal> (added),
+            <literal>D</literal> (deleted), or <literal>M</literal>
+            (modified)</para>
+      -->
+          <para>用于描述修改类型的字符: <literal>A</literal> (新增的),
+            <literal>D</literal> (被删除的), 或 <literal>M</literal>
+            (被修改的)</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Additionally, Subversion passes the intended new value
+         of the property to the hook program via standard
+         input.</para>
+      -->
+       <para>此外, Subversion 还会把版本号属性的新值通过标准输入
+         <filename>stdin</filename> 传递给钩子程序.</para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Access control; change validation and control</para>
+      -->
+      <title>常见用法</title>
+      <para>访问控制; 控制和检查修改</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.post-revprop-change">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>post-revprop-change</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>post-revprop-change</refname>
+      <!--
+      <refpurpose>Notification of a successful revision property 
+        change.</refpurpose>
+      -->
+      <refpurpose>版本号属性被成功修改的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>post-revprop-change
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>REVISION</replaceable>
+        <replaceable>USER</replaceable>
+        <replaceable>PROPNAME</replaceable>
+        <replaceable>ACTION</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>post-revprop-change</literal> hook is run
+        immediately after the modification of a revision property
+        when performed outside the scope of a normal commit.  As you can
+        derive from the description of its counterpart, the
+        <literal>pre-revprop-change</literal> hook, this hook will
+        not run at all unless
+        the <literal>pre-revprop-change</literal> hook is
+        implemented.  It is typically used to send email
+        notification of the property change.</para>
+      -->
+      <para>钩子 post-revprop-change 在版本号属性被修改完成后立即执行, 这
+        里所说的版本号修改不是通常提交的一部分. 从前面对钩子
+        pre-revprop-change 的介绍读者应该可以很容易推断出, 除非提供了
+        pre-revprop-change, 否则的话 post-revprop-change 根本没机会执行.
+        这个钩子的典型用途是发邮件通知版本号属性被修改了.</para>
+
+      <!--
+      <para>If the <literal>post-revprop-change</literal> hook returns a
+        nonzero exit status, the change <emphasis>will
+        not</emphasis> be aborted since it has already
+        completed.  However, anything that the hook printed
+        to <filename>stderr</filename> will be marshalled back to the
+        client, making it easier to diagnose hook failures.</para>
+      -->
+      <para>如果钩子 post-revprop-change 的退出值不为零, 那么针对版本号属性
+        的修改将 <emphasis>不会</emphasis> 被中止, 因为这时候修改已经完成了.
+        但是, 钩子打印到 <filename>stderr</filename> 的信息都会返回给客户端,
+        以便分析钩子失败的原因.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Revision whose property was modified</para>
+      -->
+          <para>属性即将被修改的版本号的整数编号</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username of the person making the change</para>
+      -->
+          <para>修改版本号属性的已认证的用户名</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Name of the property changed</para>
+      -->
+          <para>被修改的版本号属性的名字</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Change description: <literal>A</literal> (added),
+            <literal>D</literal> (deleted), or <literal>M</literal>
+            (modified)</para>
+      -->
+          <para>用于描述修改类型的字符: <literal>A</literal> (新增的),
+            <literal>D</literal> (被删除的), 或 <literal>M</literal>
+            (被修改的)</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Additionally, Subversion passes to the hook program, via
+        standard input, the previous value of the property.</para>
+      -->
+       <para>此外, Subversion 还会把版本号属性的旧值通过标准输入
+         <filename>stdin</filename> 传递给钩子程序.</para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Property change notification</para>
+      -->
+      <title>常见用法</title>
+      <para>通知人们有版本号属性被修改了</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.pre-lock">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>pre-lock</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>pre-lock</refname>
+      <!--
+      <refpurpose>Notification of a path lock attempt.</refpurpose>
+      -->
+      <refpurpose>有人试图锁定某一路径的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>pre-lock
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>PATH</replaceable>
+        <replaceable>USER</replaceable>
+        <replaceable>COMMENT</replaceable>
+        <replaceable>STEAL</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>pre-lock</literal> hook runs whenever
+        someone attempts to lock a path.  It can be used to prevent
+        locks altogether or to create a more complex policy
+        specifying exactly which users are allowed to lock
+        particular paths.  If the hook notices a preexisting lock,
+        it can also decide whether a user is allowed
+        to <quote>steal</quote> the existing lock.</para>
+      -->
+      <para>每当有人尝试对某个路径进行锁定时, 就会触发钩子 pre-lock. 它可以
+        用于禁止锁定, 或者根据策略来决定哪些用户可以锁定特定的路径. 如果钩子
+        发现路径已经被其他人锁定了, 它还可以决定用户是否可以
+        <quote>窃取</quote> 其他人的锁.</para>
+
+      <!--
+      <para>If the <literal>pre-lock</literal> hook program returns
+        a nonzero exit value, the lock action is aborted and
+        anything printed to <filename>stderr</filename> is
+        marshalled back to the client.</para>
+      -->
+      <para>如果钩子 pre-lock 的退出值不为零, 锁定操作将被中止, 任何打印到
+        <filename>stderr</filename> 的信息都会返回给客户端.</para>
+
+      <!--
+      <para>The hook program may optionally dictate the lock token
+        which will be assigned to the lock by printing the desired
+        lock token to standard output.  Because of this,
+        implementations of this hook should carefully avoid
+        unexpected output sent to standard output.</para>
+      -->
+      <para>钩子 pre-lock 可以口述锁令牌, 方法是把锁令牌打印到标准输出中,
+        这个锁令牌将会被分配给锁. 正因为如此, 在实现钩子 pre-lock 时, 注意
+        不要往标准输出中打印不必要的信息.</para>
+
+      <warning>
+      <!--
+        <para>If the <literal>pre-lock</literal> script takes
+          advantage of lock token dictation feature, the
+          responsibility of generating a <emphasis>unique</emphasis>
+          lock token falls to the script itself.  Failure to
+          generate unique lock tokens may result in
+          undefined&mdash;and very likely,
+          undesired&mdash;behavior.</para>
+      -->
+        <para>如果钩子 pre-lock 往标准输出中打印了锁令牌, 那么钩子程序自己
+          要负责保证生成的锁令牌是 <emphasis>独一无二</emphasis> 的. 如果
+          不能生成独一无二的锁令牌, 那么将导致未定义的&mdash;很可能是不希望
+          看到的&mdash;行为.</para>
+      </warning>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Versioned path that is to be locked</para>
+      -->
+          <para>将被锁定的路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username of the person attempting the 
+            lock</para>
+      -->
+          <para>尝试加锁的已认证的用户名</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Comment provided when the lock was created</para>
+      -->
+          <para>由用户提供的锁注释</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para><literal>1</literal> if the user is attempting to
+            steal an existing lock; <literal>0</literal>
+            otherwise</para>
+      -->
+          <para><literal>1</literal> (如果用户试图窃取一个已存在的锁) 或
+            <literal>0</literal> (用户不想窃取锁)</para>
+        </listitem>
+      </orderedlist>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Access control</para>
+      -->
+      <title>常见用法</title>
+      <para>访问控制</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.post-lock">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>post-lock</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>post-lock</refname>
+      <!--
+      <refpurpose>Notification of a successful path lock.</refpurpose>
+      -->
+      <refpurpose>路径被成功锁定的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>post-lock
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>USER</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>post-lock</literal> hook runs after one or
+        more paths have been locked.  It is typically used to send
+        email notification of the lock event.</para>
+      -->
+      <para>钩子 post-lock 在一个或多个路径被成功锁定后执行, 它的典型用法
+        是发送路径被锁定的通知邮件.</para>
+
+      <!--
+      <para>If the <literal>post-lock</literal> hook returns a
+        nonzero exit status, the lock <emphasis>will
+        not</emphasis> be aborted since it has already
+        completed.  However, anything that the hook printed
+        to <filename>stderr</filename> will be marshalled back to the
+        client, making it easier to diagnose hook failures.</para>
+      -->
+      <para>如果钩子 post-lock 的退出值不为零, 那么锁定操作将
+        <emphasis>不会</emphasis> 被中止, 因此这时候锁定操作已经完成了,
+        但是钩子程序打印到 <filename>stderr</filename> 的所有信息都会返回
+        给客户端, 以便分析钩子失败的原因.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username of the person who locked the 
+            paths</para>
+      -->
+          <para>锁定路径的已认证的用户名</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Additionally, the list of paths locked is passed to the
+        hook program via standard input, one path per line.</para>
+      -->
+      <para>另外, 被锁定的路径列表将通过标准输入传递给钩子程序, 每行一个.
+      </para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Lock notification</para>
+      -->
+      <title>常见用法</title>
+      <para>路径被锁定的通知</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.pre-unlock">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>pre-unlock</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>pre-unlock</refname>
+      <!--
+      <refpurpose>Notification of a path unlock attempt.</refpurpose>
+      -->
+      <refpurpose>有人试图解锁某一路径的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>pre-unlock
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>PATH</replaceable>
+        <replaceable>USER</replaceable>
+        <replaceable>TOKEN</replaceable>
+        <replaceable>BREAK-UNLOCK</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>pre-unlock</literal> hook runs whenever
+        someone attempts to remove a lock on a file.  It can be used
+        to create policies that specify which users are allowed to
+        unlock particular paths.  It's particularly important for
+        determining policies about lock breakage.  If user A locks a
+        file, is user B allowed to break the lock?  What if the lock
+        is more than a week old?  These sorts of things can be
+        decided and enforced by the hook.</para>
+      -->
+      <para>如果有人试图解决某一路径, 就会触发钩子 pre-unlock. 它可以用于
+        决定哪些用户可以解锁特定的路径, 尤其是决定锁的破坏策略, 例如当用户
+        A 已经锁定了一个文件时, 这时候是否应该允许用户 B 破坏锁? 如果锁已经
+        持有一周了呢? 这些考虑都可以放在钩子 pre-unlock 里实现.</para>
+
+      <!--
+      <para>If the <literal>pre-unlock</literal> hook program
+        returns a nonzero exit value, the unlock action is aborted
+        and anything printed to <filename>stderr</filename> is marshalled back to the
+        client.</para>
+      -->
+      <para>如果钩子 pre-unlock 的退出值不为零, 解锁操作将被中止, 任何打印到
+        <filename>stderr</filename> 的信息都会返回给客户端.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Versioned path which is to be unlocked</para>
+      -->
+          <para>将被解锁的路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username of the person attempting the 
+            unlock</para>
+      -->
+          <para>试图解锁路径的已认证的用户名</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Lock token associated with the lock which is to be
+            removed</para>
+      -->
+          <para>与锁有关的锁令牌</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para><literal>1</literal> if the user is attempting to
+            break the lock; <literal>0</literal> otherwise</para>
+      -->
+          <para><literal>1</literal> (如果用户试图破坏锁); <literal>0</literal>
+            (用户不想破坏锁)</para>
+        </listitem>
+      </orderedlist>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Access control</para>
+      -->
+      <title>常见用法</title>
+      <para>访问控制</para>
+    </refsect1>
+  
+  </refentry>
+      
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.reposhooks.post-unlock">
+  
+    <indexterm>
+      <primary>hook scripts</primary>
+      <secondary>post-unlock</secondary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>post-unlock</refname>
+      <!--
+      <refpurpose>Notification of a successful path unlock.</refpurpose>
+      -->
+      <refpurpose>路径被成功解锁的通知.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>post-unlock
+        <replaceable>REPOS-PATH</replaceable>
+        <replaceable>USER</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <literal>post-unlock</literal> hook runs after one
+        or more paths have been unlocked.  It is typically used to
+        send email notification of the unlock event.</para>
+      -->
+      <para>钩子 post-unlock 在一个或多个路径被成功解锁后执行, 它的典型用法
+        是发送路径被解锁的通知邮件.</para>
+
+      <!--
+      <para>If the <literal>post-unlock</literal> hook returns a
+        nonzero exit status, the unlock <emphasis>will
+        not</emphasis> be aborted since it has already
+        completed.  However, anything that the hook printed
+        to <filename>stderr</filename> will be marshalled back to the
+        client, making it easier to diagnose hook failures.</para>
+      -->
+      <para>如果钩子 post-unlock 的退出值不为零, 那么解锁操作将
+        <emphasis>不会</emphasis> 被中止, 因此这时候解锁操作已经完成了,
+        但是钩子程序打印到 <filename>stderr</filename> 的所有信息都会返回
+        给客户端, 以便分析钩子失败的原因.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Input parameter(s)</title>
+      -->
+      <title>输入参数</title>
+
+      <!--
+      <para>The command-line arguments passed to the hook program,
+        in order, are:</para>
+      -->
+      <para>传递给钩子程序的命令行参数, 按照出现的顺序来说, 有:</para>
+      
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Repository path</para>
+      -->
+          <para>仓库路径</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Authenticated username of the person who unlocked the 
+            paths</para>
+      -->
+          <para>解锁路径的已认证的用户名</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Additionally, the list of paths unlocked is passed to the
+        hook program via standard input, one path per line.</para>
+      -->
+      <para>另外, 被解锁的路径列表将通过标准输入传递给钩子程序, 每行一个.
+      </para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Common uses</title>
+      <para>Unlock notification</para>
+      -->
+      <title>常见用法</title>
+      <para>解锁通知</para>
+    </refsect1>
+  
+  </refentry>
+</reference>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "reference")
+end:
+-->

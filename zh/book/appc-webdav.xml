@@ -1,0 +1,1164 @@
+<!-- -*- sgml -*- -->
+
+<appendix id="svn.webdav">
+      <!--
+  <title>WebDAV and Autoversioning</title>
+      -->
+  <title>WebDAV 与自动版本控制</title>
+
+      <!--
+  <para>WebDAV is an extension to HTTP, and it is growing more
+    and more popular as a standard for file sharing.  Today's
+    operating systems are becoming extremely web-aware, and many now
+    have built-in support for mounting <quote>shares</quote> exported
+    by WebDAV servers.</para>
+      -->
+  <para>WebDAV 是一个 HTTP 扩展, 作为一种文件共享标准, 它正变得越来越流行.
+    现在的操作系统越来越注重网络方面的支持, 并且很多系统都把挂载 WebDAV
+    服务器导出的目录作为内建功能.</para>
+
+      <!--
+  <para>If you use Apache as your Subversion network server, to
+    some extent you are also running a WebDAV server.  This appendix
+    gives some background on the nature of this protocol, how
+    Subversion uses it, and how well Subversion interoperates with
+    other software that is WebDAV-aware.</para>
+      -->
+  <para>如果你使用 Apache 作为 Subversion 的服务器, 那么这同时也意味着
+    你使用了 WebDAV 服务器. 本附录将介绍 WebDAV 协议的背景知识, Subversion
+    如何使用它, 以及 Subversion 如何与支持 WebDAV 的其他软件进行互操作.
+  </para>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.webdav.basic">
+      <!--
+    <title>What Is WebDAV?</title>
+      -->
+    <title>什么是 WebDAV?</title>
+
+    <para>
+      <indexterm>
+        <primary>WebDAV</primary>
+      </indexterm>
+      <firstterm>DAV</firstterm> 表示 <quote>分布式创作与版本控制</quote>
+      (Distributed Authoring and Versioning). RFC 2518 为 HTTP 1.1 定义了
+      一系列的概念和相应的扩展, 使得 Web 成为一个更加通用的读写媒介. RFC
+      2518 的基本思想是支持 WebDAV 的服务器看起来就像是一个普通的文件服务器,
+      客户端可以 <quote>挂载</quote> 基于 HTTP 协议的共享目录, 这些共享目录
+      就像其他网络文件系统那样 (例如 NFS 和 SMB).</para>
+      <!--
+      <firstterm>DAV</firstterm> stands
+      for <quote>Distributed Authoring and Versioning.</quote> RFC
+      2518 defines a set of concepts and accompanying extension
+      methods to HTTP 1.1 that make the Web a more universal
+      read/write medium.  The basic idea is that a WebDAV-compliant
+      web server can act like a generic file server; clients
+      can <quote>mount</quote> shared folders over HTTP that behave
+      much like other network filesystems (such as NFS or SMB).</para>
+      -->
+
+      <!--
+    <para>The tragedy, though, is that despite the acronym, the RFC
+      specification doesn't actually describe any sort of version
+      control.  Basic WebDAV clients and servers assume that only one
+      version of each file or directory exists, and that it can be
+      repeatedly overwritten.</para>
+      -->
+    <para>但不幸的是, 撇开名字不说, RFC 2518 并没有介绍任何形式的版本控制,
+      最基本的 WebDAV 客户端和服务器都假设文件或目录只存在一个版本, 而且可以
+      被重复写入.</para>
+
+      <!--
+    <para>Because RFC 2518 left out versioning concepts, another
+      committee was left with the responsibility of writing RFC 3253 a
+      few years later.  The new RFC adds versioning concepts to
+      WebDAV, placing the <quote>V</quote> back in
+      <quote>DAV</quote>&mdash;hence the term <quote>DeltaV.</quote>
+      WebDAV/DeltaV clients and servers are often called just
+      <quote>DeltaV</quote> programs, since DeltaV implies the
+      existence of basic WebDAV.</para>
+      -->
+    <para>由于 RFC 2518 没有介绍与版本控制相关的内容, 几年后, 另一个委员会
+      开始负责起草 RFC 3253. 新的 RFC 为 WebDAV 添加了与版本控制相关的内容,
+      在 <quote>DAV</quote> 后面加上了 <quote>V</quote>&mdash;于是有了术语
+      <quote>DeltaV</quote>. WebDAV/DeltaV 客户端和服务器经常被称作
+      <quote>DeltaV</quote> 程序, 因为 DeltaV 是 WebDAV 的超集.</para>
+
+      <!--
+    <para>The original WebDAV standard has been widely successful.
+      Every modern computer operating system has a general WebDAV
+                       ### TODO
+      client built in (details to follow), and a number of popular
+      standalone applications are also able to speak
+      WebDAV&mdash;Microsoft Office, Dreamweaver, and Photoshop, to
+      name a few.  On the server end, Apache HTTP Server has been
+      able to provide WebDAV services since 1998 and is considered the
+      de facto open source standard.  Several other
+      commercial WebDAV servers are available, including Microsoft's own
+      IIS.</para>
+      -->
+    <para>原始的 WebDAV 标准获得了广泛的支持. 每一个现代化的操作系统都自带了
+      一个通用的 WebDAV 客户端 (后面会谈到细节), 还有很多流行的独立应用程序
+      都支持 WebDAV&mdash;Microsoft Office, Dreamweaver, 和 Photoshop.
+      在服务器端, Apache HTTP 服务器从 1998 年起就开始提供 WebDAV 服务, 除
+      了开源软件, 还有商业 WebDAV 服务器可供使用, 例如 Microsoft 的 II.</para>
+
+      <!--
+    <para>DeltaV, unfortunately, has not been so successful.  It's
+      very difficult to find any DeltaV clients or servers.  The few
+      that do exist are relatively unknown commercial products, and
+      thus it's very difficult to test interoperability.  It's not
+      entirely clear as to why DeltaV has remained stagnant.  Some
+      opine that the specification is just too complex.  Others argue
+      that while WebDAV's features have mass appeal (even the least
+      technical users appreciate network file sharing), its version
+      control features just aren't interesting or necessary for most
+      users.  Finally, some believe that DeltaV remains unpopular
+      because there's still no open source server product that
+      implements it well.</para>
+      -->
+    <para>但不幸的是, DeltaV 就没这么成功. 支持 DeltaV 的客户端或服务器
+      非常少, 即使有, 也是不怎么知名的商业产品, 而且在不同产品之间进行互操作非
+      常困难. DeltaV 如此不受待见的原因不是非常清楚, 但有人觉得这是因为规范实
+      在太复杂了, 还有人觉得是 WebDAV 的功能已经足够吸引人了 (即使是最不懂技术
+      的用户也非常喜欢网络文件共享功能), 对于大多数用户而已, 版本控制功能并
+      不是非常有必要, 还有人觉得是因为还未出现支持 DeltaV 的开源服务器.</para>
+
+      <!--
+    <para>When Subversion was still in its design phase, it seemed
+      like a great idea to use Apache as a network server.  It already
+      had a module to provide WebDAV services.  DeltaV was a
+      relatively new specification.  The hope was that the Subversion
+      server module (<command>mod_dav_svn</command>) would eventually
+      evolve into an open source DeltaV reference implementation.
+      Unfortunately, DeltaV has a very specific versioning model that
+      doesn't quite line up with Subversion's model.  Some concepts
+      were mappable; others were not.</para>
+      -->
+    <para>当 Subversion 还处于设计阶段时, 设计人员就觉得把 Apache 作为网络
+      服务器是一个好主意, 那时它已经具备了一个可以提供 WebDAV 服务的模块.
+      DeltaV 在当时是一个相对较新的规范, 开发人员希望 Subversion 的服务器
+      模块 (<command>mod_dav_svn</command>) 最终可以演变成 DeltaV 的开源实现.
+      但不幸的是, DeltaV 有一个非常明确的版本控制模型, 而这个模型与 Subversion
+      并非完全契合, 有些概念可以互相映射, 但有些不行.</para>
+
+      <!--
+    <para>What does this mean, then?</para>
+      -->
+    <para>那么这会导致什么后果?</para>
+
+      <!--
+    <para>First, the Subversion client is not a fully implemented
+      DeltaV client.  It needs certain types of things from the server
+      that DeltaV itself cannot provide, and thus is largely dependent
+      on a number of Subversion-specific
+      HTTP <literal>REPORT</literal> requests that
+      only <command>mod_dav_svn</command> understands.</para>
+      -->
+    <para>首先, Subversion 客户端并非是一个 DeltaV 客户端的完整实现. DeltaV
+      无法提供 Subversion 客户端所需的某些特定信息, 后者非常依赖于 Subversion
+      特有的 HTTP <literal>REPORT</literal> 请求, 而这些请求只有
+      <command>mod_dav_svn</command> 能够支持.</para>
+
+      <!--
+    <para>Second, <command>mod_dav_svn</command> is not a
+      fully realized DeltaV server.  Many portions of the DeltaV
+      specification were irrelevant to Subversion, and thus were left
+      unimplemented.</para>
+      -->
+    <para>然后, <command>mod_dav_svn</command> 也不是一个 DeltaV 服务器的完整
+      实现. DeltaV 规范中的很多内容对 Subversion 没什么用, 于是
+      <command>mod_dav_svn</command> 就没有实现它们.</para>
+
+      <!--
+    <para>A long-held debate in the Subversion developer community
+      about whether it was worthfile to remedy either of these
+      situations eventually reached closure, with the Subversion
+      developers officially deciding to abandon plans to fully support
+      DeltaV.  As of Subversion 1.7, Subversion clients and servers
+      introduce numerous non-standard simplifications of the DeltaV
+      standards<footnote><para>The Subversion developers colloquially
+      refer to this deviation from the DeltaV standard
+      as <quote>HTTPv2</quote>.</para></footnote>, with more
+      customizations of this sort likely to come.  Those versions of
+      Subversion will, of course, continue to provide the same DeltaV
+      feature support already present in older releases, but no new
+      work will be done to increase coverage of the
+      specification&mdash;Subversion is intentionally moving away from
+      strict DeltaV as its primary HTTP-based protocol.</para>
+      -->
+    <para>对于是否要去纠正上面所说的两种结果, Subversion 开发者社区最终达成
+      了一致, 他们正式宣布放弃完全支持 DeltaV 的计划. 在 Subversion 1.7,
+      客户端和服务器引入了大量的, 不标准的 DeltaV 简化实现<footnote><para>
+          Subversion 开发人员把这种 DeltaV 标准的变体非正式地称为
+          <quote>HTTPv2</quote>.</para></footnote> 以后可能还会出现更多的
+      定制化实现. 新版 Subversion 仍然会继续提供旧版 Subversion 已有的 DeltaV
+      功能, 但不会继续增加对 DeltaV 标准规范的支持&mdash;Subversion 已经放弃
+      把严格的 DeltaV 作为它的主要的, 基于 HTTP 的协议.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.webdav.autoversioning">
+      <!--
+    <title>Autoversioning</title>
+      -->
+    <title>自动版本控制</title>
+
+    <para>
+      <indexterm>
+        <primary>WebDAV</primary>
+        <secondary>autoversioning</secondary>
+      </indexterm>
+      虽然 Subversion 客户端和服务器都不是一个完整的 DeltaV 客户端和服务器,
+      但仍然存在值得人们高兴的 WebDAV 互操作性:
+      <firstterm>自动版本控制</firstterm>
+      (<firstterm>autoversioning</firstterm>).</para>
+      <!--
+      While the Subversion client is not a full DeltaV client, and
+      the Subversion server is not a full DeltaV server, there's still a
+      glimmer of WebDAV interoperability to be happy about:
+      <firstterm>autoversioning</firstterm>.</para>
+      -->
+
+      <!--
+    <para>Autoversioning is an optional feature defined in the DeltaV
+      standard.  A typical DeltaV server will reject an ignorant
+      WebDAV client attempting to do a <literal>PUT</literal> to a
+      file that's under version control.  To change a
+      version-controlled file, the server expects a series of proper
+      versioning requests: something like
+      <literal>MKACTIVITY</literal>, <literal>CHECKOUT</literal>,
+      <literal>PUT</literal>, <literal>CHECKIN</literal>.  But if the
+      DeltaV server supports autoversioning, write requests from
+      basic WebDAV clients are accepted.  The server behaves as though the
+      client <emphasis>had</emphasis> issued the proper series of
+      versioning requests, performing a commit under the hood.  In
+      other words, it allows a DeltaV server to interoperate with
+      ordinary WebDAV clients that don't understand versioning.</para>
+      -->
+    <para>自动版本控制是 DeltaV 标准定义的可选功能. 如果客户端尝试在一个
+      被版本控制的文件上执行 <literal>PUT</literal> 操作, 一个典型的 DeltaV
+      服务器将会拒绝这个操作. 为了修改被版本控制的文件, 服务器希望收到一系列
+      合理的版本控制请求, 就像 <literal>MKACTIVITY</literal>,
+      <literal>CHECKOUT</literal>, <literal>PUT</literal> 和
+      <literal>CHECKIN</literal>. 但是, 如果 DeltaV 服务器支持自动版本控制,
+      来自 WebDAV 客户端的写请求将会被接受, 服务器的表现就像是客户端
+      <emphasis>已经</emphasis> 发送了一系列的版本控制请求, 并且在底层执行
+      了提交操作. 换句话说, 自动版本控制允许 DeltaV 服务器与普通的, 不了解
+      版本控制的 WebDAV 客户端实现互操作.</para>
+
+      <!--
+    <para>Because so many operating systems already have integrated
+      WebDAV clients, the use case for this feature can be incredibly
+      appealing to administrators working with non-technical users.
+      Imagine an office of ordinary users running Microsoft Windows or
+      Mac OS.  Each user <quote>mounts</quote> the Subversion
+      repository, which appears to be an ordinary network folder.
+      They use the shared folder as they always do:  open files, edit
+      them, and save them.  Meanwhile, the server is automatically
+      versioning everything.  Any administrator (or knowledgeable
+      user) can still use a Subversion client to search history and
+      retrieve older versions of data.</para>
+      -->
+    <para>由于很多操作系统已经内建了 WebDAV 客户端, 因此自动版本控制对于
+      经常和非技术用户打交道的管理员来说非常有吸引力. 假设在一个由普通人组成
+      的办公室中, 人们都是使用 Microsoft Windows 和 Mac OS, 每个人都
+      <quote>挂载</quote> 了 Subversion 仓库, 看起来就是一个普通的网络共享
+      目录, 他们可以按照和原来一样的步骤使用共享目录: 打开文件, 编辑文件,
+      然后保存. 同时, 版本控制将由服务器自动完成. 管理员 (或懂得技术的用户)
+      仍然可以使用 Subversion 客户端来搜索修改历史和检索数据的旧版本.</para>
+
+      <!--
+    <para>This scenario isn't fiction&mdash;it's real and it works.
+      To activate autoversioning in <command>mod_dav_svn</command>,
+      use the <literal>SVNAutoversioning</literal> directive within
+      the <filename>httpd.conf</filename> <literal>Location</literal>
+      block, like so:</para>
+      -->
+    <para>上面所说的场景并非虚构&mdash;它是真实存在的, 而且工作得很好. 为了
+      开启 <command>mod_dav_svn</command> 的自动版本控制功能, 在 Apache
+      配置文件 <filename>httpd.conf</filename> 的
+      <literal>Location</literal> 配置块里, 加上配置指令
+      <literal>SVNAutoversioning</literal>, 就像:</para>
+
+    <informalexample>
+      <programlisting>
+&lt;Location /repos&gt;
+  DAV svn
+  SVNPath /var/svn/repository
+  SVNAutoversioning on
+&lt;/Location&gt;
+</programlisting>
+    </informalexample>
+
+      <!--
+    <para>When Subversion autoversioning is active, write requests
+      from WebDAV clients result in automatic commits.  A generic log
+      message is automatically generated and attached to each
+      revision.</para>
+      -->
+    <para>当 Subversion 的自动版本控制功能开启后, 来自 WebDAV 客户端的写
+      请求将会生成自动的提交, 其日志消息也是自动生成.</para>
+
+      <!--
+    <para>Before activating this feature, however, understand what
+      you're getting into.  WebDAV clients tend to do
+      <emphasis>many</emphasis> write requests, resulting in a huge
+      number of automatically committed revisions.  For example, when
+      saving data, many clients will do a <literal>PUT</literal> of a
+      0-byte file (as a way of reserving a name) followed by another
+      <literal>PUT</literal> with the real file data.  The single
+      file-write results in two separate commits.  Also consider that
+      many applications auto-save every few minutes, resulting in even
+      more commits.</para>
+      -->
+    <para>在开启自动版本控制之前, 管理员需要明白这会导致什么后果. WebDAV
+      客户端倾向于执行 <quote>很多</quote> 写请求, 这会产生更多的自动提交.
+      例如, 保存文件时, 许多 WebDAV 客户端将先做一次空文件的
+      <literal>PUT</literal> 操作 (为了占住文件名), 接下来再为真正的文件
+      内容做另一次 <literal>PUT</literal> 操作, 一次单独的写操作将生成两
+      次分开的提交. 同时还要考虑到很多应用程序每隔几分钟, 就会自动保存一次,
+      这会产生更多的自动提交.</para>
+
+      <!--
+    <para>If you have a post-commit hook program that sends email, you
+      may want to disable email generation either altogether or on
+      certain sections of the repository; it depends on whether you
+      think the influx of emails will still prove to be valuable
+      notifications or not.  Also, a smart post-commit hook program
+      can distinguish between a transaction created via autoversioning
+      and one created through a normal Subversion commit operation.
+      The trick is to look for a revision property
+      named <literal>svn:autoversioned</literal>.  If present, the
+      commit was made by a generic WebDAV client.</para>
+      -->
+    <para>如果管理员使用钩子 post-commit 来发送邮件, 那么他可能想要完全禁止
+      或者只在仓库的某些部分上禁止邮件通知, 这取决于管理员是否还觉得大量
+      涌入的通知邮件仍然值得阅读. 另外, 一个聪明的 post-commit 应该能够
+      区分某个提交是由自动版本控制生成的, 还是由通常的 Subversion 提交操作
+      生成的, 区分的技巧是查看版本号属性 <literal>svn:autoversioned</literal>,
+      如果该属性存在, 则说明该版本号是由 WebDAV 客户端导致的.</para>
+
+      <!--
+    <para>Another feature that may be a useful complement for
+      Subversion's autoversioning comes from Apache's
+      <command>mod_mime</command> module.  If a WebDAV client adds a
+      new file to the repository, there's no opportunity for the user
+      to set the the <literal>svn:mime-type</literal> property.  This
+      might cause the file to appear as a generic icon when viewed
+      within a WebDAV shared folder, not having an association with
+      any application.  One remedy is to have a sysadmin (or other
+      Subversion-knowledgeable person) check out a working copy and
+      manually set the <literal>svn:mime-type</literal> property on
+      necessary files.  But there's potentially no end to such cleanup
+      tasks.  Instead, you can use the
+      <literal>ModMimeUsePathInfo</literal> directive in your
+      Subversion <literal>&lt;Location&gt;</literal> block:</para>
+      -->
+    <para>为了使 Subversion 的自动版本控制更加完整, 需要用到 Apache 的
+      <command>mod_mime</command> 模块. 如果 WebDAV 客户端为仓库添加了一个
+      新文件, 用户将没有机会设置新文件的 <literal>svn:mime-type</literal>
+      属性, 这可能会导致当用户在 WebDAV 共享目录中浏览文件时, 文件的图标
+      是一个通用图标, 不与任何打开程序关联. 一种解决办法是由管理员 (或懂得
+      技术的用户) 检出一个工作副本, 然后手工修改文件的
+      <literal>svn:mime-type</literal> 属性. 但这种做法似乎很麻烦, 特别是当
+      文件数量特别巨大时, 更好的做法是在 Apache 配置文件
+      <filename>httpd.conf</filename> 的 <literal>Location</literal> 配置块里,
+      加上配置指令 <literal>ModMimeUsePathInfo</literal>:</para>
+
+    <informalexample>
+      <programlisting>
+&lt;Location /repos&gt;
+  DAV svn
+  SVNPath /var/svn/repository
+  SVNAutoversioning on
+
+  ModMimeUsePathInfo on
+
+&lt;/Location&gt;
+</programlisting>
+    </informalexample>
+
+      <!--
+    <para>This directive allows <command>mod_mime</command> to attempt
+      automatic deduction of the MIME type on new files that enter the
+      repository via autoversioning.  The module looks at the file's
+      named extension and possibly the contents as well; if the file
+      matches some common patterns, the
+      file's <literal>svn:mime-type</literal> property will be set
+      automatically.</para>
+      -->
+    <para>当新文件通过自动版本控制被添加到仓库中时, 配置指令
+      <literal>ModMimeUsePathInfo</literal> 允许 <command>mod_mime</command>
+      模块去尝试推导新文件的 MIME 类型. 为了推导文件的 MIME 类型,
+      <command>mod_mime</command> 模块会去查看文件的推展名和内容, 如果符合
+      某种常见模式, 将自动设置 <literal>svn:mime-type</literal> 属性.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.webdav.clients">
+      <!--
+    <title>Client Interoperability</title>
+      -->
+    <title>客户端互操作性</title>
+
+    <para>
+      <indexterm>
+        <primary>WebDAV</primary>
+        <secondary>client support</secondary>
+      </indexterm>
+      所有的 WebDAV 客户端实现都可以分为三类&mdash;独立的应用程序, 文件浏览器
+      扩展和文件系统实现. 这三种类型基本上规定了用户可享受到的 WebDAV 功能
+      类型. <xref linkend="svn.webdav.clients.tbl-1"/> 给出几种 WebDAV 客户
+      端软件的分类, 以及简短的介绍. 读者可以在下面的章节里看到关于这些软件更
+      详细的信息.</para>
+      <!--
+      All WebDAV clients fall into one of three
+      categories&mdash;standalone applications, file-explorer
+      extensions, or filesystem implementations.  These categories
+      broadly define the types of WebDAV functionality available to
+      users.  <xref linkend="svn.webdav.clients.tbl-1"/> gives our
+      categorization as well as a quick description of some common pieces of
+      WebDAV-enabled software.  You can find more details about these software
+      offerings, as well as their general category, in
+      the sections that follow.</para>
+      -->
+
+    <table id="svn.webdav.clients.tbl-1">
+      <!--
+      <title>Common WebDAV clients</title>
+      -->
+      <title>常见的 WebDAV 客户端软件</title>
+      <tgroup cols="6">
+        <thead>
+          <row>
+      <!--
+            <entry>Software</entry>
+            <entry>Type</entry>
+            <entry>Windows</entry>
+            <entry>Mac</entry>
+            <entry>Linux</entry>
+            <entry>Description</entry>
+      -->
+            <entry>软件</entry>
+            <entry>类型</entry>
+            <entry>Windows</entry>
+            <entry>Mac</entry>
+            <entry>Linux</entry>
+            <entry>描述</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry>Adobe Photoshop</entry>
+      <!--
+            <entry>Standalone WebDAV application</entry>
+      -->
+            <entry>独立的 WebDAV 应用程序</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>Image editing software, allowing direct opening
+              from, and writing to, WebDAV URLs</entry>
+      -->
+            <entry>图片编辑软件, 支持直接读写由 WebDAV URL 指定的文件</entry>
+          </row>
+          <row>
+            <entry>cadaver</entry>
+      <!--
+            <entry>Standalone WebDAV application</entry>
+      -->
+            <entry>独立的 WebDAV 应用程序</entry>
+            <entry></entry>
+            <entry>X</entry>
+            <entry>X</entry>
+      <!--
+            <entry>Command-line WebDAV client supporting file
+                       ### TODO
+              transfer, tree, and locking operations</entry>
+      -->
+            <entry>命令行 WebDAV 客户端, 支持文件浏览和加锁, 解锁</entry>
+          </row>
+          <row>
+            <entry>DAV Explorer</entry>
+      <!--
+            <entry>Standalone WebDAV application</entry>
+      -->
+            <entry>独立的 WebDAV 应用程序</entry>
+            <entry>X</entry>
+            <entry>X</entry>
+            <entry>X</entry>
+      <!--
+            <entry>Java GUI tool for exploring WebDAV shares</entry>
+      -->
+            <entry>Java GUI 工具, 用于浏览 WebDAV 共享目录</entry>
+          </row>
+          <row>
+            <entry>Adobe Dreamweaver</entry>
+      <!--
+            <entry>Standalone WebDAV application</entry>
+      -->
+            <entry>独立的 WebDAV 应用程序</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>Web production software able to directly read from
+              and write to WebDAV URLs</entry>
+      -->
+            <entry>Web 开发软件, 支持直接读写由 WebDAV URL 指定的文件</entry>
+          </row>
+          <row>
+            <entry>Microsoft Office</entry>
+      <!--
+            <entry>Standalone WebDAV application</entry>
+      -->
+            <entry>独立的 WebDAV 应用程序</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>Office productivity suite with several components
+              able to directly read from and write to WebDAV
+              URLs</entry>
+      -->
+            <entry>办公套件, 其中的几个组件支持直接读写由 WebDAV URL 指定的
+              文件</entry>
+          </row>
+          <row>
+            <entry>Microsoft Web Folders</entry>
+      <!--
+            <entry>File-explorer WebDAV extension</entry>
+      -->
+            <entry>文件浏览器 WebDAV 扩展</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>GUI file explorer program able to perform tree
+              operations on a WebDAV share</entry>
+      -->
+            <entry>GUI 文件浏览器程序, 支持在 WebDAV 共享目录上执行目录树
+              操作</entry>
+          </row>
+          <row>
+            <entry>GNOME Nautilus</entry>
+      <!--
+            <entry>File-explorer WebDAV extension</entry>
+      -->
+            <entry>文件浏览器 WebDAV 扩展</entry>
+            <entry></entry>
+            <entry></entry>
+            <entry>X</entry>
+      <!--
+            <entry>GUI file explorer able to perform tree
+              operations on a WebDAV share</entry>
+      -->
+            <entry>GUI 文件浏览器程序, 支持在 WebDAV 共享目录上执行目录树
+              操作</entry>
+          </row>
+          <row>
+            <entry>KDE Konqueror</entry>
+      <!--
+            <entry>File-explorer WebDAV extension</entry>
+      -->
+            <entry>文件浏览器 WebDAV 扩展</entry>
+            <entry></entry>
+            <entry></entry>
+            <entry>X</entry>
+      <!--
+            <entry>GUI file explorer able to perform tree
+              operations on a WebDAV share</entry>
+      -->
+            <entry>GUI 文件浏览器程序, 支持在 WebDAV 共享目录上执行目录树
+              操作</entry>
+          </row>
+          <row>
+            <entry>Mac OS X</entry>
+      <!--
+            <entry>WebDAV filesystem implementation</entry>
+      -->
+            <entry>WebDAV 文件系统实现</entry>
+            <entry></entry>
+            <entry>X</entry>
+            <entry></entry>
+      <!--
+            <entry>Operating system that has built-in support for mounting
+              WebDAV shares.</entry>
+      -->
+            <entry>支持挂载 WebDAV 共享目录的操作系统.</entry>
+          </row>
+          <row>
+            <entry>Novell NetDrive</entry>
+      <!--
+            <entry>WebDAV filesystem implementation</entry>
+      -->
+            <entry>WebDAV 文件系统实现</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>Drive-mapping program for assigning Windows drive
+              letters to a mounted remote WebDAV share</entry>
+      -->
+            <entry>驱动器映射程序, 用来给挂载的远程 WebDAV 共享目录分配
+              Windows 驱动器盘符</entry>
+          </row>
+          <row>
+            <entry>SRT WebDrive</entry>
+      <!--
+            <entry>WebDAV filesystem implementation</entry>
+      -->
+            <entry>WebDAV 文件系统实现</entry>
+            <entry>X</entry>
+            <entry></entry>
+            <entry></entry>
+      <!--
+            <entry>File transfer software, which, among other things,
+              allows the assignment of Windows drive letters to a
+              mounted remote WebDAV share</entry>
+      -->
+            <entry>文件传输软件, 另外它还可以用来为挂载的远程 WebDAV 共享
+              目录分配 Windows 驱动器盘符</entry>
+          </row>
+          <row>
+            <entry>davfs2</entry>
+      <!--
+            <entry>WebDAV filesystem implementation</entry>
+      -->
+            <entry>WebDAV 文件系统实现</entry>
+            <entry></entry>
+            <entry></entry>
+            <entry>X</entry>
+      <!--
+            <entry>Linux filesystem driver that allows you to mount a
+              WebDAV share</entry>
+      -->
+            <entry>Linux 文件系统驱动程序, 支持挂载 WebDAV 共享目录</entry>
+          </row>
+
+        </tbody>
+      </tgroup>
+    </table>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.webdav.clients.standalone">
+      <!--
+      <title>Standalone WebDAV Applications</title>
+      -->
+      <title>独立的 WebDAV 应用程序</title>
+
+      <!--
+      <para>A WebDAV application is a program that speaks WebDAV
+        protocols with a WebDAV server.  We'll cover some of the most
+        popular programs with this kind of WebDAV support.</para>
+      -->
+      <para>一个 WebDAV 应用程序是一个可使用 WebDAV 协议与 WebDAV 服务器进行
+        通信的程序. 下面我们将介绍最常见的几种 WebDAV 应用程序.</para>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.standalone.windows">
+        <title>Microsoft Office, Dreamweaver, Photoshop</title> 
+
+      <!--
+        <para>On Windows, several well-known applications contain
+          integrated WebDAV client functionality, such as Microsoft's
+          Office,<footnote><para>WebDAV support was removed from
+          Microsoft Access for some reason, but it exists in the rest
+          of the Office suite.</para></footnote> Adobe's Photoshop and
+          Dreamweaver programs.  They're able to directly open and
+          save to URLs, and tend to make heavy use of WebDAV locks
+          when editing a file.</para>
+      -->
+        <para>在 Windows 平台上, 有几款非常知名的应用程序已经集成了 WebDAV
+          的客户端功能, 例如 Microsoft Office,<footnote><para>由于某种
+              原因, Microsoft Access 移除了对 WebDAV 的支持, 但 Office
+              套件内的其他程序仍然支持 WebDAV.</para></footnote> Adobe
+          Photoshop 和 Dreamweaver. 它们都支持直接读写由 WebDAV URL 指定的
+          文件, 而且在编辑文件时, 它们都倾向于大量使用 WebDAV 锁.</para>
+
+      <!--
+        <para>Note that while many of these programs also exist for
+          Mac OS X, they do not appear to support WebDAV directly
+          on that platform.  In fact, on Mac OS X, the
+          <guimenu>File&rarr;Open</guimenu> dialog box doesn't allow
+          one to type a path or URL at all.  It's likely that the
+          WebDAV features were deliberately left out of Macintosh
+          versions of these programs, since OS X already provides such
+          excellent low-level filesystem support for WebDAV.</para>
+      -->
+        <para>注意, 虽然上面所说的几款应用程序也支持 Mac OS X 平台, 但
+          它们不一定直接支持 WebDAV. 实际上, Mac OS X 的
+          <guimenu>File&rarr;Open</guimenu> 对话框根本就不允许用户输入
+          路径或 URL. 自从 OS X 从底层文件系统上支持 WebDAV 后, Macintosh
+          的开发人员就有意地从程序中删除了对 WebDAV 的支持.</para>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.standalone.free">
+      <!--
+        <title>cadaver, DAV Explorer</title>
+      -->
+        <title>cadaver, DAV 浏览器</title>
+
+      <!--
+        <para>cadaver is a bare-bones Unix command-line program for
+          browsing and changing WebDAV shares.  It uses the neon HTTP
+          library&mdash;not surprisingly, since both neon and cadaver
+          are written by the same author.  cadaver is free software (GPL
+          license) and is available at <ulink
+          url="http://www.webdav.org/cadaver/"/>.</para>
+      -->
+      <para>cadaver 是用于浏览和修改 WebDAV 共享目录的 Unix 命令行程序,
+        它使用 neon HTTP 函数库&mdash;不用过于惊讶, 毕竟 neon 和 cadaver
+        的作者是同一个人. cadaver 是一个免费软件 (GPL 授权), 下载地址是
+        <ulink url="http://www.webdav.org/cadaver/"/>.</para>
+
+      <!--
+        <para>Using cadaver is similar to using a command-line FTP
+          program, and thus it's extremely useful for basic WebDAV
+          debugging.  It can be used to upload or download files in a
+          pinch, to examine properties, and to copy, move,
+          lock, or unlock files:</para>
+      -->
+        <para>使用 cadaver 的体验类似于使用命令行形式的 FTP 程序, 因此它非常
+          适合用来完成基本的 WebDAV 调试. 它支持上传或下载文件, 查看属性,
+          复制和移动文件, 以及对文件进行加锁和解锁.</para>
+
+        <informalexample>
+          <screen>
+$ cadaver http://host/repos
+dav:/repos/&gt; ls
+Listing collection `/repos/': succeeded.
+Coll: &gt; foobar                                 0  May 10 16:19
+      &gt; playwright.el                       2864  May  4 16:18
+      &gt; proofbypoem.txt                     1461  May  5 15:09
+      &gt; westcoast.jpg                      66737  May  5 15:09
+
+dav:/repos/&gt; put README
+Uploading README to `/repos/README':
+Progress: [=============================&gt;] 100.0% of 357 bytes succeeded.
+
+dav:/repos/&gt; get proofbypoem.txt
+Downloading `/repos/proofbypoem.txt' to proofbypoem.txt:
+Progress: [=============================&gt;] 100.0% of 1461 bytes succeeded.
+</screen>
+        </informalexample>
+
+      <!--
+        <para>DAV Explorer is another standalone WebDAV client, written
+          in Java.  It's under a free Apache-like license and is
+          available at <ulink url="http://www.ics.uci.edu/~webdav/"/>.
+          It does everything cadaver does, but has the
+          advantages of being portable and being a more user-friendly GUI
+          application.  It's also one of the first clients to support
+          the new WebDAV Access Control Protocol (RFC 3744).</para>
+      -->
+        <para>DAV Explorer 是另一款独立的 WebDAV 应用程序, 使用 Java 语言
+          编写. 它使用的是免费的类 Apache 授权, 下载地址是 <ulink
+            url="http://www.ics.uci.edu/~webdav/"/>. 它支持 cadaver 的所有
+          功能, 并且可移植性更强, 具有更加友好的 GUI 界面. 它还是第一个
+          支持新的 WebDAV 访问控制协议 (WebDAV Access Control Protocol,
+          RFC 3744) 的客户端程序.</para>
+
+      <!--
+        <para>Of course, DAV Explorer's ACL support is useless in this
+          case, since <command>mod_dav_svn</command> doesn't support
+          it.  The fact that both cadaver and DAV Explorer support
+          some limited DeltaV commands isn't particularly useful
+          either, since they don't allow <literal>MKACTIVITY</literal>
+          requests.  But it's not relevant anyway; we're assuming all
+          of these clients are operating against an autoversioning
+          repository.</para>
+      -->
+        <para>当然, DAV Explorer 对 ACL 的支持在这里没什么用, 因此
+          <command>mod_dav_svn</command> 根本就不支持 ACL. 实际上,
+          cadaver 和 DAV Explorer 支持的某些 DeltaV 命令其实没什么特别大
+          的用处, 因此它们不允许 <literal>MKACTIVITY</literal> 请求. 但
+          这些都无关紧要, 我们假充所有的 WebDAV 客户端都针对一个自动版本
+          控制的仓库进行操作.</para>
+
+      </sect3>
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.webdav.clients.file-explorer-extensions">
+      <!--
+      <title>File-Explorer WebDAV Extensions</title>
+      -->
+      <title>文件浏览器 WebDAV 扩展</title>
+
+      <!--
+      <para>Some popular file explorer GUI programs support WebDAV
+        extensions that allow a user to browse a DAV share as though it
+        was just another directory on the local computer, and to
+        ### TODO
+        perform basic tree editing operations on the items in that
+        share.  For example, Windows Explorer is able to browse a
+        WebDAV server as a <quote>network place.</quote>  Users can
+        drag files to and from the desktop, or can rename, copy, or
+        delete files in the usual way.  But because it's only a
+        feature of the file explorer, the DAV share isn't visible to
+        ordinary applications.  All DAV interaction must happen
+        through the explorer interface.</para>
+      -->
+      <para>有些流行的文件浏览器 GUI 程序支持 WebDAV 扩展功能, 允许用户
+        浏览一个 DAV 共享目录, 就像在浏览一个普通的本地目录, 而且还可以在
+        共享目录中执行基本的目录树编辑操作. 例如, Windows 文件浏览器可以把
+        WebDAV 服务器作为一个 <quote>网络位置</quote> 进行浏览, 用户可以
+        通过拖拽来上传或下载文件, 还可以继续使用通常的方式来重命名, 复制或
+        删除文件. 但是由于这仅仅是文件浏览器的功能, DAV 共享目录对其他普通
+        的应用程序仍然是不可见的, 所有的 DAV 交互都必须通过文件浏览器接口.
+      </para>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.file-explorer-extensions.windows">
+        <title>Microsoft Web Folders</title>
+
+      <!--
+        <para>Microsoft was one of the original backers of the WebDAV
+          specification, and first started shipping a client in
+          Windows 98, which was known as Web Folders.  This client was
+          also shipped in Windows NT 4.0 and Windows 2000.</para>
+      -->
+        <para>Microsoft 是 WebDAV 的原始赞助商之一, 最早在 Windows 98 中
+          集成了 WebDAV 客户端, 即 Web Folders. 该客户端同样出现在 Windows
+          NT 4.0 和 Windows 2000 中.</para>
+
+      <!--
+        <para>The original Web Folders client was an extension to
+          Explorer, the main GUI program used to browse filesystems.  It
+          works well enough.  In Windows 98, the feature might need to
+          be explicitly installed if Web Folders aren't already visible
+          inside My Computer.  In Windows 2000, simply
+          add a new <quote>network place,</quote> enter the URL, and the
+          WebDAV share will pop up for browsing.</para>
+      -->
+        <para>原始的 Web Folders 其实是一个文件浏览器扩展, 但它工作得已经
+          足够好了. 在 Windows 98, 如果在 <quote>我的电脑</quote> 中看不到
+          Web Folders, 则还要显式地安装它. 在 Windows 2000, 只需要添加一个新的
+          <quote>网络位置</quote>, 输入 URL, WebDAV 共享目录就会马上跳
+          出来.</para>
+
+      <!--
+        <para>With the release of Windows XP, Microsoft started shipping
+          a new implementation of Web Folders, known as the WebDAV
+          Mini-Redirector.  The new implementation is a
+          filesystem-level client, allowing WebDAV shares to be mounted
+          as drive letters.  Unfortunately, this implementation is
+          incredibly buggy.  The client usually tries to convert HTTP
+          URLs (<literal>http://host/repos</literal>) into UNC share
+          notation (<literal>\\host\repos</literal>); it also often
+          tries to use Windows Domain authentication to respond to
+          basic-auth HTTP challenges, sending usernames as
+          <literal>HOST\username</literal>.  These interoperability
+          problems are severe and are documented in numerous places around
+          the Web, to the frustration of many users.  Even Greg Stein,
+          the original author of Apache's WebDAV module, bluntly
+          states that XP Web Folders simply can't operate against an Apache
+          server.</para>
+      -->
+        <para>到了 Windows XP, Microsoft 决定推出一款新的 Web Folders 程序,
+          即 WebDAV Mini-Redirector. WebDAV Mini-Redirector 是一个处于文件
+          系统层的客户端, 允许 WebDAV 共享目录被挂载成一个驱动器盘符. 但
+          不幸的是, 这个程序的问题太多. WebDAV Mini-Redirector 通常情况下
+          会试图把 HTTP URL (<literal>http://host/repos</literal>) 转换成
+          UNC 共享记号 (<literal>\\host\repos</literal>), 它还经常用
+          Windows Domain 认证来响应 HTTP 认证请求, 把用户名转换成
+          <literal>HOST\username</literal>. 这些互操作问题非常严重,
+          在网上随处可见, 很多用户都不堪其扰. Apache WebDAV 模块的原始作者
+          Greg Stein 就直言不讳地说 XP Web Folders 根本就不能支持 Apache
+          服务器.</para>
+
+      <!--
+        <para>Windows Vista's initial implementation of Web Folders seems to
+          be almost the same as XP's, so it has the same sort of
+          problems.  With luck, Microsoft will remedy these issues in
+          a Vista Service Pack.</para>
+      -->
+        <para>Windows Vista 的 Web Folders 最初版本几乎和 XP 一样, 所以它也
+          相同的问题, 但幸运的是, Microsoft 将会在 Vista Service Pack 里
+          修复它们.</para>
+
+      <!--
+        <para>However, there seem to be workarounds for both XP and
+          Vista that allow Web Folders to work against Apache.  Users
+          have mostly reported success with these techniques, so we'll
+          relay them here.</para>
+      -->
+        <para>然而, 似乎还是有一些方法能够让 XP 和 Vista 的 WebDAV 客户端支持
+          Apache 服务器, 很多用户都表示他们成功地解决了问题, 于是我们打算在
+          这里简单地介绍一下这些方法.</para>
+
+      <!--
+        <para>On Windows XP, you have two options.  First, search
+          Microsoft's web site for update KB907306, <quote>Software
+          Update for Web Folders.</quote>  This may fix all your
+          problems.  If it doesn't, it seems that the original pre-XP
+          Web Folders implementation is still buried within the
+                   ### TODO
+          system.  You can unearth it by going to Network
+          Places and adding a new network place.  When prompted,
+          enter the URL of the repository, but <emphasis>include a
+          port number</emphasis> in the URL.  For
+          example, you should enter <userinput>http://host/repos</userinput> 
+          as <userinput>http://host:80/repos</userinput> instead.
+          Respond to any authentication prompts with your Subversion
+          credentials.</para>
+      -->
+        <para>如果是 Windows XP 你就有两个选择, 第一个是在 Microsoft 的网站
+          搜索 KB907306&mdash;Web Folders 软件更新. 它可能会解决你的所有
+          问题, 如果没有, 那应该是因为系统中的 Web Folders 还是 XP 前的版本.
+          为了进一步挖掘下去, 你需要到 Network Places 那儿添加一个新的网络
+          位置, 在弹出的对话框中输入仓库的 URL, 同时还要在 URL 中
+          <emphasis>加上端口号</emphasis>, 例如, 你应该把
+          <literal>http://host/repos</literal> 写成
+          <literal>http://host:80/repos</literal>, 如果需要认证, 就输入
+          Subversion 的凭证.</para>
+
+      <!--
+        <para>On Windows Vista, the same KB907306 update may clear
+          everything up.  But there may still be other issues.  Some
+          users have reported that Vista considers
+          all <literal>http://</literal> connections insecure, and thus
+          will always fail any authentication challenges from Apache
+          unless the connection happens
+          over <literal>https://</literal>.  If you're unable to connect
+          to the Subversion repository via SSL, you can tweak the
+          system registry to turn off this behavior.  Just change the
+          value of the <literal>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel</literal>
+          key from <userinput>1</userinput> to <userinput>2</userinput>.  A final warning:  be sure to set up the Web
+          Folder to point to the repository's root directory
+          (<filename>/</filename>), rather than some subdirectory
+          such as <filename>/trunk</filename>.  Vista Web Folders
+          seems to work only against repository roots.</para>
+      -->
+        <para>如果是 Windows Vista, 相同的 KB907306 更新可能会解决所有问题,
+          但也有可能仍有问题存在. 有些用户报告说 Vista 会把所有的
+          <literal>http://</literal> 看成是不安全的连接, 除非使用
+          <literal>https://</literal>, 否则的话 Vista 会让所有的来自 Apache
+          的认证请求都以失败返回. 如果用户无法通过 SSL 连接 Subversion 仓库,
+          可以通过修改系统注册表来禁止 Vista 的这种行为, 修改的方法是把
+          <literal>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\WebClient\Parameters\BasicAuthLevel</literal>
+          的值由 <literal>1</literal> 改成 <literal>2</literal>. 最后再提醒一
+          点, 要让 Web Folders 指向仓库的根目录, 而不是仓库内的子目录
+          (例如 <filename>/trunk</filename>), 因为 Vista Web Folders 似乎
+          只有在面对仓库的根目录时才能正常工作.</para>
+
+      <!--
+        <para>In general, while these workarounds may function for
+          you, you might get a better overall experience using a
+          third-party WebDAV client such as WebDrive or NetDrive.</para>
+      -->
+        <para>通常情况下, 上面所说的方法可能会解决你的问题, 但使用第三方的
+          WebDAV 客户端程序 (例如 WebDrive 或 NetDrive) 可能会获得更好的
+          体验.</para>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.file-explorer-extensions.linux-de">
+        <title>Nautilus, Konqueror</title>
+
+      <!--
+        <para>Nautilus is the official file manager/browser for the
+          GNOME desktop (<ulink url="http://www.gnome.org"/>), and
+          Konqueror is the manager/browser for the KDE desktop (<ulink
+          url="http://www.kde.org"/>).  Both of these applications
+          have an explorer-level WebDAV client built in, and they
+          operate just fine against an autoversioning repository.</para>
+      -->
+        <para>Nautilus 是 GNOME 桌面环境 (<ulink url="http://www.gnome.org"/>)
+          标准的文件管理与浏览器, 而 Konqueror 是 KDE 桌面环境
+          (<ulink url="http://www.kde.org"/>) 的文件管理与浏览器, 它们都内
+          建了一个文件浏览器级别的 WebDAV 客户端, 而且对自动版本控制的仓库
+          支持得很好.</para>
+
+      <!--
+        <para>In GNOME's Nautilus, select the <guimenuitem>File&rarr;Open
+          location</guimenuitem> menu item and enter the URL in the
+          dialog box presented.  The repository should then be
+          displayed like any other filesystem.</para>
+      -->
+        <para>在 GNOME 的 Nautilus 里, 选择菜单项 <guimenuitem>File&rarr;Open
+            location</guimenuitem>, 在弹出的对话框中输入仓库的, 然后仓库就
+          能像其他文件系统那样展现出来.</para>
+
+      <!--
+        <para>In KDE's Konqueror, you need to use the
+          <literal>webdav://</literal> scheme when entering the URL in
+          the location bar.  If you enter
+          an <literal>http://</literal> URL, Konqueror will behave
+          like an ordinary web browser.  You'll likely see the generic
+          HTML directory listing produced
+          by <command>mod_dav_svn</command>.  When you enter
+          <userinput>webdav://host/repos</userinput> instead of
+          <userinput>http://host/repos</userinput>, Konqueror becomes a
+          WebDAV client and displays the repository as a
+          filesystem.</para>
+      -->
+        <para>在 KDE 的 Konqueror 里, 在地址栏输入 URL 时, 必须使用
+          <literal>webdav://</literal> 模式. 如果用户输入了
+          <literal>http://</literal> 模式的 URL, Konqueror 将表现得如同一个
+          网页游览器, 用户将看到由 <command>mod_dav_svn</command> 生成的
+          HTML 目录列表. 如果输入的是 <literal>webdav://host/repos</literal>,
+          而不是 <literal>http://host/repos</literal>, Konqueror 将变成一个
+          WebDAV 客户端, 把仓库按照文件系统的形式展现出来.</para>
+
+      </sect3>
+    </sect2>
+
+    <sect2 id="svn.webdav.clients.fs-impl">
+      <!--
+      <title>WebDAV Filesystem Implementation</title>
+      -->
+      <title>WebDAV 文件系统实现</title>
+
+      <!--
+      <para>The WebDAV filesystem implementation is arguably the best
+        sort of WebDAV client.  It's implemented as a low-level
+        filesystem module, typically within the operating system's
+        kernel.  This means that the DAV share is mounted like any
+        other network filesystem, similar to mounting an NFS share on
+        Unix or attaching an SMB share as a drive letter in Windows.
+        As a result, this sort of client provides completely
+        transparent read/write WebDAV access to all programs.
+        Applications aren't even aware that WebDAV requests are
+        happening.</para>
+      -->
+      <para>按理说, WebDAV 文件系统实现应该算作最优秀的一类 WebDAV 客户端.
+        它被实现成一个底层的文件系统模块, 通常位于操作系统的内核里, 这就意味
+        着 DAV 共享目录可以像其他网络文件系统那样被挂载, 类似于 Unix 的
+        NFS 或 Windows 的 SMB. 这种 WebDAV 客户端为所有的程序提供了完全透明
+        的 WebDAV 读写访问, 应用程序甚至不会意识到 WebDAV 请求正在生成.</para>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.fs-impl.windows">
+        <title>WebDrive, NetDrive</title>
+
+      <!--
+        <para>Both WebDrive and NetDrive are excellent commercial
+          products that allow a WebDAV share to be attached as drive
+          letters in Windows.  As a result, you can operate on the
+          contents of these WebDAV-backed pseudodrives as easily as
+          you can against real local hard drives, and in the same
+          ways.  You can purchase WebDrive from South River
+          Technologies (<ulink url="http://www.southrivertech.com"/>).
+          Novell's NetDrive is freely available online, but requires
+          users to have a NetWare license.</para>
+      -->
+        <para>WebDrive 和 NetDrive 是两款非常优秀的商业软件, 允许 WebDAV
+          共享目录作为一个驱动器盘符挂载到 Windows 系统中. 它们允许用户
+          像访问真实的本地磁盘驱动器那样访问基于 WebDAV 的伪驱动器, 而且
+          操作起来不会有任何区别. 为了购买 WebDrive, 读者可以咨询
+          South River Technologies 公司 (<ulink
+            url="http://www.southrivertech.com"/>), Novell 的 NetDrive 可
+          以从网上免费获取, 但要求用户必须具备一个 NetWare 许可证.</para>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.fs-impl.macosx">
+        <title>Mac OS X</title>
+
+      <!--
+        <para>Apple's OS X operating system has an integrated
+          filesystem-level WebDAV client.  From the Finder, select the
+          <guimenuitem>Go&rarr;Connect to Server</guimenuitem> menu
+          item.  Enter a WebDAV URL, and it appears as a disk on the
+          desktop, just like any other mounted volume.  You can also
+          mount a WebDAV share from the Darwin terminal by using the
+          <literal>webdav</literal> filesystem type with the
+          <command>mount</command> command:</para>
+      -->
+        <para>Apple 公司的 OS X 操作系统集成了一个文件系统级别的 WebDAV
+          客户端. 从 Finder 开始, 选择菜单项
+          <guimenuitem>Go&rarr;Connect to Server</guimenuitem>, 然后输入
+          WebDAV 的 URL, 最终 WebDAV 共享目录将作为一个磁盘出现在桌面上,
+          看起来和其他已挂载的卷没什么两样. 用户还可以从 Darwin 终端上执行
+          挂载操作, 方法是在 <command>mount</command> 的命令行参数上把文件
+          系统类型指定成 <literal>webdav</literal>:</para>
+
+        <informalexample>
+          <screen>
+$ mount -t webdav http://svn.example.com/repos/project /some/mountpoint
+$
+</screen>
+        </informalexample>
+
+      <!--
+        <para>Note that if your <command>mod_dav_svn</command> is
+          older than version 1.2, OS X will refuse to mount the share
+          as read/write; it will appear as read-only.  This is because
+          OS X insists on locking support for read/write shares, and
+          the ability to lock files first appeared in Subversion
+          1.2.</para>
+      -->
+        <para>注意, 如果 <command>mod_dav_svn</command> 的版本比 1.2 旧,
+          OS X 将不允许以读写方式挂载共享目录, 而是以只读方式挂载. 这是
+          因为 OS X 坚持要为可读写的共享目录提供锁支持, 而最早支持锁的
+          Subversion 版本是 1.2.</para>
+
+      <!--
+        <para>Also, OS X's WebDAV client can sometimes be overly
+          sensitive to HTTP redirects.  If OS X is unable to mount the
+          repository at all, you may need to enable
+          the <literal>BrowserMatch</literal> directive in the Apache
+          server's <filename>httpd.conf</filename>:</para>
+      -->
+        <para>另外, OS X 的 WebDAV 客户端有时候会对 HTTP 重定向产生过度
+          的敏感, 如果 OS X 完全无法挂载仓库, 用户 需要在 Apache 服务器的
+          配置文件 <filename>httpd.conf</filename> 里开启配置指令
+          <literal>BrowserMatch</literal>:</para>
+
+        <informalexample>
+          <programlisting>
+BrowserMatch "^WebDAVFS/1.[012]" redirect-carefully
+</programlisting>
+        </informalexample>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.webdav.clients.fs-impl.linux">
+        <title>Linux davfs2</title>
+
+      <!--
+        <para>Linux davfs2 is a filesystem module for the Linux
+          kernel, whose development is organized at
+          <ulink url="http://dav.sourceforge.net/"/>.  Once you
+          install davfs2, you can mount a WebDAV network share using
+          the usual Linux mount command:</para>
+      -->
+        <para>Linux davfs2 是 Linux 内核的一个文件系统模块, 该项目的
+          主页位于 <ulink url="http://savannah.nongnu.org/projects/davfs2"/>.
+          davfs2 一旦安装完成, 用户就可以使用下面的命令挂载 WebDAV 共享目录:
+        </para>
+
+        <informalexample>
+          <screen>
+$ mount.davfs http://host/repos /mnt/dav
+</screen>
+        </informalexample>
+
+      </sect3>
+    </sect2>
+  </sect1>
+
+</appendix>
+
+<!--
+local variables:
+sgml-parent-document: ("book.xml" "appendix")
+end:
+-->

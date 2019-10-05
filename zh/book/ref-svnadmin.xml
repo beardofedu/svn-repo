@@ -1,0 +1,2506 @@
+<!-- -*- sgml -*- -->
+
+<reference id="svn.ref.svnadmin">
+      <!--
+  <title>svnadmin Reference&mdash;Subversion Repository Administration</title>
+      -->
+  <title>svnadmin 参考手册&mdash;Subversion 仓库管理工具</title>
+  
+  <partintro>
+      <!--
+    <para><command>svnadmin</command> is the administrative tool for
+      monitoring and repairing your Subversion repository.  For
+      detailed information on repository administration, see the maintenance section for <xref
+      linkend="svn.reposadmin.maint.tk.svnadmin"/>.</para>
+      -->
+    <para><command>svnadmin</command> 是监控和修复 Subversion 仓库的管理工具. 关
+      于仓库管理的更多细节, 见 <xref
+        linkend="svn.reposadmin.maint.tk.svnadmin"/>.</para>
+
+      <!--
+    <para>Since <command>svnadmin</command> works via direct repository access
+      (and thus can only be used on the machine that holds the
+      repository), it refers to the repository with a path, not a URL.</para>
+      -->
+    <para>由于 <command>svnadmin</command> 只有直接访问仓库才能工作 (因
+      此它只能用在存放了仓库的主机中), 所以说在指定仓库时只能使用文件系统路径,
+      而不是 URL.</para>
+      
+      <!--
+    <para>Options in <command>svnadmin</command> are global, just
+      as they are in <command>svn</command>:</para>
+      -->
+    <para><command>svnadmin</command> 的选项都是全局的, 就像
+      <command>svn</command> 的全局选项:</para>
+
+    <variablelist id="svn.ref.svnadmin.sw">
+      <!--
+      <title>svnadmin Options</title>
+      -->
+      <title>svnadmin 选项</title>
+      
+      <varlistentry id="svn.ref.svnadmin.sw.bdb_log_keep">
+        <term><option>--bdb-log-keep</option></term>
+        <listitem>
+      <!--
+          <para>(Berkeley DB-specific.) Disable automatic log removal
+            of database logfiles.  Having these logfiles around
+            can be convenient if you need to restore from a
+            catastrophic repository failure.</para>
+      -->
+          <para>(特定于 Berkeley DB 的选项.) 禁止自动删除数据库的日志文件.
+            保留这些日志文件有助于从灾难性的仓库失败中恢复数据.</para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnadmin.sw.bdb_txn_nosync">
+        <term><option>--bdb-txn-nosync</option></term>
+        <listitem>
+
+      <!--
+          <para>(Berkeley DB-specific.) Disables fsync when
+            committing database transactions.  Used with the
+            <command>svnadmin create</command> command to create a
+            Berkeley DB-backed repository with
+            <literal>DB_TXN_NOSYNC</literal> enabled (which improves
+            speed but has some risks associated with it).</para>
+      -->
+          <para>(特定于 Berkeley DB 的选项.) 在提交数据库事务时禁止调用
+            <literal>fsync</literal>. 该选项可以让 <command>svnadmin
+              create</command> 创建一个开启了 <literal>DB_TXN_NOSYNC</literal>,
+            以 Berkeley DB 作为后端存储的仓库 (该选项可以提升性能, 但会带
+            来一定的风险).</para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnadmin.sw.bypass_hooks">
+        <term><option>--bypass-hooks</option></term>
+        <listitem>
+      <!--
+          <para>Bypass the repository hook system.</para>
+      -->
+          <para>旁路掉仓库的钩子脚本.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.bypass_prop_validation">
+        <term><option>--bypass-prop-validation</option></term>
+        <listitem>
+      <!--
+          <para>When loading a dump file, disable the logic which
+            validates property values.</para>
+      -->
+          <para>加载一个转储文件时, 禁止对属性值进行检查.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.clean_logs">
+        <term><option>--clean-logs</option></term>
+        <listitem>
+      <!--
+          <para>Remove unused Berkeley DB logs.</para>
+      -->
+          <para>删除无用的 Berkeley DB 日志.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.compatible_version">
+        <term><option>--compatible-version</option> <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Use repository format compatible with Subversion version
+            <replaceable>ARG</replaceable>.</para>
+      -->
+          <para>使用与版本为 <replaceable>ARG</replaceable> 的 Subversion
+            兼容的仓库格式.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.config_dir">
+        <!-- Only 'svnadmin create' accepts it, and the underlying
+             logic doesn't even use it.  Weird. -->
+        <term><option>--config-dir</option> <replaceable>DIR</replaceable></term>
+        <listitem>
+      <!--
+          <para>Instructs Subversion to read configuration
+            information from the specified directory instead of the
+            default location (<filename>.subversion</filename> in
+            the user's home directory).</para>
+      -->
+          <para>告诉 Subversion 从指定的目录内读取配置信息, 而不是从默认的目录
+            (用户家目录中的 <filename>.subversion</filename>) 中读取.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.deltas">
+        <term><option>--deltas</option></term>
+        <listitem>
+      <!--
+          <para>When creating a repository dump file, specify
+            changes in versioned properties and file contents as
+            deltas against their previous state.</para>
+      -->
+          <para>在创建仓库的转储文件时, 把属性和文件内容上的修改指定成相对于
+            前一状态的修改.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.file">
+        <term><option>--file</option> (<option>-F</option>) <replaceable>FILENAME</replaceable></term>
+        <listitem>
+      <!--
+          <para>Uses the contents of the named file for the
+            specified subcommand.</para>
+      -->
+          <para>为指定的子命令使用文件中的内容.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.fs_type">
+        <term><option>--fs-type</option> <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>When creating a repository,
+            use <replaceable>ARG</replaceable> as the requested
+            filesystem type.  <replaceable>ARG</replaceable> may be
+            either <literal>bdb</literal>
+            or <literal>fsfs</literal>.</para>
+      -->
+          <para>创建一个仓库时, 使用 <replaceable>ARG</replaceable> 指定的文件
+            系统类型, <replaceable>ARG</replaceable> 可以是
+            <literal>bdb</literal> 或 <literal>fsfs</literal>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.force_uuid">
+        <term><option>--force-uuid</option></term>
+        <listitem>
+      <!--
+          <para>By default, when loading data into a repository that
+            already contains revisions, <command>svnadmin</command>
+            will ignore the UUID from the dump stream.  This option
+            will cause the repository's UUID to be set to the UUID
+            from the stream.</para>
+      -->
+          <para>默认情况下, 为一个已经包含了版本号的仓库加载转储数据时,
+            <command>svnadmin</command> 会忽略转储数据中的 UUID. 该选项使得
+            仓库的 UUID 被设置成转储数据中的 UUID.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.ignore_uuid">
+        <term><option>--ignore-uuid</option></term>
+        <listitem>
+      <!--
+          <para>By default, when loading data into an empty repository,
+            <command>svnadmin</command> will set the repository's UUID
+            to the UUID from the dump stream.  This option will cause
+            the UUID from the stream to be ignored.</para>
+      -->
+          <para>默认情况下, 往一个空仓库加载转储数据时,
+            <command>svnadmin</command> 会把仓库的 UUID 设置成转储数据中的
+            UUID. 该选项使得 <command>svnadmin</command> 忽略转储数据中的
+            UUID.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.incremental">
+        <term><option>--incremental</option></term>
+        <listitem>
+      <!--
+          <para>Dump a revision only as a diff against the
+            previous revision, instead of the usual
+            fulltext.</para>
+      -->
+          <para>按照增量格式转储版本号.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.memory_cache_size">
+        <term><option>--memory-cache-size</option> (<option>-M</option>) <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Configures the size (in Megabytes) of the extra
+            in-memory cache used to minimize redundant operations.
+            The default value is <literal>16</literal>.  (This cache
+            is used for FSFS-backed repositories only.)</para>
+      -->
+          <para>配置额外的内存缓存大小 (以 MB 为单位), 这种缓存可以用来减少
+            重复操作, 但只能用于以 FSFS 作为后端存储的仓库. 默认值是 16.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.parent_dir">
+        <term><option>--parent-dir</option> <replaceable>DIR</replaceable></term>
+        <listitem>
+      <!--
+          <para>When loading a dump file, root paths at
+            <replaceable>DIR</replaceable> instead of
+            <filename>/</filename>.</para>
+      -->
+          <para>加载一个转储文件时, 把根目录设置成
+            <replaceable>DIR</replaceable>, 而不是默认的
+            <filename>/</filename>.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.pre_1.4_compatible">
+        <term><option>--pre-1.4-compatible</option></term>
+        <listitem>
+      <!--
+          <para><emphasis>Deprecated</emphasis>.  See option
+            <option>- -compatible-version</option>.  When creating a new
+            repository, use a format that is compatible with versions of
+            Subversion earlier than Subversion 1.4.</para>
+      -->
+          <para><emphasis>不再推荐使用</emphasis>. 见选项
+            <option>--compatible-version</option>. 当创建一个新的仓库时,
+            仓库的格式要和 Subversion 1.4 之前的版本保持兼容.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.pre_1.5_compatible">
+        <term><option>--pre-1.5-compatible</option></term>
+        <listitem>
+      <!--
+          <para><emphasis>Deprecated</emphasis>.  See option
+            <option>- -compatible-version</option>.  When creating a new
+            repository, use a format that is compatible with versions of
+            Subversion earlier than Subversion 1.5.</para>
+      -->
+          <para><emphasis>不再推荐使用</emphasis>. 见选项
+            <option>--compatible-version</option>. 当创建一个新的仓库时,
+            仓库的格式要和 Subversion 1.5 之前的版本保持兼容.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.pre_1.6_compatible">
+        <term><option>--pre-1.6-compatible</option></term>
+        <listitem>
+      <!--
+          <para><emphasis>Deprecated</emphasis>.  See option
+            <option>- -compatible-version</option>.  When creating a new
+            repository, use a format that is compatible with versions of
+            Subversion earlier than Subversion 1.6.</para>
+      -->
+          <para><emphasis>不再推荐使用</emphasis>. 见选项
+            <option>--compatible-version</option>. 当创建一个新的仓库时,
+            仓库的格式要和 Subversion 1.6 之前的版本保持兼容.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.revision">
+        <term><option>--revision</option> (<option>-r</option>) <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specify a particular revision to operate
+            on.</para>
+      -->
+          <para>为后面的操作指定一个版本号.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.quiet">
+        <term><option>--quiet</option> (<option>-q</option>)</term>
+        <listitem>
+      <!--
+          <para>Do not show normal progress&mdash;show only
+            errors.</para>
+      -->
+          <para>不要显示正常的输出&mdash;只显示与错误有关的输出.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.use_post_commit_hook">
+        <term><option>--use-post-commit-hook</option></term>
+        <listitem>
+      <!--
+          <para>When loading a dump file, runs the repository's
+            post-commit hook after finalizing each newly loaded
+            revision.</para>
+      -->
+          <para>加载一个转储文件时, 每完成一个版本号的提交, 就执行一次仓库
+            的 post-commit 钩子脚本.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.use_post_revprop_change_hook">
+        <term><option>--use-post-revprop-change-hook</option></term>
+        <listitem>
+      <!--
+          <para>When changing a revision property, runs the
+            repository's post-revprop-change hook after changing the
+            revision property.</para>
+      -->
+          <para>修改一个版本号属性时, 在修改完后执行仓库的
+            post-revprop-change 钩子脚本.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.use_pre_commit_hook">
+        <term><option>--use-pre-commit-hook</option></term>
+        <listitem>
+      <!--
+          <para>When loading a dump file, runs the repository's
+            pre-commit hook before finalizing each newly loaded
+            revision.  If the hook fails, aborts the commit and
+            terminates the load process.</para>
+      -->
+          <para>加载一个转储文件时, 在提交版本号之前, 执行仓库的
+            pre-commit 钩子脚本, 如果脚本返回错误, 则中止提交, 并结束整个加载
+            过程.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.use_pre_revprop_change_hook">
+        <term><option>--use-pre-revprop-change-hook</option></term>
+        <listitem>
+      <!--
+          <para>When changing a revision property, runs the
+            repository's pre-revprop-change hook before changing the
+            revision property.  If the hook fails, aborts the
+            modification and terminates.</para>
+      -->
+          <para>在修改一个版本号属性之前, 执行仓库的 pre-revprop-change
+            钩子脚本, 如果脚本返回错误, 就中止修改操作并结束.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnadmin.sw.wait">
+        <term><option>--wait</option></term>
+        <listitem>
+      <!--
+          <para>For operations which require exclusive repository
+            access, wait until the requisite repository lock has
+            been obtained instead of immediately erroring out when
+            it cannot be.</para>
+      -->
+          <para>对于那些需要互斥访问仓库的操作来说, 如果仓库锁已经被他人获取,
+            则等待别人放锁, 而不是马上报错退出.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </partintro>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.crashtest">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>crashtest</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin crashtest</refname>
+      <!--
+      <refpurpose>Simulate a process that crashes.</refpurpose>
+      -->
+      <refpurpose>模拟一个崩溃的进程.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin crashtest <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+        <para>Open the repository at <replaceable>REPOS_PATH</replaceable>, then abort, thus
+          simulating a process that crashes while holding an open
+          repository handle.  This is used for testing automatic
+          repository recovery (a new feature in Berkeley DB 4.4).
+          It's unlikely that you'll need to run this
+          command.</para>
+      -->
+        <para>打开路径为 <replaceable>REPOS_PATH</replaceable> 的仓库,
+          然后模拟进程在持有一个打开的仓库句柄时崩溃. 该命令用于测试仓库的自动
+          复原 (Berkeley DB 4.4 引入的新特性). 用户应该不会用到该命令.</para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <!--
+      <para>None</para>
+      -->
+      <para>无</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <informalexample>
+        <screen>
+$ svnadmin crashtest /var/svn/repos
+Aborted
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Exciting, isn't it?</para>
+      -->
+      <para>很刺激, 是不是?</para>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.create">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>create</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin create</refname>
+      <!--
+      <refpurpose>Create a new, empty repository.</refpurpose>
+      -->
+      <refpurpose>创建一个新的空仓库.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin create <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+        <para>Create a new, empty repository at the path provided.
+          If the provided directory does not exist, it will be
+          created for
+          you.<footnote><para>Remember, <command>svnadmin</command>
+          works only with local <emphasis>paths</emphasis>, not
+          <emphasis>URLs</emphasis>.</para></footnote>  As of
+          Subversion 1.2, <command>svnadmin</command> creates new
+          repositories with the
+          <literal>FSFS</literal> filesystem backend by
+          default.</para>
+      -->
+        <para>在指定的路径下创建一个新的空仓库, 如果目录不存在,
+          <command>svnadmin</command> 就会创建该目录. <footnote><para>记住,
+              <command>svnadmin</command> 只接受本地 <emphasis>路径</emphasis>,
+              不支持 <emphasis>URL</emphasis>.</para></footnote> 从
+          Subversion 1.2 开始, <command>svnadmin</command> 默认使用 FSFS
+          作为新仓库的后端存储.</para>
+
+      <!--
+        <para>While <command>svnadmin create</command> will create
+          the base directory for a new repository, it will not
+          create intermediate directories.  For example, if you
+          have an empty directory named
+          <filename>/var/svn</filename>, creating
+          <filename>/var/svn/repos</filename> will work, while
+          attempting to create
+          <filename>/var/svn/subdirectory/repos</filename> will
+          fail with an error.  Also, keep in mind that, depending
+          on where on your system you are creating your
+          repository, you might need to run <command>svnadmin
+          create</command> as a user with elevated privileges
+          (such as the <literal>root</literal> user).</para>
+      -->
+        <para>虽然 <command>svnadmin create</command> 会创建新仓库所在的目录,
+          但它并不会创建中间目录. 例如, 假设你有一个空目录
+          <filename>/var/svn</filename>, 那么创建仓库
+          <filename>/var/svn/repos</filename> 不会有任何问题, 但是试图创建
+          <filename>/var/svn/subdirectory/repos</filename> 则会报错. 另外,
+          取决于仓库的位置, 你可能需要切换到具有特权的用户 (例如超级用户
+          <literal>root</literal>) 才能执行 <command>svnadmin create</command>.
+        </para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.bdb_log_keep" />
+<xref linkend="svn.ref.svnadmin.sw.bdb_txn_nosync" />
+<xref linkend="svn.ref.svnadmin.sw.compatible_version" />
+<xref linkend="svn.ref.svnadmin.sw.config_dir" />
+<xref linkend="svn.ref.svnadmin.sw.fs_type" />
+<xref linkend="svn.ref.svnadmin.sw.pre_1.4_compatible" />
+<xref linkend="svn.ref.svnadmin.sw.pre_1.5_compatible" />
+<xref linkend="svn.ref.svnadmin.sw.pre_1.6_compatible" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Creating a new repository is this easy:</para>
+      -->
+      <para>在 <filename>/var/svn</filename> 目录下创建一个名为
+        <filename>repos</filename> 的新仓库:</para>
+
+      <informalexample>
+        <screen>
+$ cd /var/svn
+$ svnadmin create repos
+$
+</screen>
+      </informalexample>
+      
+      <!--
+      <para>In Subversion 1.0, a Berkeley DB repository is always
+        created.  In Subversion 1.1, a Berkeley DB repository is
+        the default repository type, but an FSFS repository can be
+        created using the <option>- -fs-type</option>
+        option:</para>
+      -->
+      <para>Subversion 1.0 总是使用 Berkeley DB 作为仓库的后端存储系统.
+        Subversion 1.1 把 Berkeley DB 作为默认的仓库后端存储, 但可以用选项
+        <option>--fs-type</option> 把后端存储系统改成 FSFS:</para>
+
+      <informalexample>
+        <screen>
+$ cd /var/svn
+$ svnadmin create repos --fs-type fsfs
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.deltify">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>deltify</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin deltify</refname>
+      <!--
+                  ### TODO
+      <refpurpose>Deltify changed paths in a revision range.</refpurpose>
+      -->
+      <refpurpose>在一个版本号范围内, 对修改过的路径执行 deltify.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin deltify [-r <replaceable>LOWER</replaceable>[:<replaceable>UPPER</replaceable>]] <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para><command>svnadmin deltify</command> exists in
+        current versions of Subversion only for historical reasons.
+        This command is deprecated and no longer needed.</para>
+      -->
+      <para><command>svnadmin deltify</command> 还留在 Subversion 里只是出
+        于历史原因, 该命令已经不再推荐使用, 也不会再有地方会用到它.</para>
+
+      <!--
+      <para>It dates from a time when Subversion offered
+        administrators greater control over compression strategies
+        in the repository.  This turned out to be a lot of
+        complexity for <emphasis>very</emphasis> little gain, and
+        this <quote>feature</quote> was deprecated.</para>
+      -->
+      <para><command>svnadmin deltify</command> 的历史可以追溯到 Subversion
+        为管理员提供仓库压缩策略的时期, 命令的执行过程非常复杂, 但得到的效果却
+        很有限, 如今这个命令已不再推荐使用.</para>
+
+        </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.memory_cache_size" />
+<xref linkend="svn.ref.svnadmin.sw.quiet" />
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+</screen>
+      </informalexample>
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.dump">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>dump</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin dump</refname>
+      <!--
+      <refpurpose>Dump the contents of the filesystem to <filename>stdout</filename>.</refpurpose>
+      -->
+      <refpurpose>把文件系统的内容转储到 <filename>stdout</filename>.
+      </refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin dump <replaceable>REPOS_PATH</replaceable> [-r <replaceable>LOWER</replaceable>[:<replaceable>UPPER</replaceable>]] [--incremental] [--deltas]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Dump the contents of the filesystem to <filename>stdout</filename> in a
+        <quote>dump file</quote> portable format, sending feedback
+        to <filename>stderr</filename>.  Dump revisions
+        <replaceable>LOWER</replaceable> revision through
+        <replaceable>UPPER</replaceable> revision.  If no revisions are
+        given, dump all revision trees.  If only
+        <replaceable>LOWER</replaceable> is given, dump that one
+        revision tree.  See <xref linkend="svn.reposadmin.maint.migrate"/>
+        for a practical use.</para>
+      -->
+      <para>按照可移植的 <quote>转储文件</quote> 格式, 把文件系统的内容转储
+        到 <filename>stdout</filename>, 把错误信息打印到
+        <filename>stderr</filename>. 按照从版本号
+        <replaceable>LOWER</replaceable> 到 <replaceable>UPPER</replaceable>
+        的顺序进行转储. 如果没有指定版本号, <command>svnadmin dump</command>
+        将会转储所有的版本号, 如果只指定了版本号
+        <replaceable>LOWER</replaceable>, 则只转储单个版本号. 关于
+        <command>svnadmin dump</command> 的实际用途, 见 <xref
+          linkend="svn.reposadmin.maint.migrate"/>.</para>
+
+      <!--
+      <para>By default, the Subversion dump stream contains a
+        single revision (the first revision in the requested
+        revision range) in which every file and directory in the
+        repository in that revision is presented as though that whole
+        tree was added at once, followed by other revisions (the
+        remainder of the revisions in the requested range), which
+        contain only the files and directories that were modified
+        in those revisions.  For a modified file, the complete
+        full-text representation of its contents, as well as all of
+        its properties, are presented in the dump file; for a
+        directory, all of its properties are presented.</para>
+      -->
+      <para>默认情况下, 转储流的第一个版本号 (即指定版本号范围的起始版本号)
+        相当于把该版本号下的所有文件和目录一次性添加到仓库中, 后面的版本号
+        (起始版本号之后的版本号) 只包含了在版本号内被修改的文件和目录. 对于
+        被修改的文件, 转储流保存了该文件的全文本内容和属性; 对于被修改的目录,
+        转储流保存了该目录的所有属性.</para>
+
+      <!--
+      <para>Two useful options modify the dump file
+        generator's behavior.  The first is the
+        <option>- -incremental</option> option, which simply causes
+        that first revision in the dump stream to contain only
+        the files and directories modified in that revision,
+        instead of being presented as the addition of a new tree,
+        and in exactly the same way that every other revision in
+        the dump file is presented.  This is useful for generating
+        a relatively small dump file to be loaded into another
+        repository that already has the files and directories
+        that exist in the original repository.</para>
+      -->
+      <para>有 2 个选项可以修改 <command>svnadmin</command> 在生成转储文件时
+        的行为. 选项 <option>--incremental</option> 使得转储流的第一个版本号
+        只包含在该版本号内被修改的文件和目录, 而不是该版本号下的整个目录树,
+        联系上一段可以看到, 这和后面的版本号在转储流中的表示格式是完全相同的.
+        如果目标仓库已经包含了源仓库的文件与目录, 那么该选项就能生成相对更小
+        的转储文件.</para>
+
+      <!--
+      <para>The second useful option is <option>- -deltas</option>.
+        This option causes <command>svnadmin dump</command> to,
+        instead of emitting full-text representations of file
+        contents and property lists, emit only deltas of those
+        items against their previous versions.  This reduces (in
+        some cases, drastically) the size of the dump file that
+        <command>svnadmin dump</command> creates.  There are, however,
+        disadvantages to using this option&mdash;deltified
+        dump files are more CPU-intensive to create and tend
+        not to compress as well as their nondeltified counterparts
+        when using third-party tools such as <command>gzip</command>
+        and <command>bzip2</command>.</para>
+      -->
+      <para>第二个选项是 <option>--deltas</option>, 它使得 <command>svnadmin
+          dump</command> 在转储每个版本号时, 只输出该版本号相对于前一个版本号
+        的差异部分, 而不是全文本的文件和属性. 这种做法可以减小 (在某些情况下
+        可以极大地减小) 转储文件的大小. 然而, 选项 <option>--deltas</option>
+        也有不好的地方&mdash;它会耗费更多的 CPU 资源, 而且使用第三方工具 (例如
+        <command>gzip</command> 和 <command>bzip2</command>) 对转储文件进行
+        压缩时, 和不加选项 <option>--deltas</option> 生成的转储文件相比, 其
+        压缩效果也不如它们.</para>
+
+      <tip>
+      <!--
+        <para>Beginning with Subversion 1.8,
+          <command>svndumpfilter</command> can operate on deltified
+          dump streams.  Prior to this release,
+          <command>svndumpfilter</command> would not work with dump
+          streams created using <option>- -deltas</option>
+          option.</para>
+      -->
+        <para>从 Subversion 1.8 开始, <command>svndumpfilter</command>
+          开始支持通过选项 <option>--deltas</option> 创建的转储流.</para>
+      </tip>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.deltas" />
+<xref linkend="svn.ref.svnadmin.sw.incremental" />
+<xref linkend="svn.ref.svnadmin.sw.memory_cache_size" />
+<xref linkend="svn.ref.svnadmin.sw.quiet" />
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+</screen>
+      </informalexample>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Dump your whole repository:</para>
+      -->
+      <para>转储整个仓库:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin dump /var/svn/repos &gt; full.dump
+* Dumped revision 0.
+* Dumped revision 1.
+* Dumped revision 2.
+&hellip;
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Incrementally dump a single transaction from your
+        repository:</para>
+      -->
+      <para>按照增量的格式转储一个单独的版本号:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin dump /var/svn/repos -r 21 --incremental &gt; incr.dump
+* Dumped revision 21.
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.freeze">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>freeze</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin freeze</refname>
+      <!--
+      <refpurpose>Prevent commits to the repository while running an arbitary program.</refpurpose>
+      -->
+      <refpurpose>在执行某个程序期间, 禁止向仓库提交.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin freeze <replaceable>REPOS_PATH</replaceable> <replaceable>PROGRAM</replaceable> [<replaceable>ARG</replaceable>...]</literal></para>
+      <para><literal>svnadmin freeze --file <replaceable>FILENAME</replaceable> <replaceable>PROGRAM</replaceable> [<replaceable>ARG</replaceable>...]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>This subcommand prevents concurrent commits to the repository
+        <replaceable>REPOS_PATH</replaceable> (i.e. it freezes the
+        repository) while running <replaceable>PROGRAM</replaceable> with
+        <replaceable>ARG</replaceable> arguments.  Clients trying to
+        commit concurrently will wait until the repository becomes
+        available again.  The subcommand is intended for backup purposes so
+        that third-party backup tools such as <command>rsync</command> can
+        be safely used on a live repository.</para>
+      -->
+      <para><command>svnadmin freeze</command> 禁止在程序
+        <replaceable>PROGRAM</replaceable> (带有参数
+        <replaceable>ARG</replaceable>) 运行期间, 向仓库
+        <replaceable>REPOS_PATH</replaceable> 提交修改 (即冻结仓库). 如果客户
+        端在仓库冻结期间向仓库提交修改, 提交将会阻塞, 直到仓库解除冻结.
+        <command>svnadmin freeze</command> 的目的是让第三方备份工具 (例如
+        <command>rsync</command>) 可以安全地对在线仓库进行备份.</para>
+
+      <!--
+      <para>If <option>- -file</option> option is used, then all repositories
+        listed in <replaceable>FILENAME</replaceable> will froze.  The
+        file format is a list of <replaceable>REPOS_PATH</replaceable>
+        separated by newlines.  Repositories freeze in the
+        same order as they are listed in the file.</para>
+      -->
+      <para>如果添加了选项 <option>--file</option>, 文件
+        <replaceable>FILENAME</replaceable> 中列出的所有仓库都会被冻结. 文件
+        的格式是每行一个 <replaceable>REPOS_PATH</replaceable>, 仓库被冻结的
+        顺序和它们在文件中的顺序相同.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.file" />
+</screen>
+      </informalexample>
+    </refsect1>
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Freeze the repository and run <command>rsync</command> to
+        make its backup:</para>
+      -->
+      <para>冻结仓库, 然后执行 <command>rsync</command> 对仓库进行备份:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin freeze /var/svn/repos -- rsync -av /var/svn/repos /backup/repos
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  
+  <refentry id="svn.ref.svnadmin.c.help">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>help</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin help (h, ?)</refname>
+      <!--
+      <refpurpose>Help!</refpurpose>
+      -->
+      <refpurpose>帮助!</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin help [<replaceable>SUBCOMMAND</replaceable>...]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>This subcommand is useful when you're trapped on a
+        desert island with neither a Net connection nor a copy of
+        this book.</para>
+      -->
+      <para>如果既无法上网, 手上也没有这本书, 那你就只能依靠这个子命令了.
+      </para>
+    </refsect1>
+
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.hotcopy">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>hotcopy</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin hotcopy</refname>
+      <!--
+      <refpurpose>Make a hot copy of a repository.</refpurpose>
+      -->
+      <refpurpose>对仓库进行在线备份.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin hotcopy <replaceable>REPOS_PATH</replaceable> <replaceable>NEW_REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>This subcommand makes a <quote>hot</quote> backup
+        of your repository, including all hooks, configuration
+        files, and, of course, database files.  You can run this command at any
+        time and make a safe copy of the repository, regardless of
+        whether other processes are using the repository.</para>
+      -->
+      <para><command>svnadmin hotcopy</command> 为仓库生成一份
+        <quote>在线</quote> 副本, 包括所有的钩子, 配置文件和数据库文件. 你可以
+        在任何时候执行这个命令, 而不用担心是否还有其他进程在访问仓库.</para>
+
+      <!--
+      <para>Prior to Subversion 1.8, <command>svnadmin hotcopy</command> always
+        made a full hot copy of the source repository.  Beginning with
+        Subversion 1.8 it supports incremental copy to the existing
+        destination copy of the same source repository.  By passing the
+        <option>- -incremental</option> option to
+        <command>svnadmin hotcopy</command>, you can instruct Subversion to
+        copy only new revisions and revisions which have changed in size or had
+        timestamp modifications.  The UUID of the hotcopy destination
+        repository must match the UUID of the hotcopy source repository.
+        Incremental hotcopy mode is supported for FSFS repositories
+        only.</para>
+      -->
+      <para>在 Subversion 1.8 之前, <command>svnadmin hotcopy</command> 总是
+        生成一份完整的仓库在线副本. 从 Subversion 1.8 开始, <command>svnadmin
+          hotcopy</command> 开始支持增量备份. 添加选项
+        <option>--incremental</option> 后, Subversion 将只复制新的版本号和
+        大小或时间戳发生变化的版本号. 目标仓库的 UUID 和源仓库的 UUID 必须
+        完全相同. 增量的在线备份只支持使用 FSFS 作为后端存储的仓库.</para>
+
+      <!--
+      <para>If you pass the <option>- -clean-logs</option> option,
+        <command>svnadmin</command> will perform a hot copy of your
+        repository, and then remove unused Berkeley DB logs from
+        the original repository.</para>
+      -->
+      <para>如果添加了选项 <option>--clean-logs</option>, <command>svnadmin
+          hotcopy</command> 在执行完在线备份后, 将会删除源仓库中不再使用的
+        Berkeley DB 日志.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.clean_logs" />
+<xref linkend="svn.ref.svnadmin.sw.incremental" />
+</screen>
+      </informalexample>
+
+      <warning>
+      <!--
+        <para>As described in <xref
+          linkend="svn.berkeleydb.limitations.architectural"/>, hot-copied
+          Berkeley DB repositories are <emphasis>not</emphasis>
+          portable across operating systems, nor will they work on
+          machines with a different <quote>endianness</quote> than
+          the machine where they were created.</para>
+      -->
+        <para>在 <xref
+            linkend="svn.berkeleydb.limitations.architectural"/> 提到,
+          在线备份的, 以 Berkeley DB 作为后端存储的仓库在不同的操作系统之间
+          是不可移植的, 在大小端不同的系统之间也不可移植.</para>
+      </warning>
+
+      </refsect1>
+
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.list-dblogs">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>list-dblogs</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin list-dblogs</refname>
+      <!--
+      <refpurpose>Ask Berkeley DB which logfiles exist for a
+        given Subversion repository (applies only to repositories
+        using the <literal>bdb</literal> backend).</refpurpose>
+      -->
+      <refpurpose>列出所有的 Berkeley DB 日志文件.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin list-dblogs <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Berkeley DB creates logs of all changes to the
+        repository, which allow it to recover in the face of
+        catastrophe.  Unless you enable
+        <literal>DB_LOG_AUTOREMOVE</literal>, the logfiles
+        accumulate, although most are no longer used and can be
+        deleted to reclaim disk space.  See <xref
+        linkend="svn.reposadmin.maint.diskspace"/> for more
+        information.</para>
+      -->
+      <para>Berkeley DB 为仓库的所有修改创建日志, 用于灾备恢复. 除非开启了
+        <literal>DB_LOG_AUTOREMOVE</literal>, 否则的话日志文件会不断累积,
+        即使它们中的大部分都不会再被用到, 把它们删除有助于节省硬盘空间. 更
+        多的信息见 <xref linkend="svn.reposadmin.maint.diskspace"/>.</para>
+    </refsect1>
+
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.list-unused-dblogs">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>list-unused-dblogs</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin list-unused-dblogs</refname>
+      <!--
+      <refpurpose>Ask Berkeley DB which logfiles can be safely
+      deleted (applies only to repositories using the
+      <literal>bdb</literal> backend).</refpurpose>
+      -->
+    <refpurpose>询问 Berkeley DB 哪些日志文件可以被安全地删除 (该子命令只
+      适用于以 <literal>bdb</literal> 作为后端存储的仓库).</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin list-unused-dblogs <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Berkeley DB creates logs of all changes to the
+        repository, which allow it to recover in the face of
+        catastrophe.  Unless you enable
+        <literal>DB_LOG_AUTOREMOVE</literal>, the logfiles
+        accumulate, although most are no longer used and can be
+        deleted to reclaim disk space.  See <xref
+        linkend="svn.reposadmin.maint.diskspace"/> for more
+        information.</para>
+      -->
+      <para>Berkeley DB 为仓库的所有修改创建日志, 用于灾备恢复. 除非开启了
+        <literal>DB_LOG_AUTOREMOVE</literal>, 否则的话日志文件会不断累积,
+        即使它们中的大部分都不会再被用到, 把它们删除有助于节省硬盘空间. 更
+        多的信息见 <xref linkend="svn.reposadmin.maint.diskspace"/>.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>Remove all unused logfiles from the repository:</para>
+      -->
+      <para>删除仓库中不会再被用到的日志文件:</para>
+
+      <informalexample>
+      <screen>
+$ svnadmin list-unused-dblogs /var/svn/repos
+/var/svn/repos/log.0000000031
+/var/svn/repos/log.0000000032
+/var/svn/repos/log.0000000033
+
+$ svnadmin list-unused-dblogs /var/svn/repos | xargs rm
+## disk space reclaimed!
+</screen>
+    </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.load">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>load</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin load</refname>
+      <!--
+      <refpurpose>Read a
+        repository dump stream from
+        <filename>stdin</filename>.</refpurpose>
+      -->
+      <refpurpose>从 <filename>stdin</filename> 读取仓库的转储流.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin load <replaceable>REPOS_PATH</replaceable> [-r <replaceable>LOWER</replaceable>[:<replaceable>UPPER</replaceable>]]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Read a repository dump stream from
+        <filename>stdin</filename>, committing new revisions
+        into the repository's filesystem.  Progress
+        feedback is sent to <filename>stdout</filename>.  If
+        no revisions are given, read and commit all revisions.  But
+        if <option>- -revision</option> (<option>-r</option>) is provided,
+        read and commit
+        revisions <replaceable>LOWER</replaceable> revision through
+        <replaceable>UPPER</replaceable> revision only.  If only
+        <replaceable>LOWER</replaceable> is given, load that one
+        revision.</para>
+      -->
+      <para>从 <filename>stdin</filename> 读取仓库的转储流, 把新的版本号提交
+        到仓库的文件系统中. 进度信息被打印到 <filename>stdout</filename>.
+        如果没有指定版本号, <command>svnadmin load</command> 将读取并提交所有
+        的版本号; 如果添加了选项 <option>--revision</option>
+        (<option>-r</option>), <command>svnadmin load</command> 将只读取并
+        提交从 <replaceable>LOWER</replaceable> 到
+        <replaceable>UPPER</replaceable> 的版本号; 如果只指定了
+        <replaceable>LOWER</replaceable>, 则只加载这一个版本号.</para>
+
+      <!--
+      <para>Prior to Subversion 1.8, <command>svnadmin load</command>
+        was limited to reading all revisions that the dump stream
+        contains, but now <command>svnadmin load</command> accepts
+        <option>- -revision</option> (<option>-r</option>) option that acts
+        as a filter for
+        dump stream revisions.  This allows you to incrementally load
+        only a range of revisions from a single dump stream making
+        some repository maintenance and reorganization tasks much
+        easier.</para>
+      -->
+      <para>在 Subversion 1.8 之前, <command>svnadmin load</command> 只能加
+        载转储流中包含的 <emphasis>全部</emphasis> 版本号, 但是现在可以通过
+        选项 <option>--revision</option> (<option>-r</option>), 从转储流中
+        加载指定的版本号. 这就允许管理员从一个单一的转储流中增量地加载一段
+        版本号范围, 从而让仓库的维护任务变得更加轻松.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.bypass_prop_validation" />
+<xref linkend="svn.ref.svnadmin.sw.force_uuid" />
+<xref linkend="svn.ref.svnadmin.sw.ignore_uuid" />
+<xref linkend="svn.ref.svnadmin.sw.memory_cache_size" />
+<xref linkend="svn.ref.svnadmin.sw.parent_dir" />
+<xref linkend="svn.ref.svnadmin.sw.quiet" />
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+<xref linkend="svn.ref.svnadmin.sw.use_post_commit_hook" />
+<xref linkend="svn.ref.svnadmin.sw.use_pre_commit_hook" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the beginning of loading a repository from
+        a backup file (made, of course, with <command>svnadmin
+        dump</command>):</para>
+      -->
+    <para>下面的例子展示了把转储文件加载到仓库中的输出信息的开始部分 (当然,
+      转储文件是通过命令 <command>svnadmin dump</command> 创建的):</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin load /var/svn/restored &lt; repos-backup
+&lt;&lt;&lt; Started new txn, based on original revision 1
+     * adding path : test ... done.
+     * adding path : test/a ... done.
+&hellip;
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Or if you want to load into a subdirectory:</para>
+      -->
+      <para>还可以把转储流加载到一个子目录内:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin load --parent-dir new/subdir/for/project \
+                /var/svn/restored &lt; repos-backup
+&lt;&lt;&lt; Started new txn, based on original revision 1
+     * adding path : test ... done.
+     * adding path : test/a ... done.
+&hellip;
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Newer versions of Subversion have grown more strict
+        regarding the format of the values of Subversion's own
+        built-in properties.  Of course, properties created with
+        older versions of Subversion wouldn't have benefitted from
+        that strictness, and as such might be improperly
+        formatted.  Dump streams carry property values as-is, so
+        using Subversion 1.8 to load dump streams created from
+        repositories with ill-formatted property values will, by
+        default, trigger a validation error.  There are several
+        workaround for this problem.  First, you can manually
+        repair the problematic property values in the source
+        repository and recreate the dump stream.  Or, you can
+        manually tweak the dump stream itself to fix those
+        property values.  Finally, if you'd rather not deal with
+        the problem right now, use the
+        <option>- -bypass-prop-validation</option> option
+        with <command>svnadmin load</command>.</para>
+      -->
+      <para>新版 Subversion 对内建属性的值会提出越来越严格的格式要求, 当然,
+        由旧版 Subversion 创建的属性无法从这种严格的要求中得到任何好处, 却
+        有可能导致属性值被不正确地格式化. 转储流原模原样地保存属性值, 因此
+        Subversion 1.8 在加载属性值格式不正确的转储流时, 默认情况下会触发一
+        个验证性错误. 有几种办法可以避免出现这种问题, 第一种是在源仓库中手动
+        地修正格式不正确的属性值, 然后重新创建转储流; 或者是手动修改转储流文件
+        中的属性值; 最后, 如果你想在加载后再去修正属性值, 可以为
+        <command>svnadmin load</command> 添加选项
+        <option>--bypass-prop-validation</option>.</para>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.lock">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>lock</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin lock</refname>
+      <!--
+      <refpurpose>Lock path in the repository directly.</refpurpose>
+      -->
+      <refpurpose>直接在仓库中为一个路径加锁.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin lock <replaceable>REPOS_PATH</replaceable> <replaceable>PATH-IN-REPOS</replaceable> <replaceable>USERNAME</replaceable> <replaceable>FILE</replaceable>
+        [<replaceable>TOKEN</replaceable>]</literal>
+      </para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Lock <replaceable>PATH-IN-REPOS</replaceable> in the
+        repository, assigning ownership of the lock
+        to <replaceable>USERNAME</replaceable> and using the contents
+        of <replaceable>FILE</replaceable> as comments associated with
+        the created lock.  If provided,
+        use <replaceable>TOKEN</replaceable> as lock token.</para>
+      -->
+      <para>加载仓库中的路径 <replaceable>PATH-IN-REPOS</replaceable>,
+        把锁的持有者设置为 <replaceable>USERNAME</replaceable>, 使用文件
+        <replaceable>FILE</replaceable> 的内容作为锁的注释. 如果提供了
+        <replaceable>TOKEN</replaceable>, 它将作为锁的令牌.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <title>Options</title>
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.bypass_hooks" />
+</screen>
+      </informalexample>
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.lslocks">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>lslocks</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin lslocks</refname> 
+      <!--
+      <refpurpose>Print descriptions of all locks.</refpurpose>
+      -->
+      <refpurpose>打印所有锁的描述.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin lslocks <replaceable>REPOS_PATH</replaceable> [<replaceable>PATH-IN-REPOS</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <title>Description</title>
+
+      <!--
+      <para>Print descriptions of all locks in
+        repository <replaceable>REPOS_PATH</replaceable>
+        underneath the
+        path <replaceable>PATH-IN-REPOS</replaceable>.
+        If <replaceable>PATH-IN-REPOS</replaceable> is not
+        provided, it defaults to the root directory of the
+        repository.</para>
+      -->
+      <para>打印仓库 <replaceable>REPOS_PATH</replaceable> 在路径
+        <replaceable>PATH-IN-REPOS</replaceable> 下的所有锁的描述. 如果没有
+        指定 <replaceable>PATH-IN-REPOS</replaceable>, 默认是仓库的根目录.
+      </para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+      
+      <!--
+      <para>None</para>
+      -->
+      <para>无</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+
+      <!--
+      <para>This lists the one locked file in the repository at
+        <filename>/var/svn/repos</filename>:</para>
+      -->
+      <para>列出仓库 <filename>/var/svn/repos</filename> 所有的锁 (只有一个):
+      </para>
+
+      <informalexample>
+        <screen>
+$ svnadmin lslocks /var/svn/repos
+Path: /tree.jpg
+UUID Token: opaquelocktoken:ab00ddf0-6afb-0310-9cd0-dda813329753
+Owner: harry
+Created: 2005-07-08 17:27:36 -0500 (Fri, 08 Jul 2005)
+Expires: 
+Comment (1 line):
+Rework the uppermost branches on the bald cypress in the foreground.
+</screen>
+      </informalexample>
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.lstxns">
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>lstxns</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin lstxns</refname>
+      <!--
+      <refpurpose>Print the names of all uncommitted transactions.</refpurpose>
+      -->
+      <refpurpose>输出所有未提交的事务的名字.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin lstxns <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the names of all uncommitted transactions.  See
+        <xref linkend="svn.reposadmin.maint.diskspace.deadtxns" />
+        for information on how uncommitted transactions are
+        created and what you should do with them.</para>
+      -->
+      <para>输出所有未提交的事务的名字. 关于未提交的事务是如何出现的, 以及
+        如何处理它们, 见 <xref
+          linkend="svn.reposadmin.maint.diskspace.deadtxns" />.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>List all outstanding transactions in a
+        repository:</para>
+      -->
+      <para>所有仓库中所有未完成的事务:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin lstxns /var/svn/repos/ 
+1w
+1x
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.pack">
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>pack</tertiary>
+    </indexterm>
+    
+    <refnamediv>
+      <refname>svnadmin pack</refname>
+      <!--
+      <refpurpose>Possibly compact the repository into a more
+      efficient storage model.</refpurpose>
+      -->
+    <refpurpose>如果有可能的话, 把仓库压缩成一个效率更高的存储模式.
+    </refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin pack <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>See
+      <xref linkend="svn.reposadmin.maint.diskspace.fsfspacking"
+      /> for more information.</para>
+      -->
+      <para>见 <xref
+          linkend="svn.reposadmin.maint.diskspace.fsfspacking"/>.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.recover">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>recover</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin recover</refname>
+
+      <!--
+      <refpurpose>Bring a repository database back into a
+      consistent state (applies only to repositories using the
+      <literal>bdb</literal> backend).  In addition, if
+      <filename>repos/conf/passwd</filename> does not exist, it
+      will create a default password file .</refpurpose>
+      -->
+    <refpurpose>把仓库数据库恢复到一个一致的状态 (该命令只适用于以
+      <literal>bdb</literal> 作为后端存储的仓库). 另外, 如果
+      <filename>repos/conf/passwd</filename> 不存在, 命令将自动创建一个默认
+      的密码文件.</refpurpose>
+
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin recover <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Run this command if you get an error indicating that
+        your repository needs to be recovered.</para>
+      -->
+      <para>如果你得到一条说明仓库需要复原的错误信息, 就执行这个命令.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.wait" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>Recover a hung repository:</para>
+      -->
+      <para>复原一个挂起的仓库:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin recover /var/svn/repos/ 
+Repository lock acquired.
+Please wait; recovering the repository may take some time...
+
+Recovery completed.
+The latest repos revision is 34.
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Recovering the database requires an exclusive lock on
+        the repository. (This is a <quote>database lock</quote>;
+        see the sidebar <xref linkend="svn.advanced.locking.meanings"/>.)
+        If another process is accessing the repository,
+        then <command>svnadmin recover</command> will error:</para>
+      -->
+      <para>复原数据库要求获得仓库的排斥性锁. (这是一个
+        <quote>数据库锁</quote>, 见 <xref
+          linkend="svn.advanced.locking.meanings"/>) 如果有其他进程正在访问
+        仓库, <command>svnadmin recover</command> 将会报错:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin recover /var/svn/repos
+svn: E165000: Failed to get exclusive repository access; perhaps another proce
+ss such as httpd, svnserve or svn has it open?
+$
+</screen>
+      </informalexample>
+
+      <!--
+      <para>The <option>- -wait</option> option, however, will
+        cause <command>svnadmin recover</command> to wait
+        indefinitely for other processes to disconnect:</para>
+      -->
+      <para>选项 <option>--wait</option> 使得 <command>svnadmin
+          recover</command> 会一直等到其他进程不再访问仓库为止:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin recover /var/svn/repos --wait
+Waiting on repository lock; perhaps another process has it open?
+
+### time goes by&hellip;
+
+Repository lock acquired.
+Please wait; recovering the repository may take some time...
+
+Recovery completed.
+The latest repos revision is 34.
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.rmlocks">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>rmlocks</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin rmlocks</refname>
+      <!--
+      <refpurpose>Unconditionally remove one or more locks from a
+      repository.</refpurpose>
+      -->
+    <refpurpose>无条件地从仓库中移除一个或多个锁.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin rmlocks <replaceable>REPOS_PATH</replaceable> <replaceable>LOCKED_PATH</replaceable>...</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Remove one or more locks from each <replaceable>LOCKED_PATH</replaceable>.</para>
+      -->
+      <para>从仓库中删除一个或多个锁.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>          
+      -->
+      <title>选项</title>          
+      <!--
+      <para>None</para>
+      -->
+      <para>无</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This deletes the locks on
+        <filename>tree.jpg</filename> and
+        <filename>house.jpg</filename> in the repository at
+        <filename>/var/svn/repos</filename>:</para>
+      -->
+      <para>下面的例子把仓库 <filename>/var/svn/repos</filename> 的文件
+        <filename>tree.jpg</filename> 和 <filename>house.jpg</filename> 上
+        的锁删除:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin rmlocks /var/svn/repos tree.jpg house.jpg
+Removed lock on '/tree.jpg.
+Removed lock on '/house.jpg.
+</screen>
+      </informalexample>
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.rmtxns">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>rmtxns</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin rmtxns</refname>
+      <!--
+      <refpurpose>Delete transactions from a repository.</refpurpose>
+      -->
+      <refpurpose>从仓库中删除事务.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin rmtxns <replaceable>REPOS_PATH</replaceable> <replaceable>TXN_NAME</replaceable>...</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <title>Description</title>
+
+      <!--
+      <para>Delete outstanding transactions from a repository.
+        This is covered in detail in <xref
+        linkend="svn.reposadmin.maint.diskspace.deadtxns" />.</para>
+      -->
+    <para>从仓库中删除未完成的事务, 更多的细节见 <xref
+        linkend="svn.reposadmin.maint.diskspace.deadtxns" />.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.quiet" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Remove named transactions:</para>
+      -->
+      <para>删除指定的事务:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin rmtxns /var/svn/repos/ 1w 1x
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Fortunately, the output of <command>lstxns</command>
+        works great as the input for <command>rmtxns</command>:</para>
+      -->
+      <para>方便的是, 我们可以把 <command>lstxns</command> 的输出用作
+        <command>rmtxns</command> 的输入:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin rmtxns /var/svn/repos/  `svnadmin lstxns /var/svn/repos/`
+</screen>
+      </informalexample>
+
+      <!--
+      <para>This removes all uncommitted transactions from
+        your repository.</para>
+      -->
+      <para>上面的例子删除了仓库中所有未提交的事务.</para>
+
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.setlog">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>setlog</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin setlog</refname>
+      <!--
+      <refpurpose>Set the log message on a revision.</refpurpose>
+      -->
+      <refpurpose>设备版本号的日志消息.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin setlog <replaceable>REPOS_PATH</replaceable> -r <replaceable>REVISION</replaceable> <replaceable>FILE</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Set the log message on
+        revision <replaceable>REVISION</replaceable> to the
+        contents of <replaceable>FILE</replaceable>.</para>
+      -->
+      <para>把版本号 <replaceable>REVISION</replaceable> 的日志消息设置成
+        文件 <replaceable>FILE</replaceable> 的内容.</para>
+
+      <!--
+      <para>This is similar to using <command>svn propset</command>
+        with the <option>- -revprop</option> option to set the <literal>svn:log</literal> property
+        on a revision, except that you can also use the option
+        <option>- -bypass-hooks</option> to avoid running any pre-
+        or post-commit hooks, which is useful if the modification
+        of revision properties has not been enabled in
+        the pre-revprop-change hook.</para>
+      -->
+      <para>这个命令类似于用带有选项 <option>--revprop</option> 的命令
+        <command>svn propset</command> 设置版本号的 <literal>svn:log</literal>
+        属性, 不同点是在使用 <command>svnadmin setlog</command> 可以利用选项
+        <option>--bypass-hooks</option> 旁路掉 pre-commit 或 post-commit 钩子
+        脚本, 这对于没有在钩子 pre-revprop-change 中开启版本号修改的情景非常
+        方便.</para>
+
+      <warning>
+      <!--
+        <para>Revision properties are not under version control,
+          so this command will permanently overwrite the previous
+          log message.</para>
+      -->
+        <para>Subversion 不会对版本号属性进行版本控制, 所以 <command>svnadmin
+            setlog</command> 会永久性地覆盖掉之前的日志消息. </para>
+      </warning>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.bypass_hooks" />
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Set the log message for revision 19 to the contents of
+        the file <filename>msg</filename>:</para>
+      -->
+      <para>把版本号 19 的日志消息设置成文件 <filename>msg</filename> 的
+        内容:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin setlog /var/svn/repos/ -r 19 msg
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.setrevprop">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>setrevprop</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin setrevprop</refname>
+      <!--
+      <refpurpose>Set a property on a revision.</refpurpose>
+      -->
+      <refpurpose>在版本号上设置一个属性.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin setrevprop <replaceable>REPOS_PATH</replaceable> -r <replaceable>REVISION</replaceable> <replaceable>NAME</replaceable> <replaceable>FILE</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+        <para>Set the property <replaceable>NAME</replaceable> on
+          revision <replaceable>REVISION</replaceable> to the
+          contents of <replaceable>FILE</replaceable>.  Use
+          <option>- -use-pre-revprop-change-hook</option>
+          or <option>- -use-post-revprop-change-hook</option> to
+          trigger the revision property-related hooks (e.g., if
+          you want an email notification sent from your post-revprop-change
+          hook).</para>
+      -->
+        <para>把版本号 <replaceable>REVISION</replaceable> 的属性
+          <replaceable>NAME</replaceable> 的值设置成文件
+          <filename>FILE</filename> 的内容. 如果想要触发与版本号属性相关的
+          钩子脚本 (例如在钩子 post-revprop-change 里发送一封邮件, 通知大家
+          有属性被修改了).</para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+<xref linkend="svn.ref.svnadmin.sw.use_post_revprop_change_hook" />
+<xref linkend="svn.ref.svnadmin.sw.use_pre_revprop_change_hook" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>The following sets the revision
+      property <literal>repository-photo</literal> to the contents
+      of the file <filename>sandwich.png</filename>:</para>
+      -->
+    <para>下面的例子把版本号属性 <literal>repository-photo</literal> 的值设置
+      成文件 <filename>sandwich.png</filename> 的内容:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin setrevprop /var/svn/repos -r 0 repository-photo sandwich.png
+</screen>
+      </informalexample>
+
+      <!--
+      <para>As you can see, <command>svnadmin setrevprop</command>
+        has no output upon success.</para>
+      -->
+      <para>可以看到, <command>svnadmin setrevprop</command> 在执行成功时不会
+        输出任何信息.</para>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.setuuid">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>setuuid</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin setuuid</refname>
+      <!--
+      <refpurpose>Reset the repository UUID.</refpurpose>
+      -->
+      <refpurpose>重置仓库的 UUID.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin setuuid <replaceable>REPOS_PATH</replaceable> [<replaceable>NEW_UUID</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Reset the repository UUID for the repository located
+        at <replaceable>REPOS_PATH</replaceable>.
+        If <replaceable>NEW_UUID</replaceable> is provided, use
+        that as the new repository UUID; otherwise, generate a
+        brand-new UUID for the repository.</para>
+      -->
+      <para>重置仓库 <replaceable>REPOS_PATH</replaceable> 的 UUID. 如果提供了
+        <replaceable>NEW_UUID</replaceable>, 它将会是仓库的新 UUID; 否则的话,
+        Subversion 将自动为仓库生成一个新的 UUID.</para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <!--
+      <para>None</para>
+      -->
+      <para>无</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>If you've <command>svnsync</command>ed <filename>/var/svn/repos</filename>
+        to <filename>/var/svn/repos-new</filename> and intend to use <filename>repos-new</filename> as your
+        canonical repository, you may want to change the UUID for
+        <filename>repos-new</filename> to the UUID of <filename>repos</filename> so that your users don't
+        have to check out a new working copy to accommodate the
+        change:</para>
+      -->
+      <para>如果管理员已经用 <command>svnsyn</command> 把
+        <filename>/var/svn/repos</filename> 备份到了
+        <filename>/var/svn/repos-new</filename>, 现在想用
+        <filename>repos-new</filename> 作为新的官方仓库, 为了不麻烦用户再重新
+        检出新的工作副本, 管理员需要把 <filename>repos-new</filename> 的 UUID
+        设置成 <filename>repos</filename> 的 UUID:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin setuuid /var/svn/repos-new 2109a8dd-854f-0410-ad31-d604008985ab
+</screen>
+      </informalexample>
+
+      <!--
+      <para>As you can see, <command>svnadmin setuuid</command>
+        has no output upon success.</para>
+      -->
+      <para>可以看到, <command>svnadmin setuuid</command> 在执行成功时不会
+        输出任何信息.</para>
+
+    </refsect1>
+  </refentry>
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.unlock">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>unlock</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin unlock</refname>
+      <!--
+      <refpurpose>Unlock path in the repository directly.</refpurpose>
+      -->
+      <refpurpose>直接在仓库中解锁一个路径.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin unlock <replaceable>REPOS_PATH</replaceable> <replaceable>LOCKED_PATH</replaceable> <replaceable>USERNAME</replaceable>
+        <replaceable>TOKEN</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Unlock <replaceable>LOCKED_PATH</replaceable> in the
+        repository (as <replaceable>USERNAME</replaceable>) after
+        verifying that the token associated with the lock
+        matches <replaceable>TOKEN</replaceable>.</para>
+      -->
+      <para>如果锁令牌与 <replaceable>TOKEN</replaceable> 相匹配,
+        <command>svnadmin</command> 将以用户
+        <replaceable>USERNAME</replaceable> 的身份解锁
+        <replaceable>LOCKED_PATH</replaceable>.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.bypass_hooks" />
+</screen>
+      </informalexample>
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.upgrade">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>upgrade</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin upgrade</refname>
+      <!--
+      <refpurpose>Upgrade a repository to the latest supported
+        schema version.</refpurpose>
+      -->
+      <refpurpose>把仓库升级到 Subversion 支持的最新格式.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin upgrade <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Upgrade the repository located
+        at <replaceable>REPOS_PATH</replaceable> to the latest
+        supported schema version.</para>
+      -->
+      <para>把仓库 <replaceable>REPOS_PATH</replaceable> 升级到 Subversion
+        支持的最新格式.</para>
+
+      <!--
+      <para>This functionality is provided as a convenience for
+        repository administrators who wish to make use of new
+        Subversion functionality without having to undertake a
+        potentially costly full repository dump and load
+        operation.  As such, the upgrade performs only the minimum
+        amount of work needed to accomplish this while still
+        maintaining the integrity of the repository.  While a dump
+        and subsequent load guarantee the most optimized
+        repository state, <command>svnadmin upgrade</command> does
+        not.</para>
+      -->
+      <para>命令的目标是为了让管理员方便地对仓库进行升级, 而不用通过麻烦的
+        转储和加载. 为了完成升级, <command>svnadmin upgrade</command> 只会
+        完成最小量的工作, 同时保证仓库的完整性. 虽然转储和随后的加载操作可以
+        保证得到一个处于最佳状态的仓库, 但 <command>svnadmin upgrade</command>
+        却无法保证这点.</para>
+
+      <warning>
+      <!--
+        <para>You should <emphasis>always</emphasis> back up your
+          repository before upgrading.</para>
+      -->
+        <para>管理员在升级仓库前, 应该先对它进行备份.</para>
+      </warning>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Upgrade the repository at
+        path <filename>/var/repos/svn</filename>:</para>
+      -->
+      <para>升级仓库 <filename>/var/repos/svn</filename>:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin upgrade /var/repos/svn
+Repository lock acquired.
+Please wait; upgrading the repository may take some time...
+
+Upgrade completed.
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ### FIXME: This could use a lot more explanation.  When
+       should I use it?  What do I do if it fails? -->
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnadmin.c.verify">
+
+    <indexterm>
+      <primary>svnadmin</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>verify</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnadmin verify</refname>
+      <!--
+      <refpurpose>Verify the data stored in the repository.</refpurpose>
+      -->
+      <refpurpose>验证仓库里的数据的完整性.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnadmin verify <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Run this command if you wish to verify the integrity
+        of your repository.  This basically iterates through all
+        revisions in the repository by internally dumping all
+        revisions and discarding the output&mdash;it's a good idea
+        to run this on a regular basis to guard against latent
+                                ### TODO
+        hard disk failures and <quote>bitrot.</quote>  If this
+        command fails&mdash;which it will do at the first sign of
+        a problem&mdash;that means your repository has at
+        least one corrupted revision, and you should restore the
+        corrupted revision from a backup (you did make a backup,
+        didn't you?).</para>
+      -->
+      <para>命令的目标是验证仓库的完整性. 基本上讲, 命令做的工作就是转储
+        所有的版本号, 并丢弃输出&mdash;为了检测潜在的硬盘错误和
+        bitrot, 最好定期执行 <command>svnadmin verify</command>. 如果命令
+        报错, 说明仓库内至少含有一个出错的版本号, 这时候管理员应该从备份
+        恢复出错的版本号 (你备份过, 对吧?).</para>
+
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnadmin.sw.memory_cache_size" />
+<xref linkend="svn.ref.svnadmin.sw.quiet" />
+<xref linkend="svn.ref.svnadmin.sw.revision" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>Verify a hung repository:</para>
+      -->
+      <para>验证一个挂起的仓库:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin verify /var/svn/repos/ 
+* Verified revision 1729.
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+</reference>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "reference")
+end:
+-->

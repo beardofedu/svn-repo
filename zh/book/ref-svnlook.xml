@@ -1,0 +1,2058 @@
+<!-- -*- sgml -*- -->
+
+<reference id="svn.ref.svnlook">
+      <!--
+  <title>svnlook Reference&mdash;Subversion Repository Examination</title>
+      -->
+  <title>svnlook 参考手册&mdash;Subversion 仓库检查工具</title>
+    
+  <partintro>
+      <!--
+    <para><command>svnlook</command> is a command-line utility for
+      examining different aspects of a Subversion repository.  It
+      does not make any changes to the repository&mdash;it's just
+      used for <quote>peeking.</quote>
+      <command>svnlook</command> is typically used by the
+      repository hooks, but a repository administrator might find it
+      useful for diagnostic purposes.</para>
+      -->
+    <para><command>svnlook</command> 是一个命令行工具, 用于检查 Subversion
+      仓库的方方面面, 它不会对仓库做出任何修改&mdash;它仅仅是
+      <quote>看一下</quote> 仓库. <command>svnlook</command> 经常被仓库钩子
+      使用, 但管理员也可以用它来诊断仓库.</para>
+
+      <!--
+    <para>Since <command>svnlook</command> works via direct repository access
+      (and thus can be used only on the machine that holds the
+      repository), it refers to the repository with a path, not a URL.</para>
+      -->
+    <para>由于 <command>svnlook</command> 只有直接访问仓库才能工作 (因
+      此它只能用在存放了仓库的主机中), 所以说在指定仓库时只能使用文件系统路径,
+      而不是 URL.</para>
+
+      <!--
+    <para>If no revision or transaction is specified,
+      <command>svnlook</command> defaults to the youngest (most
+      recent) revision of the repository.</para>
+      -->
+    <para>如果没有指定版本号或事务, <command>svnlook</command> 默认使用仓库
+      最新的版本号.</para>
+    
+      <!--
+    <para>Options in <command>svnlook</command> are global, just
+      as they are in <command>svn</command> and
+      <command>svnadmin</command>; however, most options apply
+      to only one subcommand since the functionality of
+      <command>svnlook</command> is (intentionally) limited in
+      scope:</para>
+      -->
+    <para><command>svnlook</command> 的选项都是全局的, 就像
+      <command>svn</command> 和 <command>svnadmin</command> 的全局选项, 但是大
+      多数选项只对一个子命令起作用, 因为 <command>svnlook</command> (有意地)
+      限制了功能的作用范围.</para>
+
+    <variablelist id="svn.ref.svnlook.sw">
+      <!--
+      <title>svnlook Options</title>
+      -->
+      <title>svnlook 选项</title>
+
+      <varlistentry id="svn.ref.svnlook.sw.copy_info">
+        <term><option>--copy-info</option></term>
+        <listitem>
+      <!--
+          <para>Causes <command>svnlook changed</command> to show
+            detailed copy source information.</para>
+      -->
+          <para>使得 <command>svnlook changed</command> 显示复制源的详细信息.
+          </para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnlook.sw.diff_cmd">
+        <term><option>--diff-cmd</option> <replaceable>CMD</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies an external program to use to show differences 
+            between files.  When <command>svnlook diff</command> is  invoked
+            without this option, it uses Subversion's internal differencing
+            engine, which provides unified diffs by default.  If you want to
+            use an external differencing program, use
+            <option>- -diff-cmd</option>.  You can then pass options to the 
+            specified program using the <option>- -extensions</option>
+            (<option>-x</option>) option.</para>
+      -->
+          <para>指定用于显示文件差异的外部差异比较工具. 如果在执行
+            <command>svnlook diff</command> 时没有指定该选项, 它就使用
+            Subversion 内建的差异比较引擎, 默认按照标准差异格式打印输出. 用户
+            还可以用选项 <option>--extensions</option> (<option>-x</option>)
+            向外部差异比较工具传递额外的选项.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.diff_copy_from">
+        <term><option>--diff-copy-from</option></term>
+        <listitem>
+      <!--
+          <para>Print differences for copied items against the copy
+            source.</para>
+      -->
+          <para>显示被复制的项目与复制源之间的差异.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.extensions">
+        <term><option>--extensions</option> (<option>-x</option>) <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies customizations which Subversion should
+            make when performing difference calculations.  Valid
+            extensions include:</para>
+      -->
+          <para>为 Subversion 的差异比较指定扩展选项, 有效的扩展选项有:</para>
+          <variablelist>
+            <varlistentry>
+              <term><option>--ignore-space-change</option> (<option>-b</option>)</term>
+              <listitem>
+      <!--
+                <para>Ignore changes in the amount of white space.</para>
+      -->
+                <para>忽略空白字符在数量方面的变化.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>--ignore-all-space</option> (<option>-w</option>)</term>
+              <listitem>
+      <!--
+                <para>Ignore all white space.</para>
+      -->
+                <para>忽略所有的空白字符.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>--ignore-eol-style</option></term>
+              <listitem>
+      <!--
+                <para>Ignore changes in EOL (end-of-line) style.</para>
+      -->
+                <para>忽略 EOL (end-of-line, 行结束标记) 的变化.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>--show-c-function</option> (<option>-p</option>)</term>
+              <listitem>
+      <!--
+                <para>Show C function names in the diff output.</para>
+      -->
+                <para>在差异比较输出中显示 C 程序的函数名.</para>
+              </listitem>
+            </varlistentry>
+            <varlistentry>
+              <term><option>--unified</option> (<option>-u</option>)</term>
+              <listitem>
+      <!--
+                <para>Show three lines of unified diff context.</para>
+      -->
+                <para>显示宽度为 3 行的标准差异上下文.</para>
+              </listitem>
+            </varlistentry>
+          </variablelist>
+      <!--
+          <para>The default value is <literal>-u</literal>.</para>
+          <para>Note that when Subversion is configured to invoke an
+            external diff command, the value of
+            the <option>- -extension</option> (<option>-x</option>)
+            option isn't restricted to the previously mentioned
+            options, but may be <emphasis>any</emphasis> additional
+            arguments which Subversion should pass to that command.
+            If you wish to pass multiple arguments, you must enclose
+            all of them in quotes.</para>
+      -->
+          <para>扩展选项的默认值是 <literal>-u</literal>.</para>
+          <para>需要注意的是, 如果差异比较引擎是一个外部的差异比较工具, 那么
+            选项 <option>--extensions</option> (<option>-x</option>) 的参数
+            不仅限于以上提到的这些, 而是可以设置成外部差异比较工具能够接受的
+            <emphasis>任意</emphasis> 参数, 如果你希望传递多个参数, 必须把
+            它们用双引号包围起来.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.full_paths">
+        <term><option>--full-paths</option></term>
+        <listitem>
+      <!--
+          <para>Causes <command>svnlook tree</command> to display
+            full paths instead of hierarchical, indented path
+            components.</para>
+      -->
+          <para>使得 <command>svnlook tree</command> 显示完整的路径, 而不是
+            层次化的, 逐渐缩进的路径分量.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.ignore_properties">
+        <term><option>--ignore-properties</option></term>
+        <listitem>
+      <!--
+          <para>Instructs <command>svnlook diff</command> to suppress
+            output of property changes.</para>
+      -->
+          <para>禁止 <command>svnlook diff</command> 显示属性的变化.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.limit">
+        <term><option>--limit</option> (<option>-l</option>) <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Limit output to a maximum number of
+            <replaceable>ARG</replaceable> items.</para>
+      -->
+          <para>把输出的项目个数限制在 <replaceable>ARG</replaceable> 以内.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.no_diff_deleted">
+        <term><option>--no-diff-deleted</option></term>
+        <listitem>
+      <!--
+          <para>Prevents <command>svnlook diff</command> from printing
+            differences for deleted files.  The default behavior
+            when a file is deleted in a transaction/revision is
+            to print the same differences that you would see if
+            you had left the file but removed all the content.</para>
+      -->
+          <para>禁止 <command>svnlook diff</command> 为删除的文件显示差异
+            输出. 默认情况下, 如果文件在版本号或事务中被删除了,
+            <command>svnlook diff</command> 在为该文件显示差异输出时, 其效果
+            就像是把文件的全部内容删除, 但不删除文件.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.no_diff_added">
+        <term><option>--no-diff-added</option></term>
+      <listitem>
+      <!--
+        <para>Prevents <command>svnlook diff</command> from printing
+          differences for added files.  The default behavior when
+          you add a file is to print the same differences that you
+          would see if you had added the entire contents of an
+          existing (empty) file.</para>
+      -->
+        <para>禁止 <command>svnlook diff</command> 为新增的文件显示差异输出.
+          默认情况下, 如果文件是新增的, 那么 <command>svnlook diff</command>
+          在为该文件显示差异输出时, 其效果就像是把所有的内容一下子都添加到一
+          个已有的空文件里.</para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnlook.sw.non_recursive">
+        <term><option>--non-recursive</option> (<option>-N</option>)</term>
+        <listitem>
+      <!--
+          <para>Operate on a single directory only.</para>
+      -->
+          <para>只对一个单独的目录进行操作.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.properties_only">
+        <term><option>--properties-only</option></term>
+        <listitem>
+      <!--
+          <para>Instructs <command>svnlook diff</command> to show only property
+            changes.</para>
+      -->
+          <para>使得 <command>svnlook diff</command> 只显示属性的变化.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.revision">
+        <term><option>--revision</option> (<option>-r</option>) <replaceable>REV</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies a particular revision number that you wish
+            to examine.</para>
+      -->
+          <para>指定待查看的版本号.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.revprop">
+        <term><option>--revprop</option></term>
+        <listitem>
+      <!--
+          <para>Operates on a revision property instead of a
+            property specific to a file or directory.  This option
+            requires that you also pass a revision with the
+            <option>- -revision</option> (<option>-r</option>)
+            option.</para>
+      -->
+          <para>针对版本号属性进行操作, 而不是文件或目录上的属性, 如果用到
+            了该选项, 则用户还必须用选项 <option>--revision</option>
+            (<option>-r</option>) 指定一个版本号.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.show_inherited_props">
+        <term><option>--show-inherited-props</option></term>
+        <listitem>
+      <!--
+          <para>Works with <command>svnlook propget</command> and
+            <command>svnlook proplist</command> to display the versioned
+            properties inherited by a path.</para>
+      -->
+          <para>使得 <command>svnlook propget</command> 和
+            <command>svnlook proplist</command> 显示继承而来的属性.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.transaction">
+        <term><option>--transaction</option> (<option>-t</option>) <replaceable>ID</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies a particular transaction ID that you wish to
+            examine.</para>
+      -->
+          <para>指定待查看的事务 ID.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.show_ids">
+        <term><option>--show-ids</option></term>
+        <listitem>
+      <!--
+          <para>Shows the filesystem node revision IDs for each path
+            in the filesystem tree.</para>
+      -->
+          <para>为文件系统树中的每一个路径, 显示文件系统节点的版本号 ID.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.verbose">
+        <term><option>--verbose</option> (<option>-v</option>)</term>
+        <listitem>
+      <!--
+          <para>Be verbose.  When used with <command>svnlook
+            proplist</command>, for example, this causes Subversion
+            to display not just the list of properties, but their
+            values also.</para>
+      -->
+          <para>显示更加详细的输出. 例如为 <command>svnlook proplist</command>
+            指定该选项时, 除了列出属性名, Subversion 还会把属性值打印出来.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnlook.sw.xml">
+        <term><option>--xml</option></term>
+        <listitem>
+      <!--
+          <para>Prints output in XML format.</para>
+      -->
+          <para>按照 XML 格式打印输出.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </partintro>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.author">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>author</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook author</refname>
+      <!--
+      <refpurpose>Print the author.</refpurpose>
+      -->
+      <refpurpose>打印作者.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook author <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the author of a revision or transaction in
+        the repository.</para>
+      -->
+      <para>打印版本号或事务的作者.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+    <para><command>svnlook author</command> is handy, but not
+      very exciting:</para>
+      -->
+    <para><command>svnlook author</command> 用起来很方便, 但打印的信息也很
+      简单:</para>
+
+    <informalexample>
+        <screen>
+$ svnlook author -r 40 /var/svn/repos 
+sally
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.cat">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>cat</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook cat</refname>
+      <!--
+      <refpurpose>Print the contents of a file.</refpurpose>
+      -->
+      <refpurpose>输出文件的内容.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook cat <replaceable>REPOS_PATH</replaceable> <replaceable>PATH_IN_REPOS</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the contents of a file.</para>
+      -->
+      <para>输出文件的内容.</para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the contents of a file in transaction
+        <literal>ax8</literal>, located
+        at <filename>/trunk/README</filename>:</para>
+      -->
+      <para>下面的命令把文件 <filename>/trunk/README</filename> 在事务
+        <literal>ax8</literal> 时的内容打印出来:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook cat -t ax8 /var/svn/repos /trunk/README
+
+               Subversion, a version control system.
+               =====================================
+
+$LastChangedDate: 2003-07-17 10:45:25 -0500 (Thu, 17 Jul 2003) $
+
+Contents:
+
+     I. A FEW POINTERS
+    II. DOCUMENTATION
+   III. PARTICIPATING IN THE SUBVERSION COMMUNITY
+&hellip;
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.changed">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>changed</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook changed</refname>
+      <!--
+      <refpurpose>Print the paths that were changed.</refpurpose>
+      -->
+      <refpurpose>打印发生变化的路径.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook changed <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the paths that were changed in a particular
+        revision or transaction, as well as <quote>svn
+        update-style</quote> status letters in the first two
+        columns:</para>
+      -->
+      <para>把版本号或事务中发生变化的路径打印出来, 同时在每一行的前两列打印
+        状态字符, 这些状态字符和 <command>svn update</command> 的意义相同.
+      </para>
+
+      <variablelist>
+        
+        <varlistentry>
+          <term><literal>'A '</literal></term>
+          <listitem>
+      <!--
+            <para>Item added to repository</para>
+      -->
+            <para>项目是新增的</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><literal>'D '</literal></term>
+          <listitem>
+      <!--
+            <para>Item deleted from repository</para>
+      -->
+            <para>项目被删除了</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><literal>'U '</literal></term>
+          <listitem>
+      <!--
+            <para>File contents changed</para>
+      -->
+            <para>文件的内容被修改了</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><literal>'_U'</literal></term>
+          <listitem>
+      <!--
+            <para>Properties of item changed; note the leading underscore</para>
+      -->
+            <para>项目的属性被修改了, 注意左边有个下划线</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><literal>'UU'</literal></term>
+          <listitem>
+      <!--
+            <para>File contents and properties changed</para>
+      -->
+            <para>文件的内容和属性都被修改了</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+      <!--
+      <para>Files and directories can be distinguished, as
+        directory paths are displayed with a
+        trailing <quote><literal>/</literal></quote>
+        character.</para>
+      -->
+      <para>区别目录路径与文件路径的方法是看路径末尾有没有字符
+        <quote><literal>/</literal></quote>, 末尾带
+        <quote><literal>/</literal></quote> 的路径是目录路径.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.copy_info" />
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows a list of all the changed files and
+        directories in revision 39 of a test repository.  Note
+        that the first changed item is a directory, as evidenced
+        by the trailing <literal>/</literal>:</para>
+      -->
+      <para>下面的命令把版本号 39 中发生变化的所有文件和路径都打印出来. 输出中
+        的第一行是一个目录路径, 因为该路径以 <literal>/</literal> 结尾:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook changed -r 39 /var/svn/repos
+A   trunk/vendors/deli/
+A   trunk/vendors/deli/chips.txt
+A   trunk/vendors/deli/sandwich.txt
+A   trunk/vendors/deli/pickle.txt
+U   trunk/vendors/baker/bagel.txt
+_U  trunk/vendors/baker/croissant.txt
+UU  trunk/vendors/baker/pretzel.txt
+D   trunk/vendors/baker/baguette.txt
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Here's an example that shows a revision in which a
+        file was renamed:</para>
+      -->
+      <para>在下面的版本号中, 有一个文件被重命名了:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook changed -r 64 /var/svn/repos
+A   trunk/vendors/baker/toast.txt
+D   trunk/vendors/baker/bread.txt
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Unfortunately, nothing in the preceding output reveals
+        the connection between the deleted and added files.  Use
+        the <option>- -copy-info</option> option to make this
+        relationship more apparent:</para>
+      -->
+      <para>不幸的是, 上面的输出并没有阐明被删除的文件和被添加的文件之间的
+        关系, 加上选项 <option>--copy-info</option> 后就清楚多了:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook changed -r 64 --copy-info /var/svn/repos
+A + trunk/vendors/baker/toast.txt
+    (from trunk/vendors/baker/bread.txt:r63)
+D   trunk/vendors/baker/bread.txt
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.date">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>date</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook date</refname>
+      <!--
+      <refpurpose>Print the datestamp.</refpurpose>
+      -->
+      <refpurpose>打印提交日期.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook date <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the datestamp of a revision or transaction in
+        a repository.</para>
+      -->
+      <para>打印版本号或事务的提交日期.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>This shows the date of revision 40 of a test
+        repository:</para>
+      -->
+      <para>下面的命令显示了版本号 40 的提交日期:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook date -r 40 /var/svn/repos/
+2003-02-22 17:44:49 -0600 (Sat, 22 Feb 2003)
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.diff">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>diff</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook diff</refname>
+      <!--
+      <refpurpose>Print differences of changed files and properties.</refpurpose>
+      -->
+      <refpurpose>打印被修改的文件和属性的差异.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook diff <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print GNU-style differences of changed files and
+        properties in a repository.</para>
+      -->
+      <para>按照标准差异格式, 打印被修改的文件和属性的差异.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.diff_cmd" />
+<xref linkend="svn.ref.svnlook.sw.diff_copy_from" />
+<xref linkend="svn.ref.svnlook.sw.ignore_properties" />
+<xref linkend="svn.ref.svnlook.sw.no_diff_added" />
+<xref linkend="svn.ref.svnlook.sw.no_diff_deleted" />
+<xref linkend="svn.ref.svnlook.sw.properties_only" />
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+<xref linkend="svn.ref.svnlook.sw.extensions" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>This shows a newly added (empty) file, a modified
+        binary file, and a renamed (that is, copied and deleted)
+        file with modifications:</para>
+      -->
+      <para>下面的例子展示了新增的 (空) 文件, 被修改的二进制文件和重命名
+        (重命名可以理解成复制和删除) 后又被修改的文件的差异比较输出:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook diff -r 40 /var/svn/repos
+Copied: trunk/relish.txt (from rev 39, trunk/vendors/deli/pickle.txt)
+===================================================================
+--- trunk/relish.txt	                        (rev 0)
++++ trunk/relish.txt	2013-01-29 20:39:17 UTC (rev 40)
+@@ -0,0 +1 @@
++Pickle relish is mostly made from cucumbers.
+
+Deleted: trunk/vendors/deli/pickle.txt
+===================================================================
+--- trunk/vendors/deli/pickle.txt	                        (rev 39)
++++ trunk/vendors/deli/pickle.txt	2013-01-29 20:39:17 UTC (rev 49)
+@@ -1 +0,0 @@
+-Pickles are mostly made from cucumbers.
+
+Modified: trunk/vendors/deli/logo.jpg
+===================================================================
+(Binary files differ)
+
+Added: trunk/vendors/deli/soda.txt
+===================================================================
+$
+</screen>
+      </informalexample>
+
+      <!--
+      <para>By default, <command>svnlook diff</command> will treat
+        copied files very much like any other added file,
+        displaying in their entirety the contents of the new file
+        and merely using a different label to draw the copy/add
+        distinction.  However, you can use the
+        ### TODO
+        <option>- -diff-copy-from</option> option to cause
+        <command>svnlook diff</command> to consider a copied
+        file as worthy of mention only if it differs from the file
+        from which it was copied, and to actually describe those
+        differences.</para>
+      -->
+      <para>默认情况下, <command>svnlook diff</command> 把复制后的文件当成
+        新增的文件对待, 仅仅使用不同的标签来区分复制与新增的区别. 然而,
+        选项 <option>--diff-copy-from</option> 使得 <command>svnlook
+          diff</command> 输出复制后的文件与源文件之间的差异:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook diff -r 40 /var/svn/repos --diff-copy-from
+Copied: trunk/relish.txt (from rev 39, trunk/vendors/deli/pickle.txt)
+===================================================================
+--- trunk/vendors/deli/pickle.txt	2013-01-29 20:39:17 UTC (rev 39)
++++ trunk/relish.txt	2013-01-29 20:47:40 UTC (rev 3)
+@@ -1 +1 @@
+-Pickles are mostly made from cucumbers.
++Pickle relish is mostly made from cucumbers.
+
+Deleted: trunk/vendors/deli/pickle.txt
+===================================================================
+--- trunk/vendors/deli/pickle.txt	(rev 39)
++++ trunk/vendors/deli/pickle.txt	2013-01-29 20:39:17 UTC (rev 40)
+@@ -1 +0,0 @@
+-Pickles are mostly made from cucumbers.
+
+Modified: trunk/vendors/deli/logo.jpg
+===================================================================
+(Binary files differ)
+
+Added: trunk/vendors/deli/soda.txt
+==============================================================================
+$
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Use the <option>- -no-diff-deleted</option> option to
+        silence output regarding deleted files.</para>
+      -->
+      <para>选项 <option>--no-diff-deleted</option> 使得 <command>svnlook
+          diff</command> 不再输出被删除的文件的差异:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook diff -r 40 /var/svn/repos --no-diff-deleted
+Copied: trunk/relish.txt (from rev 39, trunk/vendors/deli/pickle.txt)
+===================================================================
+--- trunk/relish.txt	                        (rev 0)
++++ trunk/relish.txt	2013-01-29 20:39:17 UTC (rev 40)
+@@ -0,0 +1 @@
++Pickle relish is mostly made from cucumbers.
+
+Modified: trunk/vendors/deli/logo.jpg
+===================================================================
+(Binary files differ)
+
+Added: trunk/vendors/deli/soda.txt
+==============================================================================
+$
+</screen>
+      </informalexample>
+      
+      <!--
+      <para>Note that in each of the previous examples, when a
+        file has a nontextual <literal>svn:mime-type</literal>
+        property, the differences are not explicitly shown.</para>
+      -->
+      <para>注意, 如果文件具有非文本化的 <literal>svn:mime-type</literal>
+        属性, 则 <command>svnlook diff</command> 不会输出文件的差异.</para>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.dirs-changed">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>dirs-changed</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook dirs-changed</refname>
+      <!--
+      <refpurpose>Print the directories that were themselves changed.</refpurpose>
+      -->
+      <refpurpose>输出属性或子文件发生变化的目录.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook dirs-changed <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the directories that were themselves changed
+        (property edits) or whose file children were
+        changed.</para>
+      -->
+      <para>输出属性或子文件发生变化的目录.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the directories that changed in
+        revision 40 in our sample repository:</para>
+      -->
+      <para>下面的例子列出了在版本号 40 中发生变化的目录:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook dirs-changed -r 40 /var/svn/repos
+trunk/vendors/deli/
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.filesize">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>filesize</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook filesize</refname>
+      <!--
+      <refpurpose>Print the size (in bytes) of a versioned
+        file.</refpurpose>
+      -->
+      <refpurpose>输出文件的大小, 以字节为单位.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook filesize <replaceable>REPOS_PATH</replaceable>
+        <replaceable>PATH_IN_REPOS</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the file size (in bytes) of the file located
+        at <replaceable>PATH_IN_REPOS</replaceable> in the HEAD
+        revision of the repository identified
+        by <replaceable>REPOS_PATH</replaceable> as a base-10
+        integer followed by an end-of-line character.  Use
+        the <option>- -revision</option> (<option>-r</option>)
+        and <option>- -transaction</option> (<option>-t</option>)
+        options to specify a version of the file other than HEAD
+        whose file size you wish to display.</para>
+      -->
+      <para>以字节为单位输出文件的大小, 文件位于仓库
+        <replaceable>REPOS_PATH</replaceable> 内, 且路径为
+        <replaceable>PATH_IN_REPOS</replaceable>. 输出的文件大小以 10 为
+        基数, 然后是一个换行符. 如果没有用选项
+        <option>--revision</option> (<option>-r</option>) 或
+        <option>--transaction</option> (<option>-t</option>) 指定版本号
+        或事务, 则默认使用 <literal>HEAD</literal>.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>The following demonstrates how to display the size of
+        the <filename>trunk/vendors/deli/soda.txt</filename> file
+        as it appeared in revision 40 of our sample
+        repository:</para>
+      -->
+      <para>下面的例子展示了如何查看文件
+        <filename>trunk/vendors/deli/soda.txt</filename> 在版本号 40
+        时的大小:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook filesize -r 40 /var/svn/repos trunk/vendors/deli/soda.txt
+23
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.help">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>help</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook help (h, ?)</refname>
+      <!--
+      <refpurpose>Help!</refpurpose>
+      -->
+      <refpurpose>帮助!</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <!--
+      <para><literal>Also svnlook -h and svnlook -?.</literal></para>
+      -->
+      <para>还可以使用 <literal>svnlook -h</literal> 和
+        <literal>svnlook -?</literal> 这两种调用方式.</para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Displays the help message
+        for <command>svnlook</command>.  This command, like its
+        brother, <command>svn help</command>, is also your friend,
+        even though you never call it anymore and forgot to invite
+        it to your last party.</para>
+      -->
+      <para>打印 <command>svnlook</command> 的帮助信息, 就像 <command>svn
+          help</command> 能打印 <command>svn</command> 的帮助信息那样.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+    </refsect1>
+
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.history">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>history</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook history</refname>
+      <!--
+      <refpurpose>Print information about the history of a path in
+        the repository (or the root directory if no path is
+        supplied).</refpurpose>
+      -->
+      <refpurpose>打印仓库中某个路径的历史信息, 如果没有指定路径, 则默认是
+        仓库的根目录.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook history <replaceable>REPOS_PATH</replaceable> [<replaceable>PATH_IN_REPOS</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print information about the history of a path in
+        the repository (or the root directory if no path is
+        supplied).</para>
+      -->
+      <para>打印仓库中某个路径的历史信息, 如果没有指定路径, 则默认是
+        仓库的根目录.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.limit" />
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.show_ids" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the history output for the path
+        <filename>/branches/bookstore</filename> as of revision 13 in our
+        sample repository:</para>
+      -->
+      <para>下面的例子显示了仓库中 <filename>/branches/bookstore</filename>
+        到版本号 13 为止的历史信息:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook history -r 13 /var/svn/repos /branches/bookstore --show-ids
+REVISION   PATH &lt;ID&gt;
+--------   ---------
+      13   /branches/bookstore &lt;1.1.r13/390&gt;
+      12   /branches/bookstore &lt;1.1.r12/413&gt;
+      11   /branches/bookstore &lt;1.1.r11/0&gt;
+       9   /trunk &lt;1.0.r9/551&gt;
+       8   /trunk &lt;1.0.r8/131357096&gt;
+       7   /trunk &lt;1.0.r7/294&gt;
+       6   /trunk &lt;1.0.r6/353&gt;
+       5   /trunk &lt;1.0.r5/349&gt;
+       4   /trunk &lt;1.0.r4/332&gt;
+       3   /trunk &lt;1.0.r3/335&gt;
+       2   /trunk &lt;1.0.r2/295&gt;
+       1   /trunk &lt;1.0.r1/532&gt;
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.info">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>info</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook info</refname>
+      <!--
+      <refpurpose>Print the author, datestamp, log message size,
+        and log message.</refpurpose>
+      -->
+      <refpurpose>打印作者, 时间戳, 日志消息大小和日志消息内容.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook info <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the author, datestamp, log message size (in bytes),
+        and log message, followed by a newline character.</para>
+      -->
+      <para>打印作者, 时间戳, 日志消息大小 (以字节为单位) 和日志消息内容,
+        每一条信息后面都会跟随一个换行符.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the info output for revision 40 in our
+        sample repository:</para>
+      -->
+      <para>下面的例子列出了与版本号 40 相关的提交信息:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook info -r 40 /var/svn/repos
+sally
+2003-02-22 17:44:49 -0600 (Sat, 22 Feb 2003)
+16
+Rearrange lunch.
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.lock">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>lock</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook lock</refname>
+      <!--
+      <refpurpose>If a lock exists on a path in the repository,
+        describe it.</refpurpose>
+      -->
+      <refpurpose>如果仓库中的某一路径上存在锁, 则打印锁的相关信息.
+      </refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook lock <replaceable>REPOS_PATH</replaceable> <replaceable>PATH_IN_REPOS</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print all information available for the lock at
+        <replaceable>PATH_IN_REPOS</replaceable>.  If
+        <replaceable>PATH_IN_REPOS</replaceable> is not locked,
+        print nothing.</para>
+      -->
+      <para>如果仓库中的路径 <replaceable>PATH_IN_REPOS</replaceable> 上面
+        存在锁, 则打印锁的相关信息; 否则的话什么都不打印.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+        
+      <!--
+      <para>None</para>
+      -->
+      <para>无</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This describes the lock on the file
+        <filename>tree.jpg</filename>:</para>
+      -->
+      <para>下面的命令输出了文件 <filename>tree.jpg</filename> 上的锁的相关
+        信息:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook lock /var/svn/repos tree.jpg
+UUID Token: opaquelocktoken:ab00ddf0-6afb-0310-9cd0-dda813329753
+Owner: harry
+Created: 2005-07-08 17:27:36 -0500 (Fri, 08 Jul 2005)
+Expires: 
+Comment (1 line):
+Rework the uppermost branches on the bald cypress in the foreground.
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.log">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>log</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook log</refname>
+      <!--
+      <refpurpose>Print the log message, followed by a newline 
+        character.</refpurpose>
+      -->
+      <refpurpose>打印日志消息内容, 然后是一个换行符.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook log <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the log message.</para>
+      -->
+      <para>打印日志消息内容.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>This shows the log output for revision 40 in our sample
+        repository:</para>
+      -->
+      <para>下面的命令打印了版本号 40 的日志消息内容:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook log -r 40 /var/svn/repos/
+Rearrange lunch.
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.propget">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>propget</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook propget (pget, pg)</refname>
+      <!--
+      <refpurpose>Print the raw value of a property on a path in
+        the repository.</refpurpose>
+      -->
+      <refpurpose>打印仓库中某一路径上的属性值.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook propget <replaceable>REPOS_PATH</replaceable> <replaceable>PROPNAME</replaceable> [<replaceable>PATH_IN_REPOS</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>List the value of a property on a path in the
+        repository.</para>
+      -->
+      <para>打印仓库中某一路径上的属性值.</para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.revprop" />
+<xref linkend="svn.ref.svnlook.sw.show_inherited_props" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the value of the <quote>seasonings</quote> property
+        on the file <filename>/trunk/sandwich</filename> in the
+        <literal>HEAD</literal> revision:</para>
+      -->
+      <para>下面的命令展示了在仓库 <filename>/var/svn/repos</filename> 中,
+        文件 <filename>/trunk/sandwich</filename> 在版本号
+        <literal>HEAD</literal> 时, 属性 <literal>seasonings</literal>
+        的值:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook pg /var/svn/repos seasonings /trunk/sandwich
+mustard
+</screen>
+      </informalexample>
+
+      <!--
+      <para>This shows the inherited values of the <literal>
+        svn:auto-props</literal> property on the directory
+        <filename>/trunk</filename> in revision 14:</para>
+      -->
+      <para>下面的命令展示了 <filename>/trunk</filename> 在版本号 14 时,
+        属性 <literal>svn:auto-props</literal> 的值:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook pg repos svn:auto-props trunk --show-inherited-props -v -r14
+Inherited properties on '/trunk',
+from '/':
+  svn:auto-props
+    *.py = svn:eol-style=native
+    *.c = svn:eol-style=native
+    *.h = svn:eol-style=native
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.proplist">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>proplist</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook proplist (plist, pl)</refname>
+      <!--
+      <refpurpose>Print the names and values of versioned file and
+        directory properties.</refpurpose>
+      -->
+      <refpurpose>打印文件和目录上的属性名和属性值.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook proplist <replaceable>REPOS_PATH</replaceable> [<replaceable>PATH_IN_REPOS</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>List the properties of a path in the repository.  With
+        <option>- -verbose</option> (<option>-v</option>), show the
+        property values too.</para>
+      -->
+      <para>列出仓库中某一路径上的所有属性. 如果添加了选项
+        <option>--verbose</option> (<option>-v</option>), 则还会列出属性值.
+      </para>
+
+      </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.revprop" />
+<xref linkend="svn.ref.svnlook.sw.show_inherited_props" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+<xref linkend="svn.ref.svnlook.sw.verbose" />
+<xref linkend="svn.ref.svnlook.sw.xml" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>This shows the names of properties set on the file
+        <filename>/trunk/README</filename> in the
+        <literal>HEAD</literal> revision:</para>
+      -->
+      <para>下面的命令列出了文件 <filename>/trunk/README</filename> 在版本号
+        <literal>HEAD</literal> 时的所有属性:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook proplist /var/svn/repos /trunk/README
+  original-author
+  svn:mime-type
+</screen>
+      </informalexample>
+
+      <!--
+      <para>This is the same command as in the preceding example,
+        but this time showing the property values as well:</para>
+      -->
+      <para>还是同样的命令, 但是这次添加了选项 <option>--verbose</option>
+        (<option>-v</option>):</para>
+
+      <informalexample>
+        <screen>
+$ svnlook -v proplist /var/svn/repos /trunk/README
+  original-author : harry
+  svn:mime-type : text/plain
+</screen>
+      </informalexample>
+
+      <!--
+      <para>This shows the properties inherited by a directory:
+        </para>
+      -->
+        <para>下面的命令还列出了继承而来的属性:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook pl /var/svn/repos branches --show-inherited-props -v
+Inherited properties on '/branches',
+from '/':
+  svn:auto-props
+    *.py = svn:eol-style=native
+    *.c = svn:eol-style=native
+    *.h = svn:eol-style=native
+
+  svn:global-ignores
+    *.diff
+    *.patch
+
+Properties on '/branches':
+
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.tree">
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>tree</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook tree</refname>
+      <!--
+      <refpurpose>Print the tree.</refpurpose>
+      -->
+      <refpurpose>打印目录树.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook tree <replaceable>REPOS_PATH</replaceable> [<replaceable>PATH_IN_REPOS</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+      <!--
+      <para>Print the tree, starting at
+        <replaceable>PATH_IN_REPOS</replaceable> (if supplied; at
+        the root of the tree otherwise), optionally showing node
+        revision IDs.</para>
+      -->
+      <para>从 <replaceable>PATH_IN_REPOS</replaceable> 开始打印目录 (如果
+        没有指定 <replaceable>PATH_IN_REPOS</replaceable>, 则命令仓库的根
+        目录), 还可以选择是否打印节点的版本号 ID.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnlook.sw.full_paths" />
+<xref linkend="svn.ref.svnlook.sw.non_recursive" />
+<xref linkend="svn.ref.svnlook.sw.revision" />
+<xref linkend="svn.ref.svnlook.sw.show_ids" />
+<xref linkend="svn.ref.svnlook.sw.transaction" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Example</title>
+      -->
+      <title>示例</title>
+      
+      <!--
+      <para>This shows the tree output for revision 13 in our
+        sample repository:</para>
+      -->
+      <para>下面的命令输出了在版本号 13 时, 仓库的目录树:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook tree -r 13 /var/svn/repos
+/
+ trunk/
+  button.c
+  Makefile
+  integer.c
+ branches/
+  bookstore/
+   button.c
+   Makefile
+   integer.c
+&hellip;
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Use the <option>- -show-ids</option> option to include
+        node revision IDs (unique internal identifiers for
+        specific nodes in Subversion's versioned filesystem
+        implementation):</para>
+      -->
+      <para>如果添加了选项 <option>--show-ids</option>, 则还会输出节点的
+        版本号 ID (版本号 ID 是 Subversion 版本化文件系统内部的标识符, 用
+        于唯一地标识文件系统中的一个节点):</para>
+
+      <informalexample>
+        <screen>
+$ svnlook tree -r 13 /var/svn/repos --show-ids
+/ &lt;0.0.r13/811&gt;
+ trunk/ &lt;1.0.r9/551&gt;
+  button.c &lt;2.0.r9/238&gt;
+  Makefile &lt;3.0.r7/41&gt;
+  integer.c &lt;4.0.r6/98&gt;
+ branches/ &lt;5.0.r13/593&gt;
+  bookstore/ &lt;1.1.r13/390&gt;
+   button.c &lt;2.1.r12/85&gt;
+   Makefile &lt;3.0.r7/41&gt;
+   integer.c &lt;4.1.r13/109&gt;
+&hellip;
+</screen>
+      </informalexample>
+
+      <!--
+      <para>For output which lends itself more readily to being
+        parsed by scripts, use the <option>- -full-paths</option>
+        option, which causes <command>svnlook</command> to print
+        the full repository path of each tree item and to not use
+        indentation to indicate hierarchy:</para>
+      -->
+      <para>为了能让第三方脚本更方便地解析命令的输出, 可以加上选项
+        <option>--full-paths</option>, 该选项将使得 <command>svnlook</command>
+        为每一项打印完整的仓库路径, 而且不会使用缩进来表示层次关系:</para>
+
+      <informalexample>
+        <screen>
+$ svnlook tree -r 13 /var/svn/repos --show-ids --full-paths
+/ &lt;0.0.r13/811&gt;
+trunk/ &lt;1.0.r9/551&gt;
+trunk/button.c &lt;2.0.r9/238&gt;
+trunk/Makefile &lt;3.0.r7/41&gt;
+trunk/integer.c &lt;4.0.r6/98&gt;
+branches/ &lt;5.0.r13/593&gt;
+branches/bookstore/ &lt;1.1.r13/390&gt;
+branches/bookstore/button.c &lt;2.1.r12/85&gt;
+branches/bookstore/Makefile &lt;3.0.r7/41&gt;
+branches/bookstore/integer.c &lt;4.1.r13/109&gt;
+&hellip;
+</screen>
+      </informalexample>
+      
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.uuid">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>uuid</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook uuid</refname>
+      <!--
+      <refpurpose>Print the repository's
+      <literal>UUID</literal>.</refpurpose>
+      -->
+    <refpurpose>打印仓库的 UUID.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook uuid <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the <literal>UUID</literal> for the repository.
+        The <literal>UUID</literal> is the repository's
+        <emphasis>u</emphasis>niversal <emphasis>u</emphasis>nique
+        <emphasis>id</emphasis>entifier.  The Subversion client
+        uses this identifier to differentiate between one
+        repository and another.</para>
+      -->
+      <para>打印仓库的 UUID, UUID 是仓库的通用唯一标识符 (Universal Unique
+        IDentifier), Subversion 使用 UUID 来区分不同的仓库.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <informalexample>
+        <screen>
+$ svnlook uuid /var/svn/repos
+e7fe1b91-8cd5-0310-98dd-2f12e793c5e8
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnlook.c.youngest">
+
+    <indexterm>
+      <primary>svnlook</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>youngest</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnlook youngest</refname>
+      <!--
+      <refpurpose>Print the youngest revision number.</refpurpose>
+      -->
+      <refpurpose>打印最年轻的版本号.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnlook youngest <replaceable>REPOS_PATH</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Print the youngest revision number of a repository.</para>
+      -->
+      <para>打印仓库中最年轻的版本号.</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+    <para>This shows the youngest revision of our sample
+      repository:</para>
+      -->
+    <para>下面的命令输出仓库中最年轻的版本号:</para>
+
+    <informalexample>
+        <screen>
+$ svnlook youngest /var/svn/repos/ 
+42
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+</reference>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "reference")
+end:
+-->

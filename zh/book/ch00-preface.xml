@@ -1,0 +1,1592 @@
+<!-- -*- sgml -*- -->
+
+<preface id="svn.preface">
+    <!--
+  <title>Preface</title>
+    -->
+  <title>前言</title>
+
+  <blockquote>
+    <!--
+    <attribution>Greg Hudson, Subversion developer</attribution>
+    -->
+    <attribution>Greg Hudson, Subversion 开发人员</attribution>
+    <!--
+    <para><quote>It is important not to let the perfect become the
+      enemy of the good, even when you can agree on what perfect is.
+      Doubly so when you can't.  As unpleasant as it is to be trapped by
+      past mistakes, you can't make any progress by being afraid of your
+      own shadow during design.</quote></para>
+    -->
+    <para><quote>即使你能确认什么是完美, 也不要让完美成为你的敌人, 更何况你
+        不能确认. 因为落入过去陷阱的不悦, 你会在设计时因为担心自己的缺陷而无
+        所作为.</quote></para>
+  </blockquote>
+
+  <para>
+    <indexterm>
+      <primary>Concurrent Versions System</primary>
+    </indexterm>
+    <indexterm>
+      <primary>CVS</primary>
+      <see>Concurrent Versions System</see>
+    </indexterm>
+    <!--
+    In the world of open source software, the Concurrent
+    Versions System (CVS) was the tool of choice for version control
+    for many years.  And rightly so.  CVS was open source software
+    itself, and its nonrestrictive modus operandi and support for
+    networked operation allowed dozens of geographically dispersed
+    programmers to share their work.  It fit the collaborative nature
+    of the open source world very well.  CVS and its semi-chaotic
+    development model have since become cornerstones of open source
+    culture.</para>
+    -->
+  在开源软件世界, 并发版本控制系统 (Concurrent Versions System, 简称 CVS) 长久
+  以来一直是版本控制工具的唯一选择. 事实证明这个选择不错, CVS 的自由软件身份,
+  宽松的操作, 以及对网络的支持 (网络使众多身处不同地方的程序员可以
+  共享他们的工作成果), 正符合了开源世界协作的精神, CVS 和它半混乱的开发模式
+  已经成为开源文化的基石.</para>
+
+    <!--
+  <para>But CVS was not without its flaws, and simply fixing those
+    flaws promised to be an enormous effort.  Enter Subversion.
+    Subversion was designed to be a successor to CVS, and its
+    originators set out to win the hearts of CVS users in two
+    ways&mdash;by creating an open source system with a design
+    (and <quote>look and feel</quote>) similar to CVS, and by
+    attempting to avoid most of CVS's noticeable flaws.  While the
+    result wasn't&mdash;and isn't&mdash;the next great evolution in
+    version control design, Subversion <emphasis>is</emphasis> very
+    powerful, very usable, and very flexible.</para>
+    -->
+  <para>但是 CVS 并非毫无缺陷, 而修正这些缺陷必定会耗费大量的精力. Subversion
+    是以 CVS 继任者的面貌出现的新型版本控制系统, Subversion 的设计者力图通过两
+    方面的努力赢得 CVS 用户的青睐: 保持开源系统的设计 (以及
+    <quote>界面风格</quote>) 与 CVS 尽可能类似, 同时尽可能避免 CVS 的显著缺陷.
+    虽然这些努力的结果并没有引起一场版本控制系统的伟大革命, 但 Subversion
+    确实是一个非常强大, 实用, 灵活的版本控制系统.</para>
+
+    <!--
+  <para>This book is written to document the 1.8 series of the
+    Apache&trade; Subversion&reg;<footnote><para>We'll refer to it
+    simply as <quote>Subversion</quote> throughout this book.  You'll
+    thank us when you realize just how much space that
+    saves!</para></footnote> version control system.  We have made
+    every attempt to be thorough in our coverage.  However, Subversion
+    has a thriving and energetic development community, so already a
+    number of features and improvements are planned for future
+    versions that may change some of the commands and specific notes
+    in this book.</para>
+    -->
+  <para>本书是为 Apache&trade; Subversion&reg;<footnote><para>在本书的剩下部
+        分, 我们都简单地写成 <quote>Subversion</quote>, 你应该感谢这样做节省了
+        很多篇幅.</para></footnote> 1.8 系列版本撰写的. 我们努力让书中的内容详尽
+    准确, 不过 Subversion 有一个非常活跃的开发社区, 已经有很多新特性和改进
+    计划在 Subversion 的新版本中实现, 对于新版本, 本书的内容可能会与实际
+    情况有所出入.</para>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.intro.whatis">
+    <!--
+    <title>What Is Subversion?</title>
+    -->
+    <title>什么是 Subversion?</title>
+
+    <para>
+      <indexterm>
+        <primary>Subversion</primary>
+      </indexterm>
+      <indexterm>
+        <primary>version control systems</primary>
+      </indexterm>
+      <indexterm>
+        <primary>VCS</primary>
+        <see>version control systems</see>
+        </indexterm>
+    <!--
+        Subversion is a free/open source <firstterm>version
+      control system</firstterm> (VCS).  That is, Subversion manages
+      files and directories, and the changes made to them, over time.
+      This allows you to recover older versions of your data, or
+      examine the history of how your data changed.  In this regard,
+      many people think of a version control system as a sort
+      of <quote>time machine.</quote></para>
+    -->
+    Subversion 是一个 免费/开源 的 <firstterm>版本控制系统</firstterm>
+    (<firstterm>version control system</firstterm>, 简称 VCS), 也就是说,
+    Subversion
+    可以跨越时间对文件和目录, 以及它们的修改进行管理. 这就允许你恢复
+    数据的旧版本, 或检查数据的修改历史. 由于这个特点, 很多人把版本控制系统
+    看成是一种 <quote>时间机器</quote>.</para>
+    
+    <!--
+    <para>Subversion can operate across networks, which allows it to
+      be used by people on different computers.  At some level, the
+      ability for various people to modify and manage the same set of
+      data from their respective locations fosters collaboration.
+      Progress can occur more quickly without a single conduit through
+      which all modifications must occur.  And because the work is
+      versioned, you need not fear that quality is the trade-off for
+      losing that conduit&mdash;if some incorrect change is made to
+      the data, just undo that change.</para>
+    -->
+    <para>Subversion 可以跨越网络进行操作, 这就允许多个用户在不同的机器上工作.
+      从某种程度上讲, 允许用户在各自的空间里修改和管理同一组数据可以促进团队
+      协作, 因为修改不再是单线进行, 开发速度会更快. 由于所有的工作都被记录在
+      案, 也就不用担心并行开发会降低软件的质量&mdash;如果出现不正确的修改, 只
+      要撤消那一次修改即可.</para>
+
+    <para>
+      <indexterm>
+        <primary>software configuration management</primary>
+      </indexterm>
+      <indexterm>
+        <primary>SCM</primary>
+        <see>software configuration management</see>
+      </indexterm>
+    <!--
+      Some version control systems are
+      also <firstterm>software configuration management</firstterm>
+      (SCM) systems.  These systems are specifically tailored to
+      manage trees of source code and have many features that are
+      specific to software development&mdash;such as natively
+      understanding programming languages, or supplying tools for
+      building software.  Subversion, however, is not one of these
+      systems.  It is a general system that can be used to manage
+      <emphasis>any</emphasis> collection of files.  For you, those
+      files might be source code&mdash;for others, anything from
+      grocery shopping lists to digital video mixdowns and
+      beyond.</para>
+    -->
+    某些版本控制系统同时也是 <firstterm>软件配置管理</firstterm>
+    (<firstterm>software configuration management</firstterm>, 简称 SCM) 系统.
+    这种系统经过精巧的设计, 专门用于管理源代码树, 具备许多与软件开发有关的
+    特性&mdash;例如理解编程语言, 或者提供了程序构建工具. 但 Subversion 不是 SCM,
+    它是一个通用系统, 可以管理 <emphasis>任意</emphasis> 类型的文件集合.
+    对读者而言, 这些文件可能是源代码文件&mdash;对别人来说, 可能是一个货物清单
+    或数字电影.</para>
+
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.righttool">
+    <!--
+      <title>Is Subversion the Right Tool?</title>
+    -->
+      <title>Subversion 是正确的工具吗?</title>
+  
+    <!--
+      <para>If you're a user or system administrator pondering the use
+        of Subversion, the first question you should ask yourself is:
+        "Is this the right tool for the job?"  Subversion is a
+        fantastic hammer, but be careful not to view every problem as
+        a nail.</para>
+    -->
+      <para>如果你是一个考虑如何使用 Subversion 的用户或系统管理员, 你要问自
+        己的第一件事就是: <quote>它适合这项工作吗?</quote>,
+        Subversion 是一个梦幻
+        般的锤子, 但要小心不要把任何问题都当作钉子.</para>
+
+    <!--
+      <para>As a first step, you need to decide if version control in
+        general is required for your purposes.  If you need to archive
+        old versions of files and directories, possibly resurrect
+        them, and examine logs of how they've changed over time, then
+        version control tools can do that.  If you need to collaborate
+        with people on documents (usually over a network) and keep
+        track of who made which changes, a version control tool can do
+        that, too.  In fact, this is why version control tools such as
+        Subversion are so often used in software development
+        environments&mdash;working on a development team is an
+        inherently social activity where changes to source code files
+        are constantly being discussed, made, evaluated, and even
+        sometimes unmade.  Version control tools facilitate that sort
+        of collaboration.</para>
+    -->
+      <para>首先要确认的是你的工作是否需要通常意义上的版本控制. 如果你需要对
+        旧版本的文件和目录进行归档, 而且还要查看它们的修改历史, 那么你就需要
+        使用版本控制工具. 如果你要和同事 (通过网络) 协作编写文档, 而且还要求
+        记录每个人的修改, 此时你也可以使用版本控制工具. 实际上, 这正是软件
+        开发需要使用版本控制工具 (例如 Subversion) 的原因&mdash;在开发团队
+        中工作本身就是一件社会活动: 源代码文件的修改经常需要被讨论, 生成,
+        评价, 有时候还要撤消修改. 版本控制工具对这种类型的协作工作很有帮助.
+      </para>
+
+    <!--
+      <para>There is cost associated with using version control, too.
+        Unless you can outsource the administration of your version
+        control system to a third-party, you'll have the obvious costs
+        of performing that administration yourself.  When working with
+        the data on a daily basis, you won't be able to copy, move,
+        rename, or delete files the way you usually do.  Instead,
+        you'll have to do all of those things through the version
+        control system.</para>
+    -->
+      <para>使用版本控制也是有代价的. 如果需要由你自己来管理版本控制系统, 你将
+        为此消耗相当多的精力, 除非把管理任务交给第三方负责. 在日常的工作中,
+        你不能像往常那样复制, 移动, 重命名或删除文件, 相反, 你需要按照版本控制
+        系统的要求来完成.</para>
+
+    <!--
+      <para>Even assuming that you are okay with the cost/benefit
+        tradeoff afforded by a version control system, you shouldn't
+        choose to use one merely because it <emphasis>can</emphasis>
+        do what you want.  Consider whether your needs are better
+        addressed by other tools.  For example, because Subversion
+        replicates data to all the collaborators involved, a common
+        misuse is to treat it as a generic distribution system.
+        People will sometimes use Subversion to distribute huge
+        collections of photos, digital music, or software packages.
+        The problem is that this sort of data usually isn't changing
+        at all.  The collection itself grows over time, but the
+        individual files within the collection aren't being changed.
+        In this case, using Subversion is
+        <quote>overkill.</quote><footnote><para>Or as a friend puts
+        it, <quote>swatting a fly with a
+        Buick.</quote></para></footnote> There are simpler tools that
+        efficiently replicate data <emphasis>without</emphasis> the
+        overhead of tracking changes, such as <command>rsync</command>
+        or <command>unison</command>.</para>
+    -->
+      <para>即使你可以接受使用版本控制系统带来的 代价/好处, 你也不能仅仅因为
+        它 <emphasis>可以</emphasis> 满足你的要求而使用它, 认真考虑一下你的
+        需求是否还有更好的工具可以实现. 举例来说, 由于 Subversion 把数据复制
+        给所有的相关人员, 所以经常有新手错误地把它当成了一种普通的分布式系统,
+        人们有时候使用 Subversion 管理大量的照片, 数字音乐或软件包, 但问题是
+        人们通常很少修改这些文件. 文件集合随着时间不断增长, 但集合中的单个
+        文件却没有发生变化, 在这种场景中使用 Subversion 就显得
+        <quote>过犹不及</quote><footnote><para>还有另一种说法, <quote>用别克
+              打苍蝇</quote></para></footnote>. 有很多简单的工具可以用来复制
+        数据, 而且没有多余的修改跟踪开销, 例如 <command>rsync</command> 或
+        <command>unison</command>.</para>
+
+      <para>
+        <indexterm>
+          <primary>version control systems</primary>
+          <secondary>centralized</secondary>
+        </indexterm>
+    <!--
+        Once you've decided that you need a version
+        control solution, you'll find no shortage of available
+        options.  When Subversion was first designed and released, the
+        predominant methodology of version control
+        was <firstterm>centralized version control</firstterm>&mdash;a
+        single remote master storehouse of versioned data with
+        individual users operating locally against shallow copies of
+        that data's version history.  Subversion quickly emerged after
+        its initial introduction as the clear leader in this field of
+        version control, earning widespread adoption and supplanting
+        installations of many older version control systems.  It
+        continues to hold that prominent position today.</para>
+    -->
+      一旦决定好了你确实需要一个版本控制系统, 你将发现可选择的工具非常丰富.
+      第一次设计并发布 Subversion 时, 它的主要版本控制策略是
+      <firstterm>集中式的版本控制</firstterm>
+      (<firstterm>centralized version control</firstterm>)&mdash;有一个远程
+      的主仓库, 仓库中存放了被版本控制的数据, 用户在本地操作数据的浅拷贝副本.
+      Subversion 发布后, 很快就显现出它在版本控制领域的领导地位, 它的使用范围
+      越来越广泛, 越来越多的旧版本控制系统被它取代, 即使是在今天, 它在版本控
+      制领域也占据着重要地位.</para>
+
+      <para>
+        <indexterm>
+          <primary>version control systems</primary>
+          <secondary>distributed</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>DVCS</primary>
+          <see>version control systems, distributed</see>
+        </indexterm>
+    <!--
+        Much has changed since that time, though.  In the
+        years since the Subversion project began its life, a newer
+        methodology of version control called <firstterm>distributed
+        version control</firstterm> has likewise garnered widespread
+        attention and adoption.  Tools such as Git
+        (<ulink url="http://git-scm.com/" />) and Mercurial
+        (<ulink url="http://mercurial-scm.org/" />) have risen
+        to the tops of the distributed version control system (DVCS)
+        ranks.  Distributed version control harnesses the growing
+        ubiquity of high-speed network connections and low storage
+        costs to offer an approach which differs from the centralized
+        model in key ways.  First and most obvious is the fact that
+        there is no remote, central storehouse of versioned data.
+        Rather, each user keeps and operates against very
+        deep&mdash;complete, in a sense&mdash;local version history
+        data stores.  Collaboration still occurs, but is accomplished
+        by trading collections of changes made to versioned items
+        directly between users' local data stores, not via a
+        centralized master data store.  TODO: In fact, any semblance of a
+        canonical <quote>master</quote> source of a project's
+        versioned data is by convention only, a status imputed by
+        the various collaborators on that project.</para>
+    -->
+      从那时起也发生了很多事情. 在 Subversion 开始出现的那一年, 一种新的版本控制
+      策略&mdash;<firstterm>分布式的版本控制</firstterm>
+      (<firstterm>distributed version control</firstterm>)&mdash;开始受到越来
+      越多的关注, 应用也越来越广泛. 一些版本控制工具, 例如 Git
+      (<ulink url="http://git-scm.com/" />) 和 Mercurial
+      (<ulink url="http://mercurial-scm.org/" />) 成为了分布式版本控制系统
+      (DVCS) 的宠儿. 分布式的版本控制利用不断提高的网络连接速度和低廉的存储
+      开销, 提出了一种和集中式模型完全不同的方法. 首先最明显的区别是它们不
+      需要一个远程的中央仓库, 每一个用户在本地都有一份完整的版本历史. 用户
+      之间仍然需要协作, 但不需要通过一台中央节点, 可以直接进行交互.
+    </para>
+
+    <!--
+      <para>There are pros and cons to each version control approach.
+        Perhaps the two biggest benefits delivered by the DVCS tools
+        are incredible performance for day-to-day operations (because
+        the primary data store is locally held) and vastly better
+        support for merging between branches (because merge algorithms
+        serve as the very core of how DVCSes work at all).  The
+        downside is that distributed version control is an inherently
+        more complicated model, which can present a non-negligible
+        challenge to comfortable collaboration.  Also, DVCS tools do
+        what they do well in part because of a certain degree of
+        control withheld from the user which centralized systems freely
+        offer&mdash;the ability to implement path-based access
+        control, the flexibility to update or backdate individual
+        versioned data items, etc.  Fortunately, many wise
+        organizations have discovered that this needn't be a religious
+        debate, and that Subversion and a DVCS tool such as Git can be
+        used together harmoniously within the organization, each
+        serving the purposes best suited to the tool.</para>
+    -->
+      <para>每一种版本控制系统都有它自己的长处和短处. 也许 DVCS 的两个最
+        大的好处是日常操作非常高效 (因为所有的数据都在本地存放) 和更强大的
+        分支合并 (因为合并算法是 DVCS 的核心). 缺点是分布式的版本控制更加
+        复杂, 这种复杂性可能会给协作带来不小的挑战. 另外, DVCS 工具工作得
+        很好, 部分是因为本来由中央系统持有的控制权&mdash;基于路径的访问控制,
+        对单个项目进行更新或回溯等&mdash;转移到了用户手止. 幸运的是,
+        许多明智的组织已经发现没必要对两种版本控制系统进行严谨地辩论,
+        Subversion 和 DVCS 工具 (例如 Git) 可以和谐地一起工作, 每一种工具都
+        能发挥出自己的优势.</para>
+
+    <!--
+      <para>Alas, this book is about Subversion, so we'll not attempt
+        a full comparison of Subversion and other tools.  Readers
+        empowered to choose their version control system are
+        encouraged to research the available options and make the
+        determination that works best for themselves and their fellow
+        collaborators.  And if, after doing so, Subversion is the
+        chosen tool, there's <emphasis>plenty</emphasis> of detailed
+        information about how to use it successfully in the chapters
+        that follow!</para>
+    -->
+      <para>本书是关于 Subversion 的, 所以我们不会拿它和其他工具进行完整地
+        对比, 读者在选择版本控制工具时应该查看所有的备选, 然后从中选择一个
+        最适合自己和同事的工具. 如果最终选择了 Subversion, 那么你将从剩下
+        的几章里学到如何高效地使用 Subversion.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.history">
+  
+    <!--
+      <title>Subversion's History</title>
+    -->
+      <title>Subversion 的历史</title>
+  
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>history of</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>CollabNet</primary>
+        </indexterm>
+    <!--
+        In early 2000, CollabNet,
+        Inc. (<ulink url="http://www.collab.net"/>) began seeking
+        developers to write a replacement for CVS.  CollabNet
+        offered<footnote><para>CollabNet Enterprise Edition has since
+        been replaced by a new product line called CollabNet
+        TeamForge.</para></footnote> a collaboration software suite
+        called CollabNet Enterprise Edition (CEE), of which one
+        component was version control.  Although CEE used CVS as its
+        initial version control system, CVS's limitations were obvious
+        from the beginning, and CollabNet knew it would eventually
+        have to find something better.  Unfortunately, CVS had become
+        the de facto standard in the open source world largely because
+        there <emphasis>wasn't</emphasis> anything better, at least
+        not under a free license.  So CollabNet determined to write a
+        new version control system from scratch, retaining the basic
+        ideas of CVS, but without the bugs and misfeatures.</para>
+    -->
+      2000 年, CollabNet 公司 (<ulink url="http://www.collab.net"/>) 开始寻找
+      CVS 替代产品的开发人员, CollabNet 提供了一个名为 CollabNet Enterprise
+      Edition (CEE) 的协作软件套装<footnote><para>CEE 现在已经被 CollabNet
+          TeamForge 代替</para></footnote>, 这套软件的一个组成部分就是
+      版本控制系统. 虽然 CEE 最初使用 CVS 作为版本控制系统, 但是 CVS 的局限
+      性从一开始就很明显, CollabNet 知道迟早要找到一个更好的替代品. 遗憾的是,
+      CVS 已经成为开源世界事实上的标准, 很大程度上是因为没有更好的替代品, 至少
+      没有可以自由使用的替代品. 于是 CollabNet 决定重新开发一个新的版本控制
+      系统, 该系统要保留 CVS 的基本思想, 但是要修正 CVS 的错误和不合理的特性.
+    </para>
+  
+    <!--
+      <para>In February 2000, they contacted Karl Fogel, the author of
+        <citetitle>Open Source Development with CVS</citetitle>
+        (Coriolis, 1999), and asked if he'd like to work on this new
+        project.  Coincidentally, at the time Karl was already
+        discussing a design for a new version control system with his
+        friend Jim Blandy.  In 1995, the two had started Cyclic
+        Software, a company providing CVS support contracts, and
+        although they later sold the business, they still used CVS
+        every day at their jobs.  Their frustration with CVS had led
+        Jim to think carefully about better ways to manage versioned
+        data, and he'd already come up with not only the Subversion
+        name, but also the basic design of the Subversion data store.
+        When CollabNet called, Karl immediately agreed to work on the
+        project, and Jim got his employer, Red Hat Software, to
+        essentially donate him to the project for an indefinite period
+        of time.  CollabNet hired Karl and Ben Collins-Sussman, and
+        detailed design work began in May 2000.  With the help of some
+        well-placed prods from Brian Behlendorf and Jason Robbins of
+        CollabNet, and from Greg Stein (at the time an independent
+        developer active in the WebDAV/DeltaV specification process),
+        Subversion quickly attracted a community of active developers.
+        It turned out that many people had encountered the same
+        frustrating experiences with CVS and welcomed the chance to
+        finally do something about it.</para>
+    -->
+      <para>2000 年 2 月, CollabNet 联系到
+        <citetitle>Open Source Development with CVS</citetitle> (Coriolis,
+        1999) 的作者 Karl Fogel, 询问他是否愿意为这个新项目工作. 巧合的是,
+        当时 Karl 正在和朋友 Jim Blandy 讨论设计一个新的版本控制系统. 1995 年
+        他们曾经开办了一个提供 CVS 支持的公司 Cyclic Software, 尽管他们最终
+        卖掉了公司, 但还是经常使用 CVS 进行日常工作. 使用 CVS 的挫折促使
+        Jim 认真地思考如何管理版本化的数据. 他当时不仅使用了名字 Subversion,
+        而且已经完成了版本库的最初设计. 所以当 CollabNet 提出邀请时, Karl
+        马上同意为这个项目工作, 同时 Jim 也得到了他的雇主&mdash;Red Hat 软件
+        公司&mdash;的同意, 允许他为这个项目工作, 并且没有限定期限. CollabNet
+        雇佣了 Karl 和 Ben Collins-Sussman, 详细设计从 2000 年 5 月开始,
+        在 CollabNet 的 Brian Behlendorf 和 Jason Robbins, 以及 Greg
+        Stein (独立开发者, 参与了 WebDAV/DeltaV 规范的制订) 恰到好处的激励
+        下, Subversion 吸引到了众多开发者的注意, 结果是许多对 CVS 有过失望
+        经历的人都很乐意为这个项目做些事情.</para>
+  
+    <!--
+      <para>The original design team settled on some simple goals.  They
+        didn't want to break new ground in version control methodology,
+        they just wanted to fix CVS.  They decided that Subversion would
+        match CVS's features and preserve the same development model,
+        but not duplicate CVS's most obvious flaws.  And although it did
+        not need to be a drop-in replacement for CVS, it should be
+        similar enough that any CVS user could make the switch with
+        little effort.</para>
+    -->
+      <para>最初的设计小组设计了几个简单的开发目标. 他们不想在版本控制方法
+        学中开垦处女地, 他们只想修正 CVS. 他们决定 Subversion 应该符合 CVS
+        的特征, 保留相同的开发模式, 但不能包含 CVS 的显著缺陷. 尽管 Subversion
+        不必成为 CVS 的完全替代品, 但应该与 CVS 保持足够的相似性, 使得
+        CVS 用户可以轻松地迁移到 Subversion.</para>
+  
+    <!--
+      <para>After 14 months of coding, Subversion became
+        <quote>self-hosting</quote> on August 31, 2001.  That is,
+        Subversion developers stopped using CVS to manage Subversion's
+        own source code and started using Subversion instead.</para>
+    -->
+      <para>经过 14 个月的编码, 在 2001 年 8 月 31 日, Subversion 实现了
+        <quote>自我寄生</quote>, 也就是说开发人员不再使用 CVS, 而是使用
+        Subversion 管理 Subversion 的源代码.</para>
+
+      <para>
+        <indexterm>
+          <primary>Apache Subversion</primary>
+          <seealso>Subversion</seealso>
+        </indexterm>
+    <!--
+        While CollabNet started the project, and still
+        funds a large chunk of the work (it pays the salaries of a few
+        full-time Subversion developers), Subversion is run like most
+        open source projects, governed by a loose, transparent set of
+        rules that encourage meritocracy.  In 2009, CollabNet worked
+        with the Subversion developers towards the goal of integrating
+        the Subversion project into the Apache Software Foundation
+        (ASF), one of the most well-known collectives of open source
+        projects in the world.  Subversion's technical roots,
+        community priorities, and development practices were a perfect
+        fit for the ASF, many of whose members were already active
+        Subversion contributors.  In early 2010, Subversion was fully
+        adopted into the ASF's family of top-level projects, moved its
+        web presence to
+        <ulink url="http://subversion.apache.org"/>, and was
+        rechristened <quote>Apache Subversion</quote>.</para>
+    -->
+      虽然 CollabNet 发起了这个项目, 而且仍然提供资金支持 (为一些全职的
+      Subversion 开发者提供薪水), 但 Subversion 像其他许多开源项目一样,
+      由一套松散透明, 鼓励能者多劳的规则管理. 2009 年, CollabNet 和 Subversion
+      开发人员合作, 把 Subversion 项目纳入 Apache Software Foundation
+      (简称 ASF)&mdash;世界著名的开源项目集合. Subversion 的技术根基,
+      社区和开发工
+      作同 ASF 非常契合, ASF 的很多成员同时也是 Subversion 的活跃贡献者.
+      2010 年, Subversion 成为了 ASF 的顶级项目之一, 其项目主页迁移至
+      <ulink url="http://subversion.apache.org"/>, Subversion 被重新命名为
+      <quote>Apache Subversion</quote>.</para>
+
+    </sect2>
+  
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.architecture">
+  
+    <!--
+      <title>Subversion's Architecture</title>
+    -->
+      <title>Subversion 的架构</title>
+    
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>architecture</secondary>
+    <!--
+        </indexterm><xref linkend="svn.intro.architecture.dia-1"/>
+        illustrates a <quote>mile-high</quote> view of Subversion's
+        design.</para>
+    -->
+        </indexterm><xref linkend="svn.intro.architecture.dia-1"/>
+        展视了 Subversion 设计结构的 <quote>俯视</quote> 图.</para>
+      
+      <figure id="svn.intro.architecture.dia-1">
+        <title>Subversion 的架构</title>
+        <graphic width="5in" depth="6.25in"
+                 fileref="images/svn-arch-diagram.png"/>
+      </figure>
+  
+    <!--
+      <para>On one end is a Subversion repository that holds all of
+        your versioned data.  On the other end is your Subversion
+        client program, which manages local reflections of portions of
+        that versioned data.  Between these extremes are multiple
+        routes through a Repository Access (RA) layer, some of which
+        go across computer networks and through network servers which
+        then access the repository, others of which bypass the network
+        altogether and access the repository directly.</para>
+    -->
+      <para>图中的一端是存放所有版本化数据的 Subversion 仓库, 另一端是
+        Subversion 客户端程序, 客户端程序管理着部分版本化数据在本地的映射.
+        两端之间是穿过仓库访问 (Repository Access) 层的多条访问路径, 其中
+        一些路径跨越计算机网络, 通过网络服务器对仓库进行访问, 其他一些路径
+        则不经过网络, 直接访问仓库.</para>
+  
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.components">
+  
+    <!--
+      <title>Subversion's Components</title>
+    -->
+      <title>Subversion 的组件</title>
+        
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>components</secondary>
+    <!--
+        </indexterm>Subversion, once installed, has a number of
+        different pieces.  The following is a quick overview of what
+        you get.  Don't be alarmed if the brief descriptions leave you
+        scratching your head&mdash;<emphasis>plenty</emphasis> more
+        pages in this book are devoted to alleviating that
+        confusion.</para>
+    -->
+        </indexterm>安装好的 Subversion 由好几个组件构成, 下面将简单地介绍
+        一下这些组件, 这些描述或许过于简略, 不太容易理解, 但是不要担心,
+        本书后面的章节会用更多的内容详细介绍这些组件.</para>
+  
+      <variablelist>
+        <indexterm>
+          <primary>svn</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnversion</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnlook</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnadmin</primary>
+        </indexterm>
+        <indexterm>
+          <primary>mod_dav_svn</primary>
+        </indexterm> 
+        <indexterm>
+          <primary>svnserve</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svndumpfilter</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnsync</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnrdump</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnmucc</primary>
+        </indexterm>
+
+        <varlistentry>
+          <term>svn</term>
+          <listitem>
+    <!--
+            <para>The command-line client program</para>
+    -->
+            <para>客户端命令行工具</para>
+          </listitem>
+        </varlistentry>
+  
+        <varlistentry>
+          <term>svnversion</term>
+          <listitem>
+    <!--
+            <para>A program for reporting the state (in terms of
+              revisions of the items present) of a working copy</para>
+    -->
+            <para>用于报告工作副本状态 (就项目的版本号而言) 的工具</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>svnlook</term>
+          <listitem>
+    <!--
+            <para>A tool for directly inspecting a Subversion repository</para>
+    -->
+            <para>可以直接检查仓库的工具</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>svnadmin</term>
+          <listitem>
+    <!--
+            <para>A tool for creating, tweaking, or repairing a Subversion
+              repository</para>
+    -->
+          <para>用于创建, 调整或修复 Subversion 仓库的工具</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>mod_dav_svn</term>
+          <listitem>
+    <!--
+           <para>A plug-in module for the Apache HTTP Server, used to
+              make your repository available to others over a
+              network</para>
+    -->
+          <para>可插拔的 Apache HTTP 服务器模块, 该模块允许用户通过网络访问
+            仓库</para>
+          </listitem>
+        </varlistentry>
+  
+        <varlistentry>
+          <term>svnserve</term>
+          <listitem>
+    <!--
+            <para>A custom standalone server program, runnable as a
+              daemon process or invokable by SSH; another way to make
+              your repository available to others over a network</para>
+    -->
+            <para>一个定制的, 可独立运行的服务器程序, 可以以守护进程方式运行,
+              也可以被 SSH 调用, 这是另一种允许用户通过网络访问仓库的方法
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>svndumpfilter</term>
+          <listitem>
+    <!--
+            <para>A program for filtering Subversion repository dump
+              streams</para>
+    -->
+            <para>过滤 Subversion 仓库转储数据流的程序</para>
+          </listitem>
+        </varlistentry>
+  
+        <varlistentry>
+          <term>svnsync</term>
+          <listitem>
+    <!--
+            <para>A program for incrementally mirroring one repository
+              to another over a network</para>
+    -->
+            <para>可以跨越网络对仓库进行增量镜像备份的程序</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>svnrdump</term>
+          <listitem>
+    <!--
+            <para>A program for performing repository history dumps
+              and loads over a network</para>
+    -->
+            <para>可以跨越网络对仓库历史进行转储和加载的程序</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>svnmucc</term>
+          <listitem>
+    <!--
+            <para>A program for performing multiple repository
+              URL-based operations in a single commit and without the
+              use of a working copy</para>
+    -->
+            <para>该工具支持在没有工作副本的情况下, 在一个单独的提交中对多个
+              仓库执行基于 URL 的操作</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.whatsnew">
+
+    <!--
+      <title>What's New in Subversion</title>
+    -->
+      <title>Subversion 的演化</title>
+
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>history of</secondary>
+    <!--
+        </indexterm>The first edition of this book was published by
+        O'Reilly Media in 2004, shortly after Subversion had reached
+        1.0.  Since that time, the Subversion project has continued to
+        release new major releases of the software.  Here's a quick
+        summary of major new changes since Subversion 1.0.  Note that
+        this is not a complete list; for full details, please visit
+        Subversion's web site at
+        <ulink url="http://subversion.apache.org"/>.</para>
+    -->
+      </indexterm>本书的第一版由 O'Reilly Media 于 2004 年出版, 也就是
+      Subversion 1.0 发布后不久, 此后 Subversion 项目仍然在不断地发行新版本.
+      下面是 Subversion 1.0 后发布的每个新版本的主要变化, 注意下面的修改日志
+      并不完整, 详细信息可以访问 Subversion 项目主页
+      <ulink url="http://subversion.apache.org"/>.</para>
+
+      <variablelist>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.1 (September 2004)</term>
+    -->
+          <term>Subversion 1.1 (2004 年 9 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.1 introduced FSFS, a flat-file repository
+              storage option for the repository.  While the Berkeley DB
+              backend is still widely used and supported, FSFS has
+              since become the default choice for
+              newly created repositories due to its low barrier to
+              entry and minimal maintenance requirements.  Also in
+              this release came the ability to put symbolic links
+              under version control, auto-escaping of URLs, and a
+              localized user interface.</para>
+    -->
+            <para>1.1 版引入了 FSFS, 一种扁平文件的仓库存放选项, 虽然
+              Berkeley DB 后端仍然被广泛使用, 但是 FSFS 的门槛较低, 管理
+              需求也更容易满足, FSFS 成为了新建仓库的默认选项. 1.1 版还支持
+              对符号链接进行版本控制, URL 自动封装, 以及本地化的用户接口.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.2 (May 2005)</term>
+    -->
+          <term>Subversion 1.2 (2005 年 5 ⽉)</term>
+          <listitem>
+    <!--
+            <para>Release 1.2 introduced the ability to create
+              server-side locks on files, thus serializing commit
+              access to certain resources.  While Subversion is still
+              a fundamentally concurrent version control system,
+              certain types of binary files (e.g. art assets)
+              cannot be merged together.  The locking feature fulfills
+              the need to version and protect such resources.  With
+              locking also came a complete WebDAV auto-versioning
+              implementation, allowing Subversion repositories to be
+              mounted as network folders.  Finally, Subversion 1.2
+              began using a new, faster binary-differencing algorithm
+              to compress and retrieve old versions of files.</para>
+    -->
+            <para>1.2 版支持在服务器端对文件加锁, 实现对特定资源的串行化提交.
+              Subversion 是一种并行的版本控制系统, 但特定类型的二进制文件
+              (例如音频文件) 不支持合并, 使用锁机制实现了对这种类型的文件进行
+              版本控制和保护. 1.2 版还实现了一个完整的 WebDAV 自动化版本控制,
+              允许 Subversion 仓库被当成网络文件夹进行挂载. 最后, Subversion
+              1.2 开始使用一种新的, 更快的二进制差异算法来压缩和检索文件的
+              旧版本.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.3 (December 2005)</term>
+    -->
+          <term>Subversion 1.3 (2005 年 12 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.3 brought path-based authorization
+              controls to the <command>svnserve</command> server,
+              matching a feature formerly found only in the Apache
+              server.  The Apache server, however, gained some new
+              logging features of its own, and Subversion's API
+              bindings to other languages also made great leaps
+              forward.</para>
+    -->
+            <para>1.3 版为 <command>svnserve</command> 服务器引入了基于路径
+              的授权控制, 该特性以前只有 Apache 服务器才支持. Apache 服务器
+              增加了新的日志特性, Subversion 为其他语言提供的 API 也取得了
+              巨大的进步.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.4 (September 2006)</term>
+    -->
+          <term>Subversion 1.4 (2006 年 9 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.4 introduced a whole new
+              tool&mdash;<command>svnsync</command>&mdash;for doing
+              one-way repository replication over a network.  Major
+              parts of the working copy metadata were revamped to no
+              longer use XML (resulting in client-side speed gains),
+              while the Berkeley DB repository backend gained the
+              ability to automatically recover itself after a server
+              crash.</para>
+    -->
+            <para> 1.4 版引入了一个新工具&mdash;<command>svnsync</command>
+              &mdash;通过网络完成仓库的单向复制. 工作副本的一个重大修改是
+              其元数据不再使用 XML (客户端的运行速度变得更快). 以 Berkeley DB
+              作为后端的仓库获得了在服务器崩溃后自动恢复的能力.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.5 (June 2008)</term>
+    -->
+          <term>Subversion 1.5 (2008 年 6 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.5 took much longer to finish than prior
+              releases, but the headliner feature was gigantic:
+              semi-automated tracking of branching and merging.  This
+              was a huge boon for users, and pushed Subversion far
+              beyond the abilities of CVS and into the ranks of
+              commercial competitors such as Perforce and ClearCase.
+              Subversion 1.5 also introduced a bevy of other
+              user-focused features, such as interactive resolution of
+              file conflicts, sparse checkouts, client-side
+              management of changelists, powerful new syntax for
+              externals definitions, and SASL authentication support for
+              the <command>svnserve</command> server.</para>
+    -->
+            <para>1.5 版的开发时间比之前版本长了很多, 但取得的效果是巨大的:
+              分支与合并的半自动跟踪. 这为用户带来了非常大的便利, 也让
+              Subversion 远远超越 CVS, 进入了商业竞争者的行列, 同 Perforce
+              和 ClearCase 并肩. Subversion 1.5 还增加了很多用户比较关注的
+              特性, 例如交互式的冲突解决, 稀疏检出, 变更列表的客户端管理,
+              外部定义的新语法, 为 <command>svnserve</command> 新增
+              SASL 授权支持.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.6 (March 2009)</term>
+    -->
+          <term>Subversion 1.6 (2009 年 3 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.6 continued to make branching and merging
+              more robust by introducing tree conflicts, and offered
+              improvements to several other existing features: more
+              interactive conflict resolution options; de-telescoping
+              and outright exclusion support for sparse checkouts;
+              file-based externals definitions; and operational
+              logging support for <command>svnserve</command> similar
+              to what <command>mod_dav_svn</command> offered.  Also,
+              the command-line client introduced a new shortcut syntax
+              for referring to Subversion repository URLs.</para>
+    -->
+            <para>通过引入结构性冲突, 1.6 版的分支与合并变得更加健壮, 已有的几个
+              特性也得到了增强: 更多的交互式冲突解决选项, 稀疏检出支持不可伸缩
+              和完全的排他性, 基于文件的外部定义, <command>svnserve</command>
+              支持与 <command>mod_dav_svn</command> 类似的操作日志. 另外,
+              客户端命令行工具支持新的, 用于引用仓库 URL 的缩写语法.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.7 (October 2011)</term>
+    -->
+          <term>Subversion 1.7 (2011 年 10 月)</term>
+          <listitem>
+    <!--
+            <para>Release 1.7 was primarily a delivery vehicle for two
+              big plumbing overhauls of existing Subversion
+              components.  The largest and most impactful of these was
+              the so-called <quote>WC-NG</quote>&mdash;a complete
+              rewrite of the <command>libsvn_wc</command> working copy
+              management library.  The second change was the
+              introduction of a sleeker HTTP protocol for Subversion
+              client/server interaction.  Subversion 1.7 delivered a
+              handful of additional features, many bug fixes, and some
+              notable performance improvements, too.</para>
+    -->
+            <para>1.7 版主要是对 Subversion 的已有组件进行了两次大检修,
+              其中最大的变化是重新实现了工作副本的管理函数库
+              <command>libsvn_wc</command>, 也就是所谓的 <quote>WC-NG</quote>.
+              第二个变化是为客户端与服务器间的交互引入了一种更光滑的 HTTP 协
+              议. Subversion 1.7 还增加了很多新特性, 修复了很多问题, 在性能
+              上也有明显的提升.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+    <!--
+          <term>Subversion 1.8 (June 2013)</term>
+    -->
+          <term>Subversion 1.8 (2013 年 6 月)</term>
+          <listitem>
+
+    <!--
+            <para>In release 1.8, Subversion's client now tracks
+              renamed files and directories more thoroughly, and
+              its <command>svn merge</command> command has grown
+              intelligent enough to make the
+              <option>- -reintegrate</option> option unnecessary.
+              Certain new versioned property values can be inherited
+              from parent directories.  That feature now allows a
+              repository to dictate default values for automatic
+              property settings and ignorable file patterns, bringing
+              consistency across the user base of that repository in a
+              way which previously had to be managed socially.  There
+              is also a new built-in command-line file merge tool for
+              interactive conflict resolution.  As always, Subversion
+              1.8 includes many additional features, defect fixes, and
+              improvements in behavior and performance.</para>
+    -->
+            <para>Subversion 1.8 的客户端在跟踪文件和目录的重命名上更加详尽,
+              它的 <command>svn merge</command> 更加智能, 选项
+              <option>--reintegrate</option> 对它来说根本就是多余的了. 增加
+              了新的版本控制属性, 其中一些属性可以从父目录继承, 这就允许仓库
+              为属性的自动设置和忽略文件模式传递默认值, 用户间的一致性得到增
+              强, 而这种一致性以前需要通过用户间的交流才能完成. 交互式的冲突
+              解决引入了一种新的命令行文件合并工具. 同样, Subversion 1.8 还
+              增加了许多新特性, 修复了很多问题, 在性能上也有提升.</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </sect2>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.audience">
+
+    <!--
+    <title>Audience</title>
+    -->
+    <title>目标听众</title>
+    
+    <!--
+    <para>This book is written for computer-literate folk who want to
+      use Subversion to manage their data.  While Subversion runs on a
+      number of different operating systems, its primary user
+      interface is command-line-based.  That command-line tool
+      (<command>svn</command>), and some additional auxiliary
+      programs, are the focus of this book.</para>
+    -->
+    <para>本书是为了那些在计算机领域有着丰富知识, 并且希望使用 Subversion
+      管理数据的读者准备的. 尽管 Subversion 可以在多种不同的操作系统上运行,
+      但是它的主要用户界面是基于命令行的, 所以本书主要讨论 Subversion 的
+      命令行工具 (<command>svn</command>) 和其他一些辅助工具.</para>
+
+    <!--
+    <para>For consistency, the examples in this book assume that the reader
+      is using a Unix-like operating system and is relatively comfortable
+      with Unix and command-line interfaces.  That said, the
+      <command>svn</command> program also runs on non-Unix platforms
+      such as Microsoft Windows.  With a few minor exceptions, such as
+      the use of backward slashes (<literal>\</literal>) instead of
+      forward slashes (<literal>/</literal>) for path separators, the
+      input to and output from this tool when run on Windows are
+      identical to those of its Unix counterpart.</para>
+    -->
+    <para>为方便讨论, 本书的例子假设读者使用的是类 Unix 操作系统, 并且熟悉
+      Unix 和命令行界面, 当然, <command>svn</command> 也可以在非 Unix 平台上
+      运行, 例如 Microsoft Windows. 除了一些微小的差别 (例如在路径中使用
+      反斜杠 (<literal>\</literal>)&mdash;而不是斜杠 (<literal>/</literal>)
+      &mdash;作为分隔符), 在 Windows 上运行 <command>svn</command> 的输入
+      和输出与在 Unix  平台上运行完全一致.</para>
+
+    <!--
+    <para>Most readers are probably programmers or system
+      administrators who need to track changes to source code.  This
+      is the most common use for Subversion, and therefore it is the
+      scenario underlying all of the book's examples.  But Subversion
+      can be used to manage changes to any sort of
+      information&mdash;images, music, databases, documentation, and
+      so on.  To Subversion, all data is just data.</para>
+    -->
+    <para>本书的大多数读者应该是那些需要管理代码变化的程序员或系统管理员,
+      这也是 Subversion 最普遍的用途, 因此本书的例子主要关注源代码文件, 但是
+      Subversion 可以对任意类型的文件进行版本控制&mdash;图片, 音频, 数据库,
+      文档等, 对 Subversion 而言, 任意类型的数据也只是数据而已.</para>
+    
+    <!--
+    <para>While this book is written with the assumption that the
+      reader has never used a version control system, we've also tried
+      to make it easy for users of CVS (and other systems) to make a
+      painless leap into Subversion.  Special sidebars may mention
+      other version control systems from time to time, and
+      <xref linkend="svn.forcvs"/> summarizes many of the differences
+      between CVS and Subversion.</para>
+    -->
+    <para>本书假定读者没有使用过版本控制工具, 我们同时也尽了最大的努力, 让 CVS
+      (或其他版本控制系统) 用户可以轻松地过渡到 Subversion. 边栏可能会时不时
+      地介绍一些和 CVS 相关的内容, <xref linkend="svn.forcvs"/> 总结了
+      Subversion 和 CVS 的区别.</para>
+
+    <!--
+    <para>Note also that the source code examples used throughout the
+      book are only examples.  While they will compile with the proper
+      compiler incantations, they are intended to illustrate a
+      particular scenario and not necessarily to serve as examples of good
+      programming style or practices.</para>
+    -->
+    <para>另外需要注意的是书中的源代码示例仅仅是例子而已, 虽然它们可以被
+      编译器编译通过, 但列举它们只是为了说明问题, 并非为了展示优秀的编程
+      风格.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.howread">
+    <!--
+    <title>How to Read This Book</title>
+    -->
+    <title>如何阅读本书</title>
+
+    <!--
+    <para>Technical books always face a certain dilemma: whether to
+      cater to <quote>top-down</quote> or to <quote>bottom-up</quote>
+      learners.  A top-down learner prefers to read or skim
+      documentation, getting a large overview of how the system works;
+      only then does she actually start using the software.  A
+      bottom-up learner is a <quote>learn by doing</quote>
+      person&mdash;someone who just wants to dive into the software
+      and figure it out as she goes, referring to book sections when
+      necessary.  Most books tend to be written for one type of person
+      or the other, and this book is undoubtedly biased toward
+      top-down learners.  (And if you're actually reading this
+      section, you're probably already a top-down learner yourself!)
+      However, if you're a bottom-up person, don't despair.  While the
+      book may be laid out as a broad survey of Subversion topics, the
+      content of each section tends to be heavy with specific examples
+      that you can try-by-doing.  For the impatient folks who just
+      want to get going, you can jump right to
+      <xref linkend="svn.intro"/>.</para>
+    -->
+    <para>技术书籍总是面临这样一种两难境地: 是迎合 <quote>自上而下</quote>
+      的读者, 还是 <quote>自下而上</quote> 的读者. 自上而下的读者喜欢快速
+      浏览文档, 先对系统的工作方式有一个整体上的了解, 然后才开始使用软件;
+      自下而上的读者是一个 <quote>在实践中学习</quote> 的人&mdash;他喜欢
+      先开始使用软件, 通过实际操作来体会软件的运行方式, 只在必要时才会参考
+      文档. 大多数图书会针对某一类读者, 本书更倾向于自上而下的读者 (如果你
+      阅读了本节, 说明你属于自上而下的类型). 但是自下而上的读者也不要感到失望,
+      本书布局是为了对 Subversion 的各个主题进行广泛的探讨, 但是每一章节都包含
+      了大量可供实践的例子. 想要马上动手试一下的读者可以跳到
+      <xref linkend="svn.intro"/>.</para>
+
+    <!--
+    <para>Regardless of your learning style, this book aims to be
+      useful to people of widely different backgrounds&mdash;from
+      those with no previous experience in version control to
+      experienced system administrators.  Depending on your own
+      background, certain chapters may be more or less important to
+      you.  The following can be considered a
+      <quote>recommended reading list</quote> for various types of
+      readers:</para>
+    -->
+    <para>无论读者属于哪一种风格, 本书的目标是对不同背景的人都能有所帮助
+      &mdash;无论是没有接触过版本控制的新手, 还是经验丰富的系统管理员. 根据
+      背景的不同, 某些章节可能对你更有价值, 而某些章节可能只需要浏览一下即可.
+      下面的内容可以看作是为不同类型的读者提供的 <quote>推荐阅读清单</quote>:
+    </para>
+
+    <variablelist>
+      <varlistentry>
+    <!--
+        <term>Experienced system administrators</term>
+    -->
+        <term>有经验的系统管理员</term>
+        <listitem>
+    <!--
+          <para>The assumption here is that you've probably used
+            version control before and are dying to get a
+            Subversion server up and running ASAP.
+            <xref linkend="svn.reposadmin"/> and
+            <xref linkend="svn.serverconfig"/> will show you how to
+            create your first repository and make it available over
+            the network.  After that's done,
+            <xref linkend="svn.tour"/> and
+            <xref linkend="svn.forcvs"/> are the fastest routes to
+            learning the Subversion client.</para>
+    -->
+          <para>假设读者已经使用过版本控制系统, 需要快速搭建 Subversion
+            服务器并运行起来, <xref linkend="svn.reposadmin"/> 和
+            <xref linkend="svn.serverconfig"/> 介绍了如何创建你的第一个仓库,
+            并将其发布到网络上. <xref linkend="svn.tour"/> 和
+            <xref linkend="svn.forcvs"/> 是 Subversion 客户端工具的快速学习
+            指南.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+    <!--
+        <term>New users</term>
+    -->
+        <term>新用户</term>
+        <listitem>
+    <!--
+          <para>Your administrator has probably set up Subversion
+            already, and you need to learn how to use the client.  If
+            you've never used a version control system, then
+            <xref linkend="svn.basic"/> is a vital introduction to the
+            ideas behind version control.  <xref linkend="svn.tour"/>
+            is a guided tour of the Subversion client.</para>
+    -->
+          <para>如果系统管理员已经搭建好了 Subversion 服务器, 你只需要学习如何
+            使用客户端工具. 如果你从未使用过版本控制系统, 那么
+            <xref linkend="svn.basic"/> 介绍了版本控制系统的重要思想.
+            <xref linkend="svn.tour"/> 介绍了 Subversion 客户端工具的基本用法.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+    <!--
+        <term>Advanced users</term>
+    -->
+        <term>高级用户</term>
+        <listitem>
+    <!--
+          <para>Whether you're a user or administrator, eventually
+            your project will grow larger.  You're going to want to
+            learn how to do more advanced things with Subversion, such
+            as how to use Subversion's property support
+            (<xref linkend="svn.advanced"/>), how to use branches and
+            perform merges (<xref linkend="svn.branchmerge"/>), how to
+            configure runtime options
+            (<xref linkend="svn.customization"/>), and other things.
+            These chapters aren't critical at first, but be sure to
+            read them once you're comfortable with the basics.</para>
+    -->
+          <para>无论是普通用户还是系统管理员, 你的项目最终总会越来越大, 这时
+            你就要学习更加高级的 Subversion 功能, 例如 Subversion 的属性支持
+            (<xref linkend="svn.advanced"/>), 如何使用分支与合并
+            (<xref linkend="svn.branchmerge"/>), 如何配置运行时参数
+            (<xref linkend="svn.customization"/>) 等. 这些章节一开始不会显得
+            特别重要, 但是熟悉了基本操作之后还是非常有必要了解一下.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+    <!--
+        <term>Developers</term>
+    -->
+        <term>开发人员</term>
+        <listitem>
+    <!--
+          <para>Presumably, you're already familiar with Subversion,
+            and now want to either extend it or build new software on
+            top of its many APIs.  <xref linkend="svn.developer"/> is
+            just for you.</para>
+    -->
+          <para>假设你已经对 Subversion 非常熟练了, 现在想要扩展 Subversion,
+            或以它为基础, 开发新的软件, <xref linkend="svn.developer"/> 介绍
+            了相关的内容.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+    <!--
+    <para>The book ends with reference material&mdash;<xref
+      linkend="svn.ref"/> is a reference guide for all Subversion
+      commands, and the appendixes cover a number of useful topics.
+      These are the chapters you're most likely to come back to
+      after you've finished the book.</para>
+    -->
+    <para>本书的结尾部分是 Subversion 的参考手册&mdash;
+      <xref linkend="svn.ref"/>, 其中介绍了 Subversion 的所有命令, 附录中还
+      包含了很多很有用的主题, 阅读完本书后, 这些章节最有可能是需要你回顾的内容.
+    </para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.organization">
+    <!--
+    <title>Organization of This Book</title>
+    -->
+    <title>本书组织</title>
+
+    <!--
+    <para>The chapters that follow and their contents are listed
+      here:</para>
+    -->
+    <para>每一章要介绍的内容如下:</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term><xref linkend="svn.basic"/></term>
+        <listitem>
+    <!--
+          <para>Explains the basics of version control and different
+            versioning models, along with Subversion's repository,
+            working copies, and revisions.</para>
+    -->
+          <para>介绍版本控制基础和不同的版本控制模型, 以及 Subversion 的仓库,
+            工作副本和版本号.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.tour"/></term>
+        <listitem>
+    <!--
+          <para>Walks you through a day in the life of a Subversion
+            user.  It demonstrates how to use a Subversion client to
+            obtain, modify, and commit data.</para>
+    -->
+          <para>介绍 Subversion 用户在一天的工作中将会如何使用 Subversion
+            客户端工具去获取, 修改和提交数据.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.advanced"/></term>
+        <listitem>
+    <!--
+          <para>Covers more complex features that regular users will
+            eventually come into contact with, such as versioned
+            metadata, file locking, and peg revisions.</para>
+    -->
+          <para>介绍普通用户最终将会用到的更复杂的功能, 例如版本控制的元数据,
+            文件锁和限定版本号 (peg revisions).</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.branchmerge"/></term>
+        <listitem>
+    <!--
+          <para>Discusses branches, merges, and tagging, including
+            best practices for branching and merging, common
+            use cases, how to undo changes, and how to easily swing
+            from one branch to the next.</para>
+    -->
+          <para>介绍分支, 合并和标签, 包括分支与合并的最佳使用方法,
+            常见用法, 如何撤消修改, 如何方便地从一个分支切换到另一个分支.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.reposadmin"/></term>
+        <listitem>
+    <!--
+          <para>Describes the basics of the Subversion repository,
+            how to create, configure, and maintain a repository, and
+            the tools you can use to do all of this.</para>
+    -->
+          <para>介绍 Subversion 仓库基础, 包括如何创建, 配置和维护一个仓库,
+            以及其中要用到的工具.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.serverconfig"/></term>
+        <listitem>
+    <!--
+          <para>Explains how to configure your Subversion server and
+            offers different ways to access your repository:
+            <literal>HTTP</literal>, the <literal>svn</literal>
+            protocol, and local disk access.  It also covers the details
+            of authentication, authorization and anonymous
+            access.</para>
+    -->
+          <para>介绍如何配置 Subversion 服务器, 以及访问仓库的不同的方法:
+            <literal>http</literal>, <literal>svn</literal> 和本地磁盘访问.
+            还介绍了关于认证, 授权和匿名访问的细节.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.customization"/></term>
+        <listitem>
+    <!--
+          <para>Explores the Subversion client configuration files,
+            the handling of internationalized text, and how to make
+            external tools cooperate with Subversion.</para>
+    -->
+          <para>介绍 Subversion 客户端配置文件, 如何处理国际化文本, 以及如何
+            在 Subversion 中使用外部工具.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.developer"/></term>
+        <listitem>
+    <!--
+          <para>Describes the internals of Subversion, the
+            Subversion filesystem, and the working copy
+            administrative areas from a programmer's point of view.
+            It also demonstrates how to use the public APIs to write a
+            program that uses Subversion.</para>
+    -->
+          <para>从程序员的视角介绍 Subversion 的内部构造, Subversion 文件系统,
+            工作副本的管理区. 还介绍了如何使用公共 API 对 Subversion 进行二次
+            开发.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.ref"/></term>
+        <listitem>
+    <!--
+          <para>Explains in great detail every subcommand of
+            <command>svn</command>, <command>svnadmin</command>, and
+            <command>svnlook</command> with plenty of examples for
+            the whole family!</para>
+    -->
+          <para>详细地介绍 <command>svn</command>, <command>svnadmin</command>,
+            <command>svnlook</command> 的每个子命令, 并带有丰富的使用示例.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.intro"/></term>
+        <listitem>
+    <!--
+          <para>For the impatient, a whirlwind explanation of how to
+            install Subversion and start using it immediately.  You
+            TODO
+            have been warned.</para>
+    -->
+          <para>专门为没有耐心的读者而写, 介绍了如何快速地安装 Subversion 并
+            开始使用它.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.forcvs"/></term>
+        <listitem>
+    <!--
+          <para>Covers the similarities and differences between
+            Subversion and CVS, with numerous suggestions on how to
+            break all the bad habits you picked up from years of
+            using CVS.  Included are descriptions of Subversion
+            revision numbers, versioned directories, offline
+            operations, <command>update</command>
+            versus <command>status</command>, branches, tags, metadata,
+            conflict resolution, and authentication.</para>
+    -->
+          <para>介绍了 Subversion 与 CVS 的异同点, 对于如何纠正长期使用 CVS
+            所养成的坏习惯也提出了大量的建议. 包含的内容有 Subversion 的版本号,
+            版本控制目录, 离线操作, 命令 <command>update</command> 与
+            <command>status</command>, 分支, 标签, 元数据, 冲突解决和授权.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.webdav"/></term>
+        <listitem>
+    <!--
+          <para>Describes the details of WebDAV and DeltaV and how
+            you can configure your Subversion repository to be
+            mounted read/write as a DAV share.</para>
+    -->
+          <para>介绍了 WebDAV 和 DeltaV 的细节, 以及如何通过配置 Subversion,
+            使得仓库可以被挂载成可读写的 DAV 共享目录.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.copyright"/></term>
+        <listitem>
+    <!--
+          <para>A copy of the Creative Commons Attribution License,
+            under which this book is licensed.</para>
+    -->
+          <para>本书所使用的创作共享署名授权协议的一份副本.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect1>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.free">
+    <!--
+    <title>This Book Is Free</title>
+    -->
+    <title>本书是免费的</title>
+
+    <!--
+    <para>This book started out as bits of documentation written by
+      Subversion project developers, which were then coalesced into a
+      single work and rewritten.  As such, it has always been under a
+      free license (see <xref linkend="svn.copyright"/>).  In fact,
+      the book was written in the public eye, originally as part of
+      the Subversion project itself.  This means two things:</para>
+    -->
+    <para>本书起源于 Subversion 开发人员编写的文档, 这些文档后来被合并到一个
+      单独的项目中, 并加以重写, 也正因为如此, 本书使用的授权是免费的
+      (见 <xref linkend="svn.copyright"/>). 实际上, 本书的编写过程一直是公开
+      进行的, 最初是 Subversion 项目的一部分, 这就意味着以下两点:</para>
+
+    <itemizedlist>
+      <listitem>
+    <!--
+        <para>You will always find the latest version of this book in
+          the book's own Subversion repository.</para>
+    -->
+        <para>你总能在本书的 Subversion 仓库中找到本书的最新版本.</para>
+      </listitem>
+
+      <listitem>
+    <!--
+        <para>You can make changes to this book and redistribute it
+          however you wish&mdash;it's under a free license.  Your only
+          obligation is to maintain proper attribution to the original
+          authors.  Of course, we'd much rather you send feedback and
+          patches to the Subversion developer community, instead of 
+          distributing your private version of this book.</para>
+    -->
+        <para>你可以按照自己的要求修改本书并重新发布&mdash;它使用的授权是免费
+          的, 唯一的约束是你必须保留原始作者的贡献. 当然, 我们更希望你把反馈
+          和补丁发送给 Subversion 开发社区, 而不是发布自己的私有版本.</para>
+      </listitem>
+    </itemizedlist>
+    
+    <!--
+    <para>The online home of this book's development and most of the
+      volunteer-driven translation efforts regarding it is
+      <ulink url="http://svnbook.red-bean.com"/>.  There you can find
+      links to the latest releases and tagged versions of the book in
+      various formats, as well as instructions for accessing the
+      book's Subversion repository (where its DocBook XML source
+      code lives).  Feedback is welcomed&mdash;encouraged, even.  Please
+      submit all comments, complaints, and patches against the book
+      sources to <email>svnbook-dev@red-bean.com</email>.</para>
+    -->
+    <para>本书主页和不同语言的翻译版存放在
+      <ulink url="http://svnbook.red-bean.com"/>, 在那里你可以找到本书不同
+      格式的最新版和打过标签的版本, 以及访问本书 Subversion 仓库的方法
+      (Subversion 仓库存放了本书的 DocBook XML 源代码). 非常欢迎 (甚至鼓励)
+      读者向我们反馈. 针对本书源代码的注释, 建议和补丁请发送至
+      <email>svnbook-dev@red-bean.com</email>.</para>
+
+  </sect1>
+
+  <!-- O'Reilly put its "Using Code Examples", "Safari Books Online",
+       and "How to Contact Us" sections here.  -->
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.acks">
+    <!--
+    <title>Acknowledgments</title>
+    -->
+    <title>致谢</title>
+
+    <!--
+    <para>This book would not be possible (nor very useful) if
+      Subversion did not exist.  For that, the authors would like to
+      thank Brian Behlendorf and CollabNet for the vision to fund such
+      a risky and ambitious new open source project; Jim Blandy for
+      the original Subversion name and design&mdash;we love you, Jim;
+      and Karl Fogel for being such a good friend and a great
+      community leader, in that order.<footnote><para>Oh, and thanks,
+      Karl, for being too overworked to write this book
+      yourself.</para></footnote></para>
+    -->
+    <para>如果没有 Subversion, 本书也就失去了存在的意义, 因此笔者感谢 Brian
+      Behlendorf 和 CollabNet 资助了如此优秀和雄心勃勃的开源项目; 感谢 Jim
+      Blandy 给出了 Subversion 的名字和原始设计&mdash;我们爱你, Jim; 感谢
+      Karl Fogel, 他既是一个好友, 也是一个优秀的社区领导者<footnote><para>
+          噢, 还要感谢 Karl 工作过于繁忙, 我们才能有撰写本书的机会.</para>
+    </footnote></para>
+
+    <!--
+    <para>Thanks to O'Reilly and the team of professional editors who
+      have helped us polish this text at various stages of its
+      evolution: Chuck Toporek, Linda Mui, Tatiana Apandi, Mary Brady,
+      and Mary Treseler.  Your patience and support has been
+      tremendous.</para>
+    -->
+    <para>感谢 O'Reilly 及其专业的编辑团队, 为本书的润色工作做出的巨大贡献,
+      他们是 Chuck Toporek, Linda Mui, Tatiana Apandi, Mary Brady 和 Mary
+      Treseler.</para>
+
+    <!--
+    <para>Finally, we thank the countless people who contributed to
+      this book with informal reviews, suggestions, and patches.  An
+      exhaustive listing of those folks' names would be impractical to
+      print and maintain here, but may their names live on forever in
+      this book's version control history!</para>
+    -->
+    <para>最后, 我们还要感谢评审过本书, 向本书提过建议和补丁的无数志愿者,
+      完整地列出这些人的名单有点不太实际, 但是他们的名字将永远地留在本书的
+      提交历史里!</para>
+
+  </sect1>
+
+</preface>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "chapter")
+end:
+-->

@@ -1,0 +1,706 @@
+<!-- -*- sgml -*- -->
+
+<appendix id="svn.berkeleydb">
+      <!--
+  <title>The Berkeley DB Legacy Filesystem</title>
+      -->
+  <title>传统的 Berkeley DB 后端存储</title>
+
+      <!--
+  <para>Long ago, when Subversion first learned to store versioned
+    data, it did so using a storage layer implementation based on the
+    Berkeley DB (BDB) transactional database
+    system.<footnote><para>Okay, strictly speaking, it used XML files
+    for starters.  But that was never intended for public
+    release.</para></footnote> As the product matured, though, this
+    storage layer implementation was joined by&mdash;and then
+    outmatched by&mdash;another one, the FSFS backend which is used by
+    the vast majority of Subversion's repositories today.  In
+    Subversion 1.8, the Subversion development community announced
+    that the BDB-based storage layer was being officially
+    deprecated.</para>
+      -->
+  <para>很久以前, 当 Subversion 开始学习如何存储版本化的数据时, 它的存储层
+    实现基于一个事务性的数据库系统&mdash;Berkeley DB (简称 BDB).<footnote>
+      <para>好吧, 严格地说, 最开始使用的后端存储是 XML 文件, 但该版本从来
+        没有对外发布过.</para></footnote> 随着 Subversion 的不断成熟, 后端
+    存储又增加了一种类型&mdash;并且逐渐优于 BDB&mdash;FSFS. 如今, 大部分
+    Subversion 仓库使用的后端存储都是 FSFS. 在 Subversion 1.8, Subversion
+    社区宣布 BDB 后端存储被正式弃用.</para>
+
+      <!--
+  <para>This appendix presents some of the documentation about
+    administering BDB-backed repositories featured more prominently in
+    previous versions of this book.</para>
+      -->
+  <para>本附录将介绍如何管理基于 BDB 的仓库, 这部分内容原本是本书较早版本
+    的重点内容之一.</para>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.berkeleydb.configuration">
+      <!--
+    <title>Configuring Your Berkeley DB Environment</title>
+      -->
+    <title>配置 Berkeley DB 环境</title>
+
+      <!--
+    <para>A Berkeley DB environment is an encapsulation of one or more
+      databases, logfiles, region files, and configuration files.  The
+      Berkeley DB environment has its own set of default configuration
+      values for things such as the number of database locks allowed
+      to be taken out at any given time, the maximum size of the
+      journaling logfiles, and so on.  Subversion's filesystem logic
+      additionally chooses default values for some of the Berkeley DB
+      configuration options.  However, sometimes your particular
+      repository, with its unique collection of data and access
+      patterns, might require a different set of configuration option
+      values.</para>
+      -->
+    <para>一个 Berkeley DB 环境由一个或多个数据库, 日志文件, 区域文件和
+      配置文件封装而成. Berkeley DB 环境有一套自己的默认配置, 例如在任意
+      时刻允许持有的数据库锁的个数, 日志文件的最大大小等. Subversion 的
+      文件系统逻辑根据自己的需要, 为某些 Berkeley DB 配置选项额外选取了默认
+      值. 然而, 你的仓库可能存放的是非常独特的数据, 而且访问模式也很特殊,
+      这时候你可能需要一套不同的配置选项值.</para>
+
+      <!--
+    <para>The producers of Berkeley DB understand that different
+      applications and database environments have different
+      requirements, so they have provided a mechanism for overriding
+      at runtime many of the configuration values for the Berkeley DB
+      environment.  BDB checks for the presence of a file named
+      <filename>DB_CONFIG</filename> in the environment directory
+      (namely, the repository's <filename>db</filename> subdirectory),
+      and parses the options found in that file.</para>
+      -->
+    <para>Berkeley DB 的开发人员明白不同的应用程序和数据库环境具有不同的需求,
+      所以他们提供了一种机制, 支持在运行时修改 Berkeley DB 环境的众多配置选项.
+      BDB 在环境目录 (也就是仓库内的 <filename>db</filename> 子目录) 内检查
+      文件 <filename>DB_CONFIG</filename> 是否存在, 如果存在则解析该文件内
+      的选项.</para>
+
+      <!--
+    <para>Subversion creates the <filename>DB_CONFIG</filename> file
+      when it creates the rest of the repository.  The file
+      initially contains some default options, as well as pointers
+      to the Berkeley DB online documentation so that you can read
+      about what those options do.</para>
+      -->
+    <para>Subversion 在创建仓库时会去创建文件 <filename>DB_CONFIG</filename>,
+      初始时, 文件包含了一些默认选项, 以及指向 Berkeley DB 在线文档的链接,
+      以便管理员了解选项的意义.</para>
+
+    <informalexample>
+      <screen>
+$ svnadmin create --fstype bdb /var/svn/repos
+$ ls /var/svn/repos/db
+changes        __db.003   __db.register  log.0000000001   revisions
+checksum-reps  __db.004   format         miscellaneous    strings
+copies         __db.005   fs-type        node-origins     transactions
+__db.001       __db.006   locks          nodes            uuids
+__db.002       DB_CONFIG  lock-tokens    representations
+$
+</screen>
+    </informalexample>
+
+      <!--
+    <para>Of course, you are free to add any of the supported Berkeley
+      DB options to your <filename>DB_CONFIG</filename> file.  Just be
+      aware that while Subversion never attempts to read or interpret
+      the contents of the file and makes no direct use of the option
+      settings in it, you'll want to avoid any configuration changes
+      that may cause Berkeley DB to behave in a fashion that is at
+      odds with what Subversion might expect.  Also, changes made
+      to <filename>DB_CONFIG</filename> won't take effect until you
+      recover the database environment (using
+      <command>svnadmin recover</command>).</para>
+      -->
+    <para>当然, 管理员也可以往 <filename>DB_CONFIG</filename> 添加更多的
+      BDB 选项, 但要注意 Subversion 从来不会去读取或解释
+      <filename>DB_CONFIG</filename> 的内容, 更不会直接使用文件内的选项.
+      管理员需要避免的是配置上的变化可能会导致 Berkeley DB 表现出的行为
+      与 Subversion 所期待的不符. 另外, <filename>DB_CONFIG</filename> 的
+      变化只有在恢复数据库环境 (使用 <command>svnadmin recover</command>)
+      时才会生效.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.berkeleydb.limitations">
+      <!--
+    <title>Limitations of Berkeley DB</title>
+      -->
+    <title>Berkeley DB 的限制</title>
+
+      <!--
+    <para>The Berkeley DB transactional data store offers all the data
+      integrity promises that you'd expect from a world-class database
+      system.  But every rose has its thorn, and so we must note some
+      known limitations of Berkeley DB.</para>
+      -->
+    <para>Berkeley DB 事务性的数据存储服务提供了能和世界级数据库系统相
+      媲美的数据完整性保证, 但如同玫瑰上的刺, 我们必须了解 Berkeley DB
+      的限制.</para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.limitations.architectural">
+      <!--
+      <title>Architectural Limitations</title>
+      -->
+      <title>体系结构上的限制</title>
+
+      <!--
+      <para>Berkeley DB environments are not portable.  You cannot
+        simply copy a Subversion repository that was created on a Unix
+        system onto a Windows system and expect it to work.  While much
+        of the Berkeley DB database format is architecture-independent,
+        other aspects of the environment are not.</para>
+      -->
+      <para>Berkeley DB 环境是不可移植的. 管理员不能简单地把在 Unix 系统中
+        创建的 Subversion 仓库复制到 Windows 系统中, 然后希望它能照常工作.
+        虽然 Berkeley DB 数据库格式的大部分都是体系结构无关的, 但仍然存在
+        与体系结构相关的部分.</para>
+
+      <!--
+      <para>Second, Subversion requires the use of Berkeley DB in a
+        way that will not operate on Windows 95/98 systems&mdash;if
+        you need to house a BDB-backed repository on a Windows
+        machine, stick with Windows 2000 or later.</para>
+      -->
+      <para>第二, Subversion 使用 Berkeley DB 的方式在 Windows 95/98 中
+        无法工作&mdash;如果管理员要在 Windows 系统中创建基于 BDB 的
+        Subversion 仓库, 必须是 Windows 2000 或更新的版本.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.limitations.sharedfs">
+      <!--
+      <title>Network Share Deployment</title>
+      -->
+      <title>网络共享目录部署</title>
+
+      <!--
+      <para>While Berkeley DB promises to behave correctly on
+        network shares that meet a particular set of
+        specifications,<footnote><para>Berkeley DB requires that the
+        underlying filesystem implement strict POSIX locking
+        semantics, and more importantly, the ability to map files
+        directly into process memory.</para></footnote> most
+        networked filesystem types and appliances do
+        <emphasis>not</emphasis> actually meet those requirements.
+        And in no case can you allow a BDB-backed repository that
+        resides on a network share to be accessed by multiple
+                                      ### TODO
+        clients of that share at once (which quite often is the
+        whole point of having the repository live on a network share
+        in the first place).</para>
+      -->
+      <para>虽然 Berkeley DB 声称对于满足特定规范的网络共享目录
+        <footnote><para>Berkeley DB 要求底层的文件系统实现了严格的 POSIX
+            锁语义, 更重要的是还要支持将文件直接映射到进程的内存中.
+        </para></footnote>, 它可以正常工作, 但大部分网络文件系统和应用程序
+        其实并 <emphasis>不满足</emphasis> 这些规范. 另外, 管理员没办法让
+        多个客户端同时访问位于网络共享目录内的, 基于 BDB 的 Subversion
+        仓库.</para>
+
+      <warning>
+      <!--
+        <para>If you attempt to use Berkeley DB on a noncompliant
+          remote filesystem, the results are unpredictable&mdash;you
+          may see mysterious errors right away, or it may be months
+          before you discover that your repository database is
+          subtly corrupted.  You should strongly consider using the
+          FSFS data store for repositories that need to live on a
+          network share.</para>
+      -->
+        <para>如果管理员试图在一个不兼容的远程文件系统中使用 Berkeley DB,
+          结果将是无法预测的&mdash;管理员可能会马上看到诡异的错误, 或者是
+          直到几个月后才发现仓库的数据库已经产生了细微的损坏. 强烈建议在
+          网络共享目录中使用基于 FSFS 的 Subversion 仓库.</para>
+      </warning>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.limitations.faulttolerance">
+      <!--
+      <title>Fault Tolerance and the Need for Recovery</title>
+      -->
+      <title>错误容忍与恢复</title>
+
+      <!--
+      <para>Because Berkeley DB is a library linked directly into
+        Subversion, it's more sensitive to interruptions than a
+        typical relational database system.  Most SQL systems, for
+        example, have a dedicated server process that mediates all
+        access to tables.  If a program accessing the database crashes
+        for some reason, the database daemon notices the lost
+        connection and cleans up any mess left behind.  And because
+        the database daemon is the only process accessing the tables,
+        applications don't need to worry about permission
+        conflicts.</para>
+      -->
+      <para>由于 Berkeley DB 的库函数被静态地链接到 Subversion 中, 所以和
+        典型的关系数据库系统相比, Berkeley DB 对中断更加敏感. 例如大多数 SQL
+        系统都有一个专用的服务器进程, 负责协调对数据库表的所有访问, 如果正在
+        访问数据库的程序崩溃了, 数据库守护进程将会注意到断开的连接, 并清理留下
+        的任何杂物. 由于数据库守护进程是访问数据库表的唯一一个进程, 应用程序不
+        用再担心权限冲突.</para>
+
+      <!--
+      <para>These things are not the case with Berkeley DB, however.
+        Subversion (and programs using Subversion libraries) access
+        the database tables directly, which means that a program crash
+        can leave the database in a temporarily inconsistent,
+        inaccessible state.  When this happens, an administrator needs
+        to ask Berkeley DB to restore to a checkpoint, which is a bit
+        of an annoyance.  Other things can cause a repository
+        to <quote>wedge</quote> besides crashed processes, such as
+        programs conflicting over ownership and permissions on the
+        database files.</para>
+      -->
+      <para>然而, Berkeley DB 没有专用的进程负责协调对数据库表的访问,
+        Subversion (和使用了 Subversion 库函数的程序) 是直接访问数据库表,
+        这就意味着如果程序崩溃, 数据库将临时地处于一种不一致和不可访问的状态.
+        如果发生了这种情况, 管理员需要请求 Berkeley DB 恢复到一个检查点,
+        实际做起来会有点麻烦. 除了程序崩溃, 还有些情况会造成仓库
+        <quote>卡住</quote>, 例如程序的所有者权限与数据库文件的权限相冲突.
+      </para>
+
+      <note>
+      <!--
+        <para>Berkeley DB 4.4 brings (to Subversion 1.4 and later)
+          the ability for Subversion to automatically and
+          transparently recover Berkeley DB environments in need of
+          such recovery.  When a Subversion process attaches to a
+          repository's Berkeley DB environment, it uses some process
+          accounting mechanisms to detect any unclean disconnections
+          by previous processes, performs any necessary recovery,
+          and then continues on as though nothing happened.  This
+          doesn't completely eliminate instances of repository
+          wedging, but it does drastically reduce the amount of
+          human interaction required to recover from them.</para>
+      -->
+        <para>Berkeley DB 4.4 为 Subversion (1.4 或更新的版本) 带来了自动
+          恢复 Berkeley DB 环境的能力. 当一个 Subversion 进程附加到仓库
+          的 Berkeley DB 环境上时, 它将使用进程记账机制来检测前一个进程
+          留下的未清理的连接, 执行必要的恢复操作, 然后继续往下执行, 就好像
+          什么事都没发生过. 虽然这不能完全避免仓库卡住的情况出现, 但还是
+          大大减少了恢复所需的人工介入.</para>
+      </note>
+
+    </sect2>
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.berkeleydb.maintenance">
+      <!--
+    <title>Maintaining Berkeley DB Repositories</title>
+      -->
+    <title>维护 Berkeley DB 仓库</title>
+
+      <!--
+    <para>In theory, the maintenance of a BDB-backed repository
+      involves essentially the same steps used to maintain an
+      FSFS-backed repository.  Historically, though, Berkeley DB
+      repositories have need a little extra TLC<footnote><para>Tender
+      loving care, Baby.</para></footnote> in order to stay
+      operational.  This section will cover some of the unique aspects
+      of Berkeley DB administration.</para>
+      -->
+    <para>从理论上讲, 基于 BDB 的仓库的维护步骤和基于 FSFS 的仓库是一样的,
+      但是从历史上看, 基于 BDB 的仓库需要一点额外的关怀才能保持运转. 本节
+      将介绍管理 Berkeley DB 的独特之处.</para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.maintenance.recovery">
+      <!--
+      <title>Berkeley DB Recovery</title>
+      -->
+      <title>Berkeley DB 恢复</title>
+
+      <!--
+      <para>As mentioned in
+        <xref linkend="svn.berkeleydb.limitations.faulttolerance" />,
+        a Berkeley DB repository can sometimes be left in a frozen
+        state if not closed properly.  When this happens, an
+        administrator needs to rewind the database back into a
+        consistent state.  This is unique to BDB-backed repositories,
+        though&mdash;if you are using FSFS-backed ones instead, this
+        won't apply to you.  And for those of you using Subversion 1.4
+        with Berkeley DB 4.4 or later, you should find that Subversion
+        has become much more resilient in these types of situations.
+        Still, wedged Berkeley DB repositories do occur, and an
+        administrator needs to know how to safely deal with this
+        circumstance.</para>
+      -->
+      <para>在 <xref linkend="svn.berkeleydb.limitations.faulttolerance" />
+        提到过, 如果未被恰当地关闭, 基于 Berkeley DB 的仓库可能会处于无法
+        访问的状态. 如果发生了这种情况, 管理员需要把数据库回滚到一个一致的
+        状态. 这是基于 BDB 的仓库所特有的问题&mdash;如果仓库的后端存储是 FSFS,
+        则根本不会出现这种问题. 从 1.4 (Berkeley DB 版本是 4.4) 开始,
+        Subversion 对异常情况的适应能力越来越强, 但还是有可能出现仓库
+        被卡住的情况, 这时候管理员必须知道如何安全地处理这种状况.</para>
+
+      <!--
+      <para>To protect the data in your repository, Berkeley
+        DB uses a locking mechanism.  This mechanism ensures that
+        portions of the database are not simultaneously modified by
+        multiple database accessors, and that each process sees the
+        data in the correct state when that data is being read from
+        the database.  When a process needs to change something in the
+        database, it first checks for the existence of a lock on the
+        target data.  If the data is not locked, the process locks the
+        data, makes the change it wants to make, and then unlocks the
+        data.  Other processes are forced to wait until that lock is
+        removed before they are permitted to continue accessing that
+        section of the database.  (This has nothing to do with the
+        locks that you, as a user, can apply to versioned files within
+        the repository; we try to clear up the confusion caused by
+        this terminology collision in the sidebar <xref
+        linkend="svn.advanced.locking.meanings" />.)</para>
+      -->
+    <para>为了保护仓库里的数据, Berkeley DB 使用了锁机制. 锁机制保证了数据库
+      的各个部分不会被多个访问者同时修改, 并且每个进程从数据库中读取时都能
+      看到处于正确状态的数据. 当一个进程需要修改数据库里的某个数据时, 它首先
+      查看目标数据上是否存在锁, 如果目标数据未被锁定, 进程将会锁定数据, 然后
+      修改数据, 最后放锁. 其他进程将一直等待, 直到持锁的进程放锁后, 它们才能
+      继续访问目标数据. (这和仓库内的版本化文件上的锁一点关系也没有, 我们已
+      在 <xref linkend="svn.advanced.locking.meanings" /> 专门向读者解释过.)
+    </para>
+
+      <!--
+      <para>In the course of using your Subversion repository, fatal
+        errors or interruptions can prevent a process from having the
+        chance to remove the locks it has placed in the database.  The
+        result is that the backend database system gets
+        <quote>wedged.</quote>  When this happens, any attempts to
+        access the repository hang indefinitely (since each new
+        accessor is waiting for a lock to go away&mdash;which isn't
+        going to happen).</para>
+      -->
+      <para>在使用 Subversion 仓库的过程中, 致命的错误或中断会使得进程没
+        有机会去移除数据库上的锁, 由此造成的结果是后端数据库系统被
+        <quote>卡住</quote> 了. 这种情况一旦发生, 任何试图访问仓库的进程
+        都会被无限期地挂起 (因为每个进程都在等待解锁, 但原本要去解锁的进程
+        已经不存在了).</para>
+
+      <!--
+      <para>If this happens to your repository, don't panic.  The
+        Berkeley DB filesystem takes advantage of database
+        transactions, checkpoints, and prewrite journaling to ensure
+        that only the most catastrophic of events<footnote><para>For
+        example, hard drive + huge electromagnet =
+        disaster.</para></footnote> can permanently destroy a database
+        environment.  A sufficiently paranoid repository administrator
+        will have made off-site backups of the repository data in some
+        fashion, but don't head off to the tape backup storage closet
+        just yet.</para>
+
+      <para>Instead, use the following recipe to attempt to
+        <quote>unwedge</quote> your repository:</para>
+      <para>
+      -->
+      <para>如果你的仓库的后端数据库被卡住了, 不要惊慌. Berkeley DB 文件
+        系统利用数据库事务, 检查点和预写日志来保证只有最具灾难性的事件
+        才会造成数据库环境被永久地损坏<footnote><para>例如用一个巨大的
+            电磁铁去接近硬盘.</para></footnote>. 一个谨慎的仓库管理员会
+        经常对仓库进行备份, 但现在还不用去存储柜那儿取备份, 而是先按照下面
+        的步骤来尝试恢复仓库:</para>
+   
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Make sure no processes are accessing (or
+            attempting to access) the repository.  For networked
+            repositories, this also means shutting down the Apache HTTP
+            Server or svnserve daemon.</para>
+      -->
+          <para>先确保没有进程正在访问 (或试图访问) 仓库, 对于连接到网络上
+            的仓库, 这还意味着要关闭 Apache HTTP 服务器或 svnserve 守护进程.
+          </para>
+        </listitem>
+        <listitem> 
+      <!--
+          <para>Become the user who owns and manages the repository.
+            This is important, as recovering a repository while
+            running as the wrong user can tweak the permissions of the
+            repository's files in such a way that your repository will
+            still be inaccessible even after it is 
+            <quote>unwedged.</quote></para>
+      -->
+          <para>切换到拥有仓库的用户账号. 这一步很重要, 如果账号不正确, 在
+            恢复仓库时可能会改变仓库内文件的权限, 使得即使仓库恢复后也无法
+            被其他人访问.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Run the <command>svnadmin recover</command> command:</para>
+      -->
+          <para>执行命令 <command>svnadmin recover</command>:</para>
+          <informalexample>
+            <screen>
+$ svnadmin recover /var/svn/repos
+Repository lock acquired.
+Please wait; recovering the repository may take some time...
+
+Recovery completed.
+The latest repos revision is 19.
+$
+</screen>
+          </informalexample>
+      <!--
+          <para>This command may take many minutes to complete.</para>
+      -->
+          <para>命令可能会花好几分钟才会结束.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Restart the server process.</para>
+      -->
+          <para>重启服务器进程.</para>
+        </listitem>
+      </orderedlist>
+            
+      <!--
+      <para>This procedure fixes almost every case of repository
+        wedging.  Make sure that you run this command as the user that
+        owns and manages the database, not just as
+        <literal>root</literal>.  Part of the recovery process might
+        involve re-creating from scratch various database files (shared
+        memory regions, e.g.).  Recovering as
+        <literal>root</literal> will create those files such that they
+        are owned by <literal>root</literal>, which means that even
+        after you restore connectivity to your repository, regular
+        users will be unable to access it.</para>
+      -->
+      <para>上面的步骤能够解决导致仓库卡住的大部分问题. 要确保在执行命令时
+        的身份是拥有仓库的用户, 而不是简单地切换到 <literal>root</literal>
+        用户. 在恢复过程中可能会从头开始创建各种数据库文件 (例如共享内存区).
+        如果以 <literal>root</literal> 身份执行命令, 将导致新建的文件只属于
+        <literal>root</literal>, 这就意味着即使仓库重新上线, 普通用户也没
+        办法访问.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.maintenance.bdblogs">
+      <!--
+      <title>Purging unused Berkeley DB logfiles</title>
+      -->
+      <title>清除不再有用的 Berkeley DB 日志文件</title>
+
+      <!--
+      <para>Prior to the release of Berkeley DB 4.2, the largest
+        offender of disk space usage with respect to BDB-backed
+        Subversion repositories were the logfiles in which Berkeley DB
+        performs its prewrites before modifying the actual database
+        files.  These files capture all the actions taken along the
+        route of changing the database from one state to
+        another&mdash;while the database files, at any given time,
+        reflect a particular state, the logfiles contain all of the
+        many changes along the way
+        <emphasis>between</emphasis> states.  Thus, they can grow
+        and accumulate quite rapidly.</para>
+      -->
+      <para>在 Berkeley DB 4.2 发布之前, 对于基于 BDB 的 Subversion 仓库
+        而言, 消耗磁盘最多的罪魁祸首就是 Berkeley DB 的日志文件, 这些日志
+        文件是 Berkeley DB 在修改真正地数据库文件之前所写的预写日志. 预写
+        日志记录了数据库从一个状态到另一个状态过程中所产生的所有活动, 而
+        数据库文件在任意一个时刻都代表了一个特定的状态, 日志文件包含了
+        状态 <emphasis>之间</emphasis> 的所有修改, 因此日志会增长地非常
+        迅速, 消耗的磁盘存储空间也很可观.</para>
+
+      <!--
+      <para>Fortunately, beginning with the 4.2 release of Berkeley
+        DB, the database environment has the ability to remove its
+        own unused logfiles automatically.  Any
+        repositories created using <command>svnadmin</command>
+        when compiled against Berkeley DB version 4.2 or later
+        will be configured for this automatic logfile removal.  If
+        you don't want this feature enabled, simply pass the
+        <option>- -bdb-log-keep</option> option to the
+        <command>svnadmin create</command> command.  If you forget
+        to do this or change your mind at a later time, simply edit
+        the <filename>DB_CONFIG</filename> file found in your
+        repository's <filename>db</filename> directory, comment out
+        the line that contains the <literal>set_flags
+        DB_LOG_AUTOREMOVE</literal> directive, and then run
+        <command>svnadmin recover</command> on your repository to
+        force the configuration changes to take effect.</para>
+      -->
+      <para>幸运的是, 从 Berkeley DB 4.2 开始, 数据库环境开始支持自动删除
+        不再有用的日志文件. 如果 <command>svnadmin</command> 的 Berkeley DB
+        版本大于或等于 4.2, 那么由它创建的仓库都会把自动删除日志作为默认
+        配置. 如果管理员不希望日志文件被自动删除, 只需要为 <command>svnadmin
+          create</command> 加上选项 <option>--bdb-log-keep</option>. 如果
+        管理员忘记加上选项, 或者是后面又改变了心意, 只需要打开仓库子目录
+        <filename>db</filename> 里的 <filename>DB_CONFIG</filename> 文件,
+        注释掉含有 <literal>set_flags DB_LOG_AUTOREMOVE</literal> 的那一行,
+        然后对仓库执行 <command>svnadmin recover</command>, 使得修改后的配置
+        生效.</para>
+
+      <!--
+      <para>Without some sort of automatic logfile removal in
+        place, logfiles will accumulate as you use your repository.
+        This is actually somewhat of a feature of the database
+        system&mdash;you should be able to recreate your entire
+        database using nothing but the logfiles, so these files can
+        be useful for catastrophic database recovery.  But
+        typically, you'll want to archive the logfiles that are no
+        longer in use by Berkeley DB, and then remove them from disk
+        to conserve space.  Use the <command>svnadmin
+        list-unused-dblogs</command> command to list the unused
+        logfiles:</para>
+      -->
+      <para>如果不支持日志文件的自动删除, 随着人们不断地使用仓库, 日志文件
+        会不断累积. 保留日志文件也可以算作数据库系统的一项特性&mdash;管理员
+        应该能够在只有日志文件的情况下恢复整个数据库, 所以日志文件对于数据库
+        的灾备恢复非常有用. 但是在典型情况下, 管理员希望归档不再被 Berkeley
+        DB 使用的日志文件, 然后从磁盘上删除它们, 以便节省磁盘空间.  命令
+        <command>svnadmin list-unused-dblogs</command> 可以列出不再使用的
+        日志文件:</para>
+
+      <informalexample>
+        <screen>
+$ svnadmin list-unused-dblogs /var/svn/repos
+/var/svn/repos/log.0000000031
+/var/svn/repos/log.0000000032
+/var/svn/repos/log.0000000033
+&hellip;
+$ rm `svnadmin list-unused-dblogs /var/svn/repos`
+## disk space reclaimed!
+</screen>
+      </informalexample>
+
+      <warning>
+      <!--
+        <para>BDB-backed repositories whose logfiles are used as
+          part of a backup or disaster recovery plan should
+          <emphasis>not</emphasis> make use of the logfile
+          autoremoval feature.  Reconstruction of a repository's
+          data from logfiles can only be accomplished only when
+          <emphasis>all</emphasis> the logfiles are available.  If
+          some of the logfiles are removed from disk before the
+          backup system has a chance to copy them elsewhere, the
+          incomplete set of backed-up logfiles is essentially
+          useless.</para>
+      -->
+        <para>如果基于 BDB 的仓库把日志文件用作备份或灾备恢复计划的一部分,
+          那么我们就 <emphasis>不能</emphasis> 允许自动删除日志文件. 根据
+          日志文件来恢复仓库要求 <emphasis>所有的</emphasis> 的日志都必须
+          留着. 如果在备份系统复制日志文件之前, 日志文件被自动删除了, 那么
+          不完整的日志文件集合对恢复仓库而言起不到半点作用.</para>
+      </warning>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.berkeleydb.maintenance.bdbutil">
+      <!--
+      <title>Berkeley DB Utilities</title>
+      -->
+      <title>Berkeley DB 实用工具</title>
+
+      <!--
+      <para>If you're using a Berkeley DB repository, all of
+        your versioned filesystem's structure and data live in a set
+        of database tables within the <filename>db/</filename>
+        subdirectory of your repository.  This subdirectory is a
+        regular Berkeley DB environment directory and can therefore
+        be used in conjunction with any of the Berkeley database
+        tools, typically provided as part of the Berkeley DB
+        distribution.</para>
+      -->
+      <para>如果仓库的后端数据库是 Berkeley DB, 那么版本化文件系统的
+        所有结构和数据都存放在一系列数据库表中, 而这些数据库表位于仓库
+        的 <filename>db/</filename> 子目录内. <filename>db/</filename> 是一
+        个普通的 Berkeley DB 环境目录, 因此可以用 Berkeley DB 数据库工具
+        访问目录, 数据库工具通常由 Berkeley DB 发行版提供.</para>
+
+      <!--
+      <para>For day-to-day Subversion use, these tools are
+        unnecessary.  Most of the functionality typically needed for
+        Subversion repositories has been duplicated in the
+        <command>svnadmin</command> tool.  For example,
+        <command>svnadmin list-unused-dblogs</command> and
+        <command>svnadmin list-dblogs</command> perform a
+        subset of what is provided by the Berkeley
+        <command>db_archive</command> utility, and <command>svnadmin
+        recover</command> reflects the common use cases of the
+        <command>db_recover</command> utility.</para>
+      -->
+      <para>在日常工作中使用 Subversion 时, 这些数据库工具都不会被用到,
+        Subversion 仓库所需的大部分维护工作都可以由
+        <command>svnadmin</command> 完成, 例如 Berkeley DB 实用工具
+        <command>db_archive</command> 的部分功能可以由 <command>svnadmin
+          list-unused-dblogs</command> 和 <command>svnadmin
+          list-dblogs</command> 完成, 而 <command>svnadmin recover</command>
+        则反映了 Berkeley DB 实用工具 <command>db_recover</command> 的常见
+        用例.</para>
+            
+      <!--
+      <para>However, there are still a few Berkeley DB utilities
+        that you might find useful.  The <command>db_dump</command>
+        and <command>db_load</command> programs write and read,
+        respectively, a custom file format that describes the keys
+        and values in a Berkeley DB database.  Since Berkeley
+        databases are not portable across machine architectures,
+        this format is a useful way to transfer those databases from
+        machine to machine, irrespective of architecture or
+        operating system.  As we describe later in this chapter, you
+        can also use <command>svnadmin dump</command> and
+        <command>svnadmin load</command> for similar purposes, but
+        <command>db_dump</command> and <command>db_load</command>
+        can do certain jobs just as well and much faster.  They can
+        also be useful if the experienced Berkeley DB hacker needs
+        to do in-place tweaking of the data in a BDB-backed
+        repository for some reason, which is something Subversion's
+        utilities won't allow.  Also, the <command>db_stat</command>
+        utility can provide useful information about the status of
+        your Berkeley DB environment, including detailed statistics
+        about the locking and storage subsystems.</para>
+      -->
+      <para>然而, 还是存在几个 Berkeley DB 实用工具可能对你有用.
+        <command>db_dump</command> 和 <command>db_load</command> 分别用于
+        读写具有定制化格式的文件, 该文件描述了 Berkeley DB 数据库的键值对.
+        由于 Berkeley DB 数据库在不同的体系结构之间是不可移植的, 利用这种
+        格式的文件管理员就可以实现在不同的主机之间传输数据库, 而不是考虑体系
+        结构或操作系统的差异. 虽然我们也能用 <command>svnadmin
+          dump</command> 和 <command>svnadmin load</command> 完成类似的工作,
+        但 <command>db_dump</command> 和 <command>db_load</command> 做得也
+        很好, 而且快得多. 有时候, 经验丰富的 Berkeley DB 用户还能利用这两个
+        命令在位地对仓库里的数据进行调整, 而这是 Subversion 工具做不到的.
+        另外, <command>db_stat</command> 还能输出关于 Berkeley DB 环境的
+        状态信息, 包括详细的, 关于锁和存储子系统的统计信息.</para>
+
+      <!--
+      <para>For more information on the Berkeley DB tool chain,
+        visit the documentation section of the Berkeley DB section
+        of Oracle's web site, located at <ulink
+        url="http://www.oracle.com/technology/documentation/berkeley-db/db/"
+        />.</para>
+      -->
+    <para>关于 Berkeley DB 工具链的更多信息, 见 Oracle 维护的 Berkeley DB
+      文档 <ulink
+        url="https://docs.oracle.com/cd/E17275_01/html/api_reference/C/utilities.html"/>.
+    </para>
+
+    </sect2>
+
+  </sect1>
+</appendix>
+
+<!--
+local variables:
+sgml-parent-document: ("book.xml" "appendix")
+end:
+-->
+

@@ -1,0 +1,1943 @@
+<!-- -*- sgml -*- -->
+
+<chapter id="svn.basic">
+    <!--
+  <title>Fundamental Concepts</title>
+    -->
+  <title>基本概念</title>
+
+    <!--
+  <para>This chapter is a short, casual introduction to Subversion and
+    its approach to version control.  We begin with a discussion of
+    general version control concepts, work our way into the specific
+    ideas behind Subversion, and show some simple examples of
+    Subversion in use.</para>
+    -->
+  <para>本章将对 Subversion 及其版本控制方法进行简短的介绍, 我们首先介绍
+    一些通用的版本控制概念, 然后再介绍 Subversion 特有的概念, 最后再展示
+    一些使用 Subversion 的简单例子.</para>
+
+    <!--
+  <para>Even though the examples in this chapter show people sharing
+    collections of program source code, keep in mind that Subversion
+    can manage any sort of file collection&mdash;it's not limited to
+    helping computer programmers.</para>
+    -->
+  <para>虽然本章都是以程序的源代码作为版本控制的对象, 但是 Subversion 可以
+    管理任意类型的文件&mdash;它并非是程序员的专用工具.</para>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.basic.version-control-basics">
+    <!--
+    <title>Version Control Basics</title>
+    -->
+    <title>版本控制基础</title>
+
+    <para>
+      <indexterm>
+        <primary>version control systems</primary>
+      </indexterm>
+      版本控制系统用于跟踪文件和目录在时间上的增量版本. 当然, 仅仅跟踪一
+      个用户或用户组不同版本的文件和目录并不会让版本控制系统显得多么高级,
+      它的真正用处是允许用户查看每个版本所发生的变化, 对任意一个修改进行
+      撤消.</para>
+    <!--
+      A version control system (or revision control
+      system) is a system that tracks incremental versions (or
+      revisions) of files and, in some cases, directories over time.
+      Of course, merely tracking the various versions of a user's (or
+      group of users') files and directories isn't very interesting in
+      itself.  What makes a version control system useful is the fact
+      that it allows you to explore the changes which resulted in each
+      FIXME
+      of those versions and facilitates the arbitrary recall of the
+      same.</para>
+    -->
+
+    <!--
+    <para>In this section, we'll introduce some fairly high-level
+      version control system components and concepts.  We'll limit our
+      discussion to modern version control systems&mdash;in today's
+      interconnected world, there is very little point in
+      acknowledging version control systems which cannot
+      operate across wide-area networks.</para>
+    -->
+    <para>本节将介绍一些版本控制系统比较高层的组成部分和概念, 内容只限于
+      现代的版本控制系统&mdash;在如今这个时代, 如果一个版本控制系统无法在
+      广域网下工作, 估计没多少人愿意使用它.</para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.repository">
+    <!--
+      <title>The Repository</title>
+    -->
+      <title>仓库</title>
+
+      <para>
+        <indexterm>
+          <primary>repositories</primary>
+        </indexterm>
+        <indexterm>
+          <primary>repositories</primary>
+          <secondary>filesystem tree</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>version control systems</primary>
+          <secondary>clients</secondary>
+        </indexterm>
+        版本控制系统的核心是仓库, 它是存放系统数据的中央位置. 仓库通常以
+        <firstterm>文件系统树</firstterm> (<firstterm>filesystem tree
+        </firstterm>) 的形式存放信息, 文件系统树是文件和目录的分层结构.
+        有任意数量的 <firstterm>客户端</firstterm>
+        (<firstterm>client</firstterm>) 连接到仓库, 对其中的文件进行读写
+        访问. 通过向仓库写数据, 客户端将信息暴露给其他人; 通过读取数据,
+        客户端获得了其他人的信息, 如
+        <xref linkend="svn.basic.repository.dia-1"/> 所示:</para>
+    <!--
+        At the core of the version control system is a
+        repository, which is the central store of that system's data.
+        The repository usually stores information in the form of a
+        <firstterm>filesystem tree</firstterm>&mdash;a hierarchy of
+        files and directories.  Any number of
+        <firstterm>clients</firstterm> connect to the repository, and
+        then read or write to these files.  By writing data, a client
+        makes the information available to others; by reading data,
+        the client receives information from others.
+        <xref linkend="svn.basic.repository.dia-1"/> illustrates
+        this.</para>
+    -->
+
+      <figure id="svn.basic.repository.dia-1">
+    <!--
+        <title>A typical client/server system</title>
+    -->
+        <title>典型的客户端/服务器系统</title>
+        <graphic fileref="images/ch02dia1.png"/>
+      </figure>
+
+    <!--
+      <para>Why is this interesting?  So far, this sounds like the
+        definition of a typical file server.  And indeed, the
+        repository <emphasis>is</emphasis> a kind of file server, but
+        it's not your usual breed.  What makes the repository special
+        is that as the files in the repository are changed, the
+        repository remembers each version of those files.</para>
+    -->
+      <para>为什么这很重要? 目前来看, 仓库像是一个典型的文件服务器. 确实是,
+        但是它和你平时用的文件服务器并不完全相同, 仓库的独特之处是随着文件
+        不断地发生变化, 它会记住文件的每一个版本.</para>
+
+    <!--
+      <para>When a client reads data from the repository, it normally
+        sees only the latest version of the filesystem tree.  But what
+        makes a version control client interesting is that it also has
+        the ability to request previous states of the filesystem from
+        the repository.  A version control client can ask historical
+        questions such as <quote>What did this directory contain last
+        Wednesday?</quote> and <quote>Who was the last person to
+        change this file, and what changes did he make?</quote>
+        These are the sorts of questions that are at the heart of any
+        version control system.</para>
+    -->
+      <para>当客户端从仓库读取数据时, 它通常只会读取到文件系统树的最新版本,
+        但是版本控制系统客户端的一个重要功能是它也可以读到早先版本的文件
+        系统树. 版本控制系统客户端可以询问历史问题, 例如 <quote>在上周三时,
+          这个目录中存放的是什么内容?</quote> 和 <quote>修改这个文件的最后
+          一个人是谁? 他改了什么?</quote> 这些是任意一个版本控制系统都
+        要有能力解决的问题.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.working-copy">
+    <!--
+      <title>The Working Copy</title>
+    -->
+      <title>工作副本</title>
+
+      <para>
+        <indexterm>
+          <primary>working copies</primary>
+        </indexterm>
+    <!--
+        A version control system's value comes from the
+        fact that it tracks versions of files and directories, but the
+        rest of the software universe doesn't operate
+        on <quote>versions of files and directories</quote>.  Most
+        software programs understand how to operate only on
+        a <emphasis>single</emphasis> version of a specific type of
+        file.  So how does a version control user interact with an
+        abstract&mdash;and, often, remote&mdash;repository full of
+        multiple versions of various files in a concrete fashion?  How
+        does his or her word processing software, presentation
+        software, source code editor, web design software, or some
+        other program&mdash;all of which trade in the currency of
+        simple data files&mdash;get access to such files?  The answer
+        is found in the version control construct known as
+        a <firstterm>working copy</firstterm>.</para>
+    -->
+        版本控制系统的核心价值在于它可以跟踪文件和目录的版本, 但是其他
+        软件不会操作 <quote>文件和目录的版本</quote>, 大多数软件只能理解
+        如何操作某种特定类型文件的 <emphasis>单一</emphasis> 版本, 那么用户
+        如何才能以一种实实在在的方式, 和一个包含了不同文件多个版本的,
+        抽象的, 远程的仓库进行交互? 用户的字处理软件, 演示软件, 源代码编辑器,
+        网页设计软件&mdash;以及其他一些只能处理单一版本文件的程序&mdash;
+        如何才能访问仓库中的文件? 答案是 <firstterm>工作副本</firstterm>
+        (<firstterm>working copy</firstterm>).</para>
+
+    <!--
+      <para>A working copy is, quite literally, a local copy of a
+        particular version of a user's VCS-managed data upon which
+        that user is free to work.  Working copies<footnote><para>The
+        term <quote>working copy</quote> can be generally applied to
+        any one file version's local instance.  When most folks use
+        the term, though, they are referring to a whole directory tree
+        containing files and subdirectories managed by the version
+        control system.</para></footnote> appear to other software
+        just as any other local directory full of files, so those
+        programs don't have to be <quote>version-control-aware</quote>
+        in order to read from and write to that data.  The task of
+        managing the working copy and communicating changes made to
+        its contents to and from the repository falls squarely to the
+        version control system's client software.</para>
+    -->
+      <para>顾名思义, 工作副本是仓库的特定版本数据在本地的副本, 用户可以
+        自由地对它进行操作. 对其他软件来说, 工作副本<footnote><para>
+            术语 <quote>工作副本</quote> 可以应用到任意一个文件版本的
+            本地实例, 但是大多数人谈到工作副本时, 都指的是一整个目录, 其中
+            包含了被版本控制系统管理的文件与子目录</para></footnote>
+        只是一个普通的本地目录, 所以即使它们不具备版本控制功能也可以对
+        工作副本进行读写. 版本控制系统的客户端工具负责管理工作副本, 以及
+        与仓库通信.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.vsn-models">
+    <!--
+      <title>Versioning Models</title>
+    -->
+      <title>版本控制模型</title>
+
+    <!--
+      <para>If the primary mission of a version control system is to
+        track the various versions of digital information over time, a
+        very close secondary mission in any modern version control
+        system is to enable collaborative editing and sharing of that
+        data.  But different systems use different strategies to
+        achieve this.  It's important to understand these different
+        strategies, for a couple of reasons.  First, it will help you
+        compare and contrast existing version control systems, in case
+        you encounter other systems similar to Subversion.  Beyond
+        that, it will also help you make more effective use of
+        Subversion, since Subversion itself supports a couple of
+        different ways of working.</para>
+    -->
+      <para>如果说版本控制系统的首要工作是跟踪文件和目录在时间上的不同版本,
+        那么它的次要工作就是支持协作编辑和数据共享. 不同的版本控制系统在实现
+        后者时可能会采用不同的策略, 理解这些策略的差别非常重要, 这主要基于以
+        下两点考虑: 首先, 这可以帮助你比较不同的版本控制系统, 特别是在你遇到
+        了一个和 Subversion 相似的系统; 然后, 这可以帮助你更高效地使用
+        Subversion, 因为 Subversion 支持多种不同的工作模式.</para>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.vsn-models.problem-sharing">
+    <!--
+        <title>The problem of file sharing</title>
+    -->
+        <title>文件共享的问题</title>
+
+    <!--
+        <para>All version control systems have to solve the same
+          fundamental problem: how will the system allow users to
+          share information, but prevent them from accidentally
+          stepping on each other's feet?  It's all too easy for users
+          to accidentally overwrite each other's changes in the
+          repository.</para>
+    -->
+        <para>所有的版本控制系统都要解决一个基本问题: 如何允许用户共享信息,
+          同时避免他们无意之间互相干扰? 一个用户无意间覆盖了其他用户的修改
+          &mdash;这种情况经常发生.</para>
+
+    <!--
+        <para>Consider the scenario shown in
+          <xref linkend="svn.basic.vsn-models.problem-sharing.dia-1"/>.
+          Suppose we have two coworkers, Harry and Sally.  They each
+          decide to edit the same repository file at the same time.
+          If Harry saves his changes to the repository first, it's
+          possible that (a few moments later) Sally could accidentally
+          overwrite them with her own new version of the file.  While
+          Harry's version of the file won't be lost forever (because
+          the system remembers every change), any changes Harry made
+          <emphasis>won't</emphasis> be present in Sally's newer version
+          of the file, because she never saw Harry's changes to begin
+          with.  Harry's work is still effectively lost&mdash;or at
+          least missing from the latest version of the file&mdash;and
+          probably by accident.  This is definitely a situation we want
+          to avoid!</para>
+    -->
+        <para> 考虑 <xref linkend="svn.basic.vsn-models.problem-sharing.dia-1"/>
+          所示的情境. 假设现在有两个同事, Harry 和 Sally, 他们在同一时间修改
+          了仓库中的同一文件. 如果 Harry 先把修改保存到仓库中, 后面 Sally
+          就有可能用他的新版本文件覆盖掉 Harry 的版本. 虽然 Harry 的修改
+          不会就此丢失 (因为版本控制系统会记住每一次修改), 但是 Harry 的修改
+          不会出现在 Sally 的新版本文件中, 因为他从未看到过 Harry 的修改.
+          从效果上来看, Harry 的修改丢失了&mdash;至少是对文件的最新版本来说
+          &mdash;而且很有可能是无意间导致的, 我们决不能让这种情况发生.</para>
+
+        <figure id="svn.basic.vsn-models.problem-sharing.dia-1">
+    <!--
+          <title>The problem to avoid</title>
+    -->
+          <title>需要避免的情况</title>
+          <graphic fileref="images/ch02dia2.png"/>
+        </figure>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.vsn-models.lock-unlock">
+    <!--
+        <title>The lock-modify-unlock solution</title>
+    -->
+        <title>加锁-修改-解锁 解决方案</title>
+
+        <para>
+          <indexterm>
+            <primary>version control</primary>
+            <secondary>models</secondary>
+            <tertiary>lock-modify-unlock</tertiary>
+          </indexterm>
+    <!--
+          Many version control systems use a
+          <firstterm>lock-modify-unlock</firstterm> model to address
+          the problem of many authors clobbering each other's work.
+          In this model, the repository allows only one person to
+          change a file at a time.  This exclusivity policy is managed
+          using locks.  Harry must <quote>lock</quote> a file before
+          he can begin making changes to it.  If Harry has locked a
+          file, Sally cannot also lock it, and therefore cannot make
+          any changes to that file.  All she can do is
+          wait for Harry to finish his changes, save the file and
+          release his lock.  After Harry unlocks the file, Sally
+          can take her turn by locking the file.  Then she may read
+          the latest version of the file and edit it.
+          <xref linkend="svn.basic.vsn-models.lock-unlock.dia-1"/>
+          demonstrates this simple solution.</para>
+    -->
+          为了解决用户间互相干扰工作的问题, 许多版本控制系统都采用了
+          <firstterm>加锁-修改-解锁</firstterm>
+          (<firstterm>lock-modify-unlock</firstterm>) 模型. 在这个模型中,
+          仓库一次只允许一个用户修改同一文件, 这种独占策略通过锁进行管理.
+          Harry 在修改之前要先对文件进行 <quote>加锁</quote> (lock), 如果
+          Harry 已经锁住了文件, Sally 就不能再对同一文件进行加锁, 也就不能
+          修改文件. 他所能做的就是等待 Harry 完成修改, 保存文件, 然后释放
+          锁. Harry 解锁后才能轮到 Sally 加锁, 然后他可能会得到一个新版本的
+          文件并开始编辑.
+          <xref linkend="svn.basic.vsn-models.lock-unlock.dia-1"/> 展示了
+          工作流程.</para>
+
+        <figure id="svn.basic.vsn-models.lock-unlock.dia-1">
+    <!--
+          <title>The lock-modify-unlock solution</title>
+    -->
+          <title>加锁-修改-解锁 解决方案</title>
+          <graphic fileref="images/ch02dia3.png"/>
+        </figure>
+
+    <!--
+        <para>The problem with the lock-modify-unlock model is that it's
+          a bit restrictive and often becomes a roadblock for
+          users:</para>
+    -->
+        <para>加锁-修改-解锁 模型的问题是限制比较多, 经常会成为用户的麻烦:
+        </para>
+
+        <itemizedlist>
+          <listitem>
+    <!--
+            <para><emphasis>Locking may cause administrative
+              problems.</emphasis>
+
+              Sometimes Harry will lock a file and then forget about it.
+              Meanwhile, because Sally is still waiting to edit the file,
+              her hands are tied.  And then Harry goes on vacation.  Now
+              Sally has to get an administrator to release Harry's lock.
+              The situation ends up causing a lot of unnecessary delay
+              and wasted time.</para>
+    -->
+            <para><emphasis>加锁可能会导致管理上的问题.</emphasis>
+
+              有时候 Harry 在锁住一个文件后可能会忘了给它解锁, 同时 Sally
+              还在焦急地等着. 如果 Harry 去度假了, 那么 Sally 必须找到
+              仓库管理员, 让他释放 Harry 的锁. 这种情况会浪费大量的时间.
+            </para>
+          </listitem>
+
+          <listitem>
+    <!--
+            <para><emphasis>Locking may cause unnecessary
+              serialization.</emphasis>
+
+              What if Harry is editing the beginning of a text file,
+              and Sally simply wants to edit the end of the same file?
+              These changes don't overlap at all.  They could easily
+              edit the file simultaneously, and no great harm would
+              come, assuming the changes were properly merged together.
+              There's no need for them to take turns in this
+              situation.</para>
+    -->
+            <para><emphasis>加锁可能会导致不必要的串行化.</emphasis>
+
+              如果 Harry 想要修改文件的开头部分, 而 Sally 只想修改同一文件
+              的结尾部分? 此时他们的修改就不会重叠. 如果他们的修改可以恰当
+              地合并在一起, 那他们就可以同时编辑文件, 完全不会产生任何问题.
+              此时对文件进行加锁就完全没有必要.</para>
+          </listitem>
+
+          <listitem>
+    <!--
+            <para><emphasis>Locking may create a false sense of
+              security.</emphasis>
+
+              Suppose Harry locks and edits file A, while Sally
+              simultaneously locks and edits file B.  But what if A and
+              B depend on one another, and the changes made to each are
+              semantically incompatible?  Suddenly A and B don't work
+              together anymore.  The locking system was powerless to
+              prevent the problem&mdash;yet it somehow provided a false
+              sense of security.  It's easy for Harry and Sally to
+              imagine that by locking files, each is beginning a safe,
+              insulated task, and thus they need not bother discussing
+              their incompatible changes early on.  Locking often
+              becomes a substitute for real communication.</para>
+    -->
+            <para><emphasis>加锁可能会造成安全上的错觉.</emphasis>
+
+              假设 Harry 加锁并修改了文件 A, 同时 Sally 加锁并修改了文件 B,
+              文件 A 和文件 B 在内容是互相依赖的, 如果 Harry 和 Sally 的
+              修改在语义上是不兼容的, 那将会如何? 文件 A 和文件 B 可能无法
+              再正常工作. 加锁-修改-解锁 模型对这种情况无能为力&mdash;但是用
+              户会错误地认为只要在加锁后修改就是安全的. 通过加锁, Harry 和
+              Sally 都错误地认为自己的修改是安全的, 也就不会事先和对方沟通.
+              锁机制常常会代替真正的交流.</para>
+          </listitem>
+        </itemizedlist>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.vsn-models.copy-merge">
+    <!--
+        <title>The copy-modify-merge solution</title>
+    -->
+        <title>复制-修改-合并 解决方案</title>
+
+        <para>
+          <indexterm>
+            <primary>version control</primary>
+            <secondary>models</secondary>
+            <tertiary>copy-modify-merge</tertiary>
+          </indexterm>
+    <!--
+          Subversion, CVS, and many other version control
+          systems use a <firstterm>copy-modify-merge</firstterm> model
+          as an alternative to locking.  In this model, each user's
+          client contacts the project repository and creates a
+          personal working copy.  Users then work simultaneously and
+          independently, modifying their private copies.  Finally, the
+          private copies are merged together into a new, final
+          version.  The version control system often assists with the
+          merging, but ultimately, a human being is responsible for
+          making it happen correctly.</para>
+    -->
+        Subversion, CVS 和许多其他的版本控制系统使用
+        <firstterm>复制-修改-合并</firstterm> (<firstterm>copy-modify-merge
+        </firstterm>) 模型作为锁机制的替代品. 在这个模型中, 每一个用户的
+        客户端都与仓库通信, 在本地创建一份私有的工作副本, 然后用户可以同时
+        地, 互不干扰地修改自己的私有副本, 最后, 私有副本被合并到一个新的
+        最终版本. 为了支持 复制-修改-合并 模型, 版本控制系统通常会提供合并
+        操作, 但是归根到底, 必须由用户自己来确保合并的结果是正确的.</para>
+
+        <para>
+          <indexterm>
+            <primary>out of date</primary>
+          </indexterm>
+    <!--
+          Here's an example.  Say that Harry and Sally
+          each create working copies of the same project, copied from
+          the repository.  They work concurrently and make changes to
+          the same file A within their copies.  Sally saves her
+          changes to the repository first.  When Harry attempts to
+          save his changes later, the repository informs him that his
+          file A is <firstterm>out of date</firstterm>.  In other
+          words, file A in the repository has somehow changed since he
+          last copied it.  So Harry asks his client to merge any new
+          changes from the repository into his working copy of file A.
+          Chances are that Sally's changes don't overlap with his own;
+          once he has both sets of changes integrated, he saves his
+          working copy back to the repository.
+          <xref linkend="svn.basic.vsn-models.copy-merge.dia-1"/> and
+          <xref linkend="svn.basic.vsn-models.copy-merge.dia-2"/> show
+          this process.</para>
+    -->
+          我们通过例子来说明. 假设 Harry 和 Sally 各自创建了同一项目
+          的工作副本, 并在各自的工作副本中修改了同一文件 A. Sally 先把
+          修改保存到仓库中, 后面 Harry 试图保存自己的修改时, 仓库告诉他
+          文件 A 已经 <firstterm>过时</firstterm> (<firstterm>out of date
+          </firstterm>) 了, 换句话说, 自从他上一次复制了文件 A 之后, 仓库中
+          的文件 A 被更新了. 于是, Harry 告诉客户端把仓库中文件 A 的更新合
+          并到他的工作副本中 (这里不妨假设 Sally 的修改没有和他的修改重叠),
+          修改合并后, Harry 再一次向仓库保存了他自己的修改.
+          <xref linkend="svn.basic.vsn-models.copy-merge.dia-1"/> 和
+          <xref linkend="svn.basic.vsn-models.copy-merge.dia-2"/> 展示了
+          工作流程.</para>
+
+        <figure id="svn.basic.vsn-models.copy-merge.dia-1">
+    <!--
+          <title>The copy-modify-merge solution</title>
+    -->
+          <title>复制-修改-合并 解决方案</title>
+          <graphic fileref="images/ch02dia4.png"/>
+        </figure>
+
+        <figure id="svn.basic.vsn-models.copy-merge.dia-2">
+    <!--
+          <title>The copy-modify-merge solution (continued)</title>
+    -->
+          <title>复制-修改-合并 解决方案 (续)</title>
+          <graphic fileref="images/ch02dia5.png"/>
+        </figure>
+
+        <para>
+          <indexterm>
+            <primary>conflicts</primary>
+          </indexterm>
+    <!--
+          But what if Sally's changes
+          <emphasis>do</emphasis> overlap with Harry's changes?  What
+          then?  This situation is called a
+          <firstterm>conflict</firstterm>, and it's usually not much
+          of a problem.  When Harry asks his client to merge the
+          latest repository changes into his working copy, his copy of
+          file A is somehow flagged as being in a state of conflict:
+          he'll be able to see both sets of conflicting changes and
+          manually choose between them.  Note that software can't
+          automatically resolve conflicts; only humans are capable of
+          understanding and making the necessary intelligent choices.
+          Once Harry has manually resolved the overlapping
+          changes&mdash;perhaps after a discussion with Sally&mdash;he
+          can safely save the merged file back to the
+          repository.</para>
+    -->
+        但是如果 Sally 的修改和 Harry 重叠了, 那又会产生什么结果?
+        这种情况称为 <firstterm>冲突</firstterm>
+        (<firstterm>conflict</firstterm>), 通常不是什么大问题. 当 Harry
+        告诉客户端把仓库的最新修改合并到他的工作副本时, 副本中的文件 A
+        被标记为冲突状态: Harry 可以同时看到互相冲突的两套修改, 并对它们
+        进行手工选择. 软件不会自动地解决冲突, 只有人类才能理解冲突并做出
+        正确地选择. Harry 把重叠的修改解决后&mdash;可能是在和 Sally 沟通
+        之后&mdash;就可以把合并后的文件安全地保存到仓库中.</para>
+
+    <!--
+        <para>The copy-modify-merge model may sound a bit chaotic, but
+          in practice, it runs extremely smoothly.  Users can work in
+          parallel, never waiting for one another.  When they work on
+          the same files, it turns out that most of their concurrent
+          changes don't overlap at all; conflicts are infrequent.  And
+          the amount of time it takes to resolve conflicts is usually
+          far less than the time lost by a locking system.</para>
+    -->
+        <para>复制-修改-合并 模型看起来好像有点混乱, 但是在实际使用中它
+          运行地很流畅. 用户可以并发地工作, 不用等待其他人, 当用户操作
+          同一文件时, 经验表明他们的大多数修改不会重叠, 冲突情况其实很少发
+          生. 解决冲突花费的时间通常要比使用锁机制浪费的时间要少得多.</para>
+
+    <!--
+        <para>In the end, it all comes down to one critical factor:
+          user communication.  When users communicate poorly, both
+          syntactic and semantic conflicts increase.  No system can
+          force users to communicate perfectly, and no system can
+          detect semantic conflicts.  So there's no point in being
+          lulled into a false sense of security that a locking system
+          will somehow prevent conflicts; in practice, locking seems
+          to inhibit productivity more than anything else.</para>
+    -->
+        <para>上面所说的问题都涉及到一个关键因素: 用户间的沟通. 如果用户间
+          缺乏沟通, 发生语法冲突和语义冲突的概率都会增加. 没有一个版本控制
+          系统可以强制用户沟通或检测语义冲突, 所以不要认为使用锁机制可以完
+          全避免产生冲突, 在实际使用中, 锁机制似乎会影响工作效率.</para>
+
+        <sidebar id="svn.basic.vsn-models.copy-merge.sb-1">
+    <!--
+          <title>When Locking Is Necessary</title>
+    -->
+          <title>什么时候使用锁是必须的</title>
+
+    <!--
+          <para>While the lock-modify-unlock model is considered
+            generally harmful to collaboration, sometimes
+            locking is appropriate.</para>
+    -->
+          <para>虽然人们通常认为 加锁-修改-解锁 模型对协作开发是有害的,
+            但某些情况下却是最合适的.</para>
+
+    <!--
+          <para>The copy-modify-merge model is based on the assumption
+            that files are contextually mergeable&mdash;that is, that the
+            majority of the files in the repository are line-based text
+            files (such as program source code).  But for files with
+            binary formats, such as artwork or sound, it's often
+            impossible to merge conflicting changes.  In these
+            situations, it really is necessary for users to take strict
+            turns when changing the file.  Without serialized access,
+            somebody ends up wasting time on changes that are ultimately
+            discarded.</para>
+    -->
+          <para>复制-修改-合并 模型要求文件是支持合并的&mdash;也就是说文件
+            是基于行的文本文件 (例如程序源代码文件), 但是对二进制文件 (例如
+            图片和音频文件) 来说, 合并有冲突的修改几乎是不可能完成的. 在这
+            种情况下, 串行地修改文件就显得非常有必要. 如果没有串行访问,
+            用户花费大量时间作出的修改很可能会被丢弃.</para>
+
+    <!--
+          <para>While Subversion is primarily a copy-modify-merge
+            system, it still recognizes the need to lock an occasional
+            file, and thus provides mechanisms for this.  We discuss
+            this feature in <xref linkend="svn.advanced.locking"/>.</para>
+    -->
+          <para>Subversion 以 复制-修改-合并 模型为主, 但是对某些类型的文件
+            仍然需要使用 加锁-修改-解锁 模型, 我们将在
+            <xref linkend="svn.advanced.locking"/> 介绍如何在 Subversion 
+            中使用 加锁-修改-解锁 模型.</para>
+
+        </sidebar>
+
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.basic.in-action">
+    <!--
+    <title>Version Control the Subversion Way</title>
+    -->
+    <title>Subversion 的版本控制方法</title>
+
+    <!--
+    <para>We've mentioned already that Subversion is a modern,
+      network-aware version control system.  As we described in
+      <xref linkend="svn.basic.version-control-basics"/> (our
+      high-level version control overview), a repository serves as the
+      core storage mechanism for Subversion's versioned data, and it's
+      via working copies that users and their software programs
+      interact with that data.  In this section, we'll begin to
+      introduce the specific ways in which Subversion implements
+      version control.</para>
+    -->
+    <para>我们已经提到 Subversion 是一个现代的, 支持网络的版本控制系统. 在
+      <xref linkend="svn.basic.version-control-basics"/> 说过 (从较高的层次
+      看待版本控制), 仓库是存放 Subversion 的版本控制数据的中央位置, 用户及
+      其软件通过工作副本与仓库交互. 本节介绍 Subversion 的版本控制实现方法.
+    </para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.svn-repositories">
+    <!--
+      <title>Subversion Repositories</title>
+    -->
+      <title>Subversion 的仓库</title>
+
+    <!--
+      <para>Subversion implements the concept of a version control
+        repository much as any other modern version control system
+        would.  Unlike a working copy, a Subversion repository is an
+        abstract entity, able to be operated upon almost exclusively
+        by Subversion's own libraries and tools.  As most of a user's
+        Subversion interactions involve the use of the Subversion
+        client and occur in the context of a working copy, we spend
+        the majority of this book discussing the Subversion working
+        copy and how to manipulate it.  For the finer details of the
+        repository, though, check out
+        <xref linkend="svn.reposadmin"/>.</para>
+    -->
+      <para>Subversion 实现仓库的方式与其他版本控制系统非常类似. 与工作副本
+        不同, 一个 Subversion 仓库是一个抽象的实体, 可以被 Subversion 的库
+        和工具进行独占性地操作. 因为大多数用户是在工作副本中通过客户端工具
+        与 Subversion 交互, 所以本书主要讨论工作副本以及如何操作它, 关于
+        仓库的细节请参考 <xref linkend="svn.reposadmin"/>.</para>
+
+      <warning id="svn.basic.svn-repositories.not-working-copy">
+    <!--
+        <para>In Subversion, the client-side object which every user
+          of the system has&mdash;the directory of versioned files,
+          along with metadata that enables the system to track them
+          and communicate with the server&mdash;is called
+          a <emphasis>working copy</emphasis>.  Although other version
+          control systems use the term <quote>repository</quote> for
+          the client-side object, it is both incorrect and a common
+          source of confusion to use the term in that way in the
+          context of Subversion.</para>
+    -->
+        <para>在 Subversion 中, 每一个版本控制系统用户都有的客户端对象
+          &mdash;一个目录, 目录中除了存放被版本控制的文件外, 还有用于跟踪
+          文件和与服务器通信的元数据&mdash;叫做 <emphasis>工作副本</emphasis>
+          (working copy). 虽然有些版本控制系统使用 <quote>仓库</quote> 表示
+          存放在客户端的对象, 但这种说法并不正确, 而且在 Subversion 中会让
+          用户感到困惑.</para>
+
+    <!--
+        <para>Working copies are described later, in
+          <xref linkend="svn.basic.in-action.wc"/>.</para>
+    -->
+        <para><xref linkend="svn.basic.in-action.wc"/> 介绍工作副本.</para>
+      </warning>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.in-action.revs">
+    <!--
+      <title>Revisions</title>
+    -->
+      <title>版本号</title>
+
+    <!--
+      <para>A Subversion client commits (that is, communicates the
+        changes made to) any number of files and directories as a
+        single atomic transaction.  By atomic transaction, we mean
+        simply this: either all of the changes are accepted into the
+        repository, or none of them is.  Subversion tries to retain
+        this atomicity in the face of program crashes, system crashes,
+        network problems, and other users' actions.</para>
+    -->
+      <para>Subversion 客户端将任意多的文件和目录的修改作为一个原子事务提交
+        给仓库. 原子事务的意思是要么所有的修改都被仓库接受, 要么一个也没有.
+        Subversion 尽量保证即使是在程序崩溃, 操作系统崩溃, 网络断开和有其他
+        用户干扰的情况下, 也能维持住原子性.</para>
+
+      <para>
+        <indexterm>
+          <primary>revisions</primary>
+        </indexterm>
+    <!--
+        Each time the repository accepts a commit, this
+        creates a new state of the filesystem tree, called a
+        <firstterm>revision</firstterm>.  Each revision is assigned a
+        unique natural number, one greater than the number assigned to
+        the previous revision.  The initial revision of a freshly
+        created repository is numbered 0 and consists of nothing but
+        an empty root directory.</para>
+    -->
+        仓库每接受一次提交都会为文件系统树创建一个新状态, 叫作一个
+        <firstterm>版本号</firstterm> (<firstterm>revision</firstterm>).
+        每一个版本号都与一个独一无二的自然数相关联, 后一个版本号都比前一个
+        大一. 新创建的仓库的初始版本号是 0, 除了一个空的根目录外, 什么也没
+        有.</para>
+
+    <!--
+      <para><xref linkend="svn.basic.in-action.revs.dia-1"/>
+        illustrates a nice way to visualize the repository.  Imagine
+        an array of revision numbers, starting at 0, stretching from
+        left to right.  Each revision number has a filesystem tree
+        hanging below it, and each tree is a <quote>snapshot</quote>
+        of the way the repository looked after a commit.</para>
+    -->
+      <para><xref linkend="svn.basic.in-action.revs.dia-1"/> 以可视化的方式
+        展示了仓库的版本号在时间上的变化. 想像有一个由版本号号码组成的队列,
+        从 0 开始, 从左向右伸展. 每一个版本号下面都挂着一个文件系统树, 每一
+        个文件系统树都是本次提交后仓库的 <quote>快照</quote> (snapshot).</para>
+
+      <figure id="svn.basic.in-action.revs.dia-1">
+    <!--
+        <title>Tree changes over time</title>
+    -->
+        <title>文件系统树在时间上的变化</title>
+        <graphic fileref="images/ch02dia7.png"/>
+      </figure>
+
+      <sidebar>
+    <!--
+        <title>Global Revision Numbers</title>
+    -->
+        <title>全局的版本号号码</title>
+
+        <para>
+          <indexterm>
+            <primary>revisions</primary>
+            <secondary>global</secondary>
+          </indexterm>
+    <!--
+          Unlike most version control systems,
+          Subversion's revision numbers apply to <emphasis>the entire
+          repository tree</emphasis>, not individual files.  Each
+          revision number selects an entire tree, a particular state
+          of the repository after some committed change.  Another way
+          to think about it is that revision N represents the state of
+          the repository filesystem after the Nth commit.  When
+          Subversion users talk about <quote>revision 5 of
+          <filename>foo.c</filename>,</quote> they really mean
+          <quote><filename>foo.c</filename> as it appears in revision
+          5.</quote> Notice that in general, revisions N and M of a
+          file do <emphasis>not</emphasis> necessarily differ!  Many
+          other version control systems use per-file revision numbers,
+          so this concept may seem unusual at first. (Former CVS users
+          might want to see <xref linkend="svn.forcvs"/> for more
+          details.)</para>
+    -->
+        不像其他大多数的版本控制系统, Subversion 的版本号被应用到
+          <emphasis>整个仓库</emphasis>, 而不是单个文件. 每一个版本号都对应
+          着仓库的一个提交后的状态, 例如版本号 N 表示仓库在第 N 次提交后的状
+          态. 如果有一个 Subversion 用户在讨论 <quote><filename>foo.c
+            </filename> 的版本号 5</quote>, 实际上他们说的是 <quote>在版本号
+            5 中的 <filename>foo.c</filename></quote>. 需要注意的是一个文件
+          在版本号 N 和 M 中可能是一样的! 很多版本控制系统使用的版本号是针
+          对每个文件的, 所以全局的版本号号码一开始可能会让用户觉得不太寻常
+          (以前的 CVS 用户可以从 <xref linkend="svn.forcvs"/> 得到更多的
+          细节).</para>
+      </sidebar>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.advanced.reposurls">
+    <!--
+      <title>Addressing the Repository</title>
+    -->
+      <title>仓库寻址</title>
+
+      <para>
+        <indexterm>
+          <primary>repository URL</primary>
+        </indexterm>
+    <!--
+        Subversion client programs use URLs to identify
+        versioned files and directories in Subversion repositories.
+        For the most part, these URLs use the standard syntax,
+        allowing for server names and port numbers to be specified as
+        part of the URL.</para>
+    -->
+      Subversion 客户端工具使用 URL 识别仓库中的文件与目录. 在大部分情况下,
+      这些 URL 使用标准的语法, 允许在 URL 中包含服务器的域名和端口号.</para>
+
+      <informalexample>
+        <itemizedlist spacing="compact">
+          <listitem>
+            <simpara>http://svn.example.com/svn/project</simpara>
+          </listitem>
+          <listitem>
+            <simpara>http://svn.example.com:9834/repos</simpara>
+          </listitem>
+        </itemizedlist>
+      </informalexample>
+
+    <!--
+      <para>Subversion repository URLs aren't limited to only
+        the <literal>http://</literal> variety.  Because Subversion
+        offers several different ways for its clients to communicate
+        with its servers, the URLs used to address the repository
+        differ subtly depending on which repository access mechanism
+        is employed.  <xref linkend="svn.basic.in-action.wc.tbl-1"/>
+        describes how different URL schemes map to the available
+        repository access methods.  For more details about
+        Subversion's server options, see
+        <xref linkend="svn.serverconfig"/>.</para>
+    -->
+      <para>Subversion 仓库的 URL 不仅限于 <literal>http://</literal>,
+        因为 Subversion 向客户端提供了几种不同的通信方式, 所以根据具体的仓库
+        访问方式, 用于寻址仓库的 URL 参数也会有微妙的差别.
+        <xref linkend="svn.basic.in-action.wc.tbl-1"/> 展示了不同的 URL 模式
+        如何映射到仓库的访问方式. 关于 Subversion 的服务器选项的更多内容,
+        见 <xref linkend="svn.serverconfig"/>.</para>
+
+      <table id="svn.basic.in-action.wc.tbl-1">
+    <!--
+        <title>Repository access URLs</title>
+    -->
+        <title>访问仓库的 URL 参数</title>
+        <tgroup cols="2">
+          <thead>
+            <row>
+    <!--
+              <entry>Schema</entry>
+              <entry>Access method</entry>
+    -->
+              <entry>模式</entry>
+              <entry>访问方式</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry><literal>file:///</literal></entry>
+    <!--
+              <entry>Direct repository access (on local disk)</entry>
+    -->
+              <entry>直接仓库访问 (仓库在本地磁盘上)</entry>
+            </row>
+            <row>
+              <entry><literal>http://</literal></entry>
+    <!--
+              <entry>Access via WebDAV protocol to Subversion-aware
+                Apache server</entry>
+    -->
+              <entry>通过 WebDAV 协议访问可识别 Subversion 的 Apache 服务器
+              </entry>
+            </row>
+            <row>
+              <entry><literal>https://</literal></entry>
+    <!--
+              <entry>Same as <literal>http://</literal>, but with
+                SSL encapsulation (encryption and authentication)</entry>
+    -->
+              <entry>和 <literal>http://</literal> 相同, 但是增加了
+                SSL 封装 (加密和授权)</entry>
+            </row>
+            <row>
+              <entry><literal>svn://</literal></entry>
+    <!--
+              <entry>Access via custom protocol to an
+                <literal>svnserve</literal> server</entry>
+    -->
+              <entry>通过传统的协议访问 <literal>svnserve</literal> 服务器
+              </entry>
+            </row>
+            <row>
+              <entry><literal>svn+ssh://</literal></entry>
+    <!--
+              <entry>Same as <literal>svn://</literal>, but through
+                an SSH tunnel</entry>
+    -->
+              <entry>和 <literal>svn://</literal> 相同, 但是增加了 SSH
+                隧道</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    <!--
+      <para>Subversion's handling of URLs has some noteworthy nuances.
+        For example, URLs containing the <literal>file://</literal>
+        access method (used for local repositories) must, in
+        accordance with convention, have either a server name
+        of <literal>localhost</literal> or no server name at
+        all:</para>
+    -->
+      <para>Subversion 处理 URL 的方式有一些细微的差别, 例如包含
+        <literal>file://</literal> 的 URL 要么以 <literal>localhost</literal>
+        作为服务器名, 要么不含有服务器名:</para>
+
+      <informalexample>
+        <itemizedlist spacing="compact">
+          <listitem>
+            <simpara>file:///var/svn/repos</simpara>
+          </listitem>
+          <listitem>
+            <simpara>file://localhost/var/svn/repos</simpara>
+          </listitem>
+        </itemizedlist>
+      </informalexample>
+
+      <!--
+      <para>Also, users of the <literal>file://</literal> scheme on
+        Windows platforms will need to use an unofficially
+        <quote>standard</quote> syntax for accessing repositories
+        that are on the same machine, but on a different drive than
+        the client's current working drive.  Either of the two
+        following URL path syntaxes will work, where
+        <literal>X</literal> is the drive on which the repository
+        resides:</para>
+      -->
+      <para>如果工作副本和仓库不在同一个驱动器上, 那么 Windows 用户在使用
+        <literal>file://</literal> 模式时需要用到一种非官方的
+        <quote>标准</quote> 语法. 下面是两个例子, 其中 <literal>X</literal>
+        表示仓库所在的驱动器盘符:</para>
+
+      <informalexample>
+        <itemizedlist spacing="compact">
+          <listitem>
+            <simpara>file:///X:/var/svn/repos</simpara>
+          </listitem>
+          <listitem>
+            <simpara>file:///X|/var/svn/repos</simpara>
+          </listitem>
+        </itemizedlist>
+      </informalexample>
+
+      <!--
+      <para>Note that a URL uses forward slashes even though the
+        native (non-URL) form of a path on Windows uses backslashes.
+        Also note that when using
+        the <literal>file:///<replaceable>X</replaceable>|/</literal>
+        form at the command line, you need to quote the URL (wrap it
+        in quotation marks) so that the vertical bar character is not
+        interpreted as a pipe.</para>
+      -->
+      <para>注意, 虽然 Windows 的路径使用反斜杠, 但是 URL 仍然需要使用
+        正斜杠. 另外还要注意的是在命令行上输入
+        <literal>file://<replaceable>X</replaceable>|/</literal>
+        形式的字符串时, 你需要用双引号把它包裹起来, 这样的话竖线符就不会
+        被翻译成管道.</para>
+
+      <note>
+      <!--
+        <para>You cannot use Subversion's <literal>file://</literal> URLs
+          in a regular web browser the way you can use typical
+          <literal>file://</literal> URLs.  When you attempt to view
+          a <literal>file://</literal> URL in a regular web browser, it
+          reads and displays the contents of the file at that location
+          by examining the filesystem directly.  However, Subversion's
+          resources exist in a virtual filesystem (see <xref
+          linkend="svn.developer.layerlib.repos" />), and your browser
+          will not understand how to interact with that
+          filesystem.</para>
+      -->
+        <para>你不能在网页浏览器上输入 Subversion 的 <literal>file://</literal>
+          形式的 URL 来访问仓库, 如果真这样做了, 网页浏览器会以访问普通文件系
+          统的方式显示目录中文件的内容. 然而, Subversion 的资源存放在一个虚拟
+          的文件系统中 (见 <xref linkend="svn.developer.layerlib.repos"/>),
+          而网页浏览器不知道如何与这种文件系统进行交互.</para>
+      </note>
+
+      <!--
+      <para>The Subversion client will automatically encode URLs as
+        necessary, just like a web browser does.  For example, the URL
+        <literal>http://host/path with space/project/españa</literal>
+        &mdash; which contains both spaces and upper-ASCII characters
+        &mdash; will be automatically interpreted by Subversion as if
+        you'd provided
+        <literal>http://host/path%20with%20space/project/espa%C3%B1a</literal>.
+        If the URL contains spaces, be sure to place it within
+        quotation marks at the command line so that your shell treats
+        the whole thing as a single argument to the program.</para>
+      -->
+      <para>Subversion 客户端会自动对 URL 进行编码, 就像网页浏览器那样. 例如,
+        URL <literal>http://host/path with space/project/españa</literal>
+        &mdash;其中包含了空格和非 ASCII 字符&mdash;被 Subversion 自动解释成
+        <literal>http://host/path%20with%20space/project/espa%C3%B1a</literal>.
+        如果 URL 包含空格, 就要用双引号把它包裹起来, 这样的话 Shell 就不会
+        错误地把它切分成多个参数.</para>
+
+      <!--
+      <para>There is one notable exception to Subversion's handling of
+        URLs which also applies to its handling of local paths in many
+        contexts, too.  If the final path component of your URL or
+        local path contains an at sign (<literal>@</literal>), you need
+        to use a special syntax&mdash;described in
+        <xref linkend="svn.advanced.pegrevs" />&mdash;in order to make
+        Subversion properly address that resource.</para>
+      -->
+      <para>Subversion 在处理 URL 参数 (包括本地路径) 时, 有一个例外情况需
+        要特别注意. 如果 URL 或本地路径的最后一个分量含有符号
+        <literal>@</literal>, 为了让 Subversion 能够正确地对资源进行寻址,
+        你需要使用一种特殊的语法&mdash;具体内容将在
+        <xref linkend="svn.advanced.pegrevs"/> 介绍.</para>
+
+      <para>
+        <indexterm>
+          <primary>repository-relative URL</primary>
+        </indexterm>
+        <indexterm>
+          <primary>caret syntax</primary>
+        </indexterm>
+        <indexterm>
+          <primary>^</primary>
+          <see>caret syntax</see>
+        </indexterm>
+    <!--
+        In Subversion 1.6, a new caret (<literal>^</literal>)
+        notation was introduced as a shorthand for <quote>the URL of
+        the repository's root directory</quote>.  For example, you can
+        use the <literal>^/tags/bigsandwich/</literal> to refer to the
+        URL of the <filename>/tags/bigsandwich</filename> directory in
+        the root of the repository.  Such a URL is called a
+        <firstterm>repository-relative URL</firstterm>.  Note
+        that this URL syntax works only when your current working
+        directory is a working copy&mdash;the command-line client
+        knows the repository's root URL by looking at the working
+        copy's metadata.  Also note that when you wish to refer
+        precisely to the root directory of the repository, you must do
+        so using <literal>^/</literal> (with the trailing slash
+        character), not merely
+        <literal>^</literal>.  Windows users should not forget that
+        a caret is an escape character on their platform.  Therefore,
+        use a double caret <literal>^^</literal> if you run the
+        Subversion client on a Windows machine.
+    -->
+        Subversion 1.6 引入了一个新记号&mdash;脱字符 (<literal>^</literal>)
+        &mdash;用来表示仓库根目录的 URL. 比如说用户可以用
+        <literal>^/tags/bigsandwich/</literal> 表示项目根目录中的
+        <filename>/tags/bigsandwich</filename> 的 URL, 这种 URL 称为
+        <firstterm>仓库的相对 URL</firstterm>
+        (<firstterm>repository-relative URL</firstterm>). 这种语法只能在
+        工作副本中使用&mdash;客户端需要从工作副本的元数据中获取仓库根目录的
+        URL. 另外, 使用仓库的相对 URL 访问仓库的根目录时需要写成
+        <literal>^/</literal> (末尾要有一个斜杠), 而不是 <literal>^</literal>.
+        Windows 用户不要忘了在他们的操作系统中, 脱字符是一个转义字符,
+        因此为了表示一个脱字符, 需要写成 <literal>^^</literal>.
+      </para>
+
+        
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.basic.in-action.wc">
+    <!--
+      <title>Subversion Working Copies</title>
+    -->
+      <title>Subversion 的工作副本</title>
+
+      <para>
+        <indexterm>
+          <primary>working copies</primary>
+        </indexterm>
+    <!--
+        A Subversion working copy is an ordinary directory
+        tree on your local system, containing a collection of files.
+        You can edit these files however you wish, and if they're
+        source code files, you can compile your program from them in
+        the usual way.  Your working copy is your own private work
+        area: Subversion will never incorporate other people's
+        changes, nor make your own changes available to others, until
+        you explicitly tell it to do so.  You can even have multiple
+        working copies of the same project.</para>
+    -->
+      一个 Subversion 工作副本是用户本地系统中的一个普通目录, 用户可以按照
+      自己的要求对存放在目录中的文件进行编辑, 如果是源代码文件, 用户也可以
+      按照通常的方式对它们进行编译. 工作副本是用户的私有工作空间: 除非用户
+      明确地要求 Subversion, 否则它不会让工作副本合并其他人的修改, 也不会把
+      用户的修改暴露给其他人. 用户可以为同一个项目创建多个工作副本.</para>
+
+    <!--
+      <para>After you've made some changes to the files in your
+        working copy and verified that they work properly, Subversion
+        provides you with commands to <quote>publish</quote> your
+        changes (by writing to the repository), thereby making them
+        available to the other people working with you on your
+        project.  If other people publish their own changes,
+        Subversion provides you with commands to merge those changes
+        into your own working copy (by reading from the repository).
+        Notice that the central repository is the broker for
+        everybody's changes in Subversion&mdash;changes aren't passed
+        directly from working copy to working copy in the typical
+        workflow.</para>
+    -->
+      <para>如果用户修改了工作副本中的文件, 并且确认了修改是正确的, 此时
+        可以使用 Subversion 提供的命令来 <quote>发布</quote> 修改 (通过
+        把修改保存到仓库中), 于是项目中的其他人就可以看到你的修改.
+        如果其他人也发布了他们的修改, Subversion 也提供了命令把他们的修改
+        合并到你的工作副本中 (通过读取仓库). 可以看到, 仓库是每个用户发布的
+        修改的中间人&mdash;修改并非从一个工作副本直接传递到另一个工作副本.
+      </para>
+
+      <para>
+        <indexterm>
+          <primary>administrative directory</primary>
+        </indexterm>
+        <indexterm>
+          <primary>.svn</primary>
+          <see>administrative directory</see>
+        </indexterm>
+    <!--
+        A working copy also contains some extra files,
+        created and maintained by Subversion, to help it carry out
+        these commands.  In particular, each working copy contains a
+        subdirectory named <filename>.svn</filename>, also known as
+        the working copy's <firstterm>administrative
+        directory</firstterm>.  The files in the administrative
+        directory help Subversion recognize which of your versioned
+        files contain unpublished changes, and which files are out of
+        date with respect to others' work.</para>
+    -->
+      工作副本还会包含一些额外的文件, 这些文件由 Subversion 创建并维护,
+      用于命令的正常运行. 每一个工作副本中都有一个名为
+      <filename>.svn</filename> 的子目录, 它是工作副本的
+      <firstterm>管理目录</firstterm> (<firstterm>administrative directory
+      </firstterm>). 管理目录中的文件可以帮助 Subversion 识别哪些文件含有
+      未发布的修改, 哪些文件是过时的.</para>
+
+      <note>
+    <!--
+        <para>Prior to version 1.7, Subversion
+          maintained <filename>.svn</filename> administrative
+          subdirectories in <emphasis>every</emphasis> versioned
+          directory of your working copy.  Subversion 1.7 offers a
+          completely new approach to how working copy metadata is
+          stored and maintained, and chief among the visible changes
+          to this approach is that each working copy now has only
+          one <filename>.svn</filename> subdirectory which is an
+          immediate child of the root of that working copy.</para>
+    -->
+        <para>在 1.7 版以前, Subversion 在工作副本的每一个子目录内都维护了
+          一个 <filename>.svn</filename> 目录. Subversion 1.7 在存放和
+          维护工作副本元数据上提出了一种全新的方法, 从外面看最显著的变化
+          是每个工作副本只创建了一个 <filename>.svn</filename> 目录, 存
+          放在工作副本的根目录下.</para>
+      </note>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.in-action.track-repos">
+      <!--
+        <title>How the working copy works</title>
+      -->
+        <title>工作副本的工作原理</title>
+
+      <!--
+        <para>For each file in a working directory, Subversion records
+          (among other things) two essential pieces of information:</para>
+      -->
+        <para>Subversion 为工作副本中的每一个文件记录两项信息:</para>
+
+        <itemizedlist>
+          <indexterm>
+            <primary>revisions</primary>
+            <secondary>working</secondary>
+          </indexterm>
+
+          <listitem>
+      <!--
+            <para>What revision your working file is based on (this is
+              called the file's <firstterm>working
+              revision</firstterm>)</para>
+      -->
+          <para>文件的版本号 (这被称为文件的 <firstterm>工作版本号</firstterm>
+            (<firstterm>working revision</firstterm>))</para>
+          </listitem>
+          <listitem>
+      <!--
+            <para>A timestamp recording when the local copy was last
+              updated by the repository</para>
+      -->
+            <para>一个时间戳, 记录了本地文件最近一次被仓库更新是在什么时候
+            </para>
+          </listitem>
+        </itemizedlist>
+
+      <!--
+        <para>Given this information, by talking to the repository,
+          Subversion can tell which of the following four states a
+          working file is in:</para>
+      -->
+        <para>有了这些信息后, 通过与仓库通信, Subversion 就可以判断出
+          每一个工作文件处于以下 4 种状态中的哪一种:</para>
+
+        <variablelist>
+          <varlistentry>
+      <!--
+            <term>Unchanged, and current</term>
+      -->
+            <term>当前未修改的</term>
+            <listitem>
+      <!--
+              <para>The file is unchanged in the working directory, and
+                no changes to that file have been committed to the
+                repository since its working revision.  An <command>svn
+                commit</command> of the file will do nothing, and an
+                <command>svn update</command> of the file will do
+                nothing.</para>
+      -->
+              <para>文件在工作副本中未被修改, 并且在工作版本号之后还没有
+                人提交过该文件的修改. 对文件执行 <command>svn commit</command>
+                和 <command>svn update</command> 都不会产生任何效果.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+      <!--
+            <term>Locally changed, and current</term>
+      -->
+            <term>当前已修改的</term>
+            <listitem>
+      <!--
+              <para>The file has been changed in the working directory,
+                and no changes to that file have been committed to the
+                repository since you last updated.  There are local
+                changes that have not been committed to the repository;
+                thus an <command>svn commit</command> of the file will
+                succeed in publishing your changes, and an <command>svn
+                update</command> of the file will do nothing.</para>
+      -->
+            <para>文件在工作副本中已被修改, 并且在一次更新以来还没有人
+              向仓库提交过该文件的修改. 本地有未提交的修改, 于是执行
+              <command>svn commit</command> 将会成功地把修改提交到仓库中,
+              而 <command>svn update</command> 不会产生任何效果.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+      <!--
+            <term>Unchanged, and out of date</term>
+      -->
+            <term>过时未修改的</term>
+            <listitem>
+      <!--
+              <para>The file has not been changed in the working
+                directory, but it has been changed in the repository.
+                The file should eventually be updated in order to make
+                it current with the latest public revision.
+                An <command>svn commit</command> of the file will do
+                nothing, and an
+                <command>svn update</command> of the file will fold the
+                latest changes into your working copy.</para>
+      -->
+              <para>文件在工作副本中未被修改, 但是在上一次更新之后有人往
+                仓库提交了该文件的修改. 为了让文件和最新版本保持同步, 应
+                该执行更新操作. 对文件执行 <command>svn commit</command>
+                不会产生任何效果, 执行 <command>svn update</command> 将
+                把仓库中的最新修改合并到文件中.</para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
+      <!--
+            <term>Locally changed, and out of date</term>
+      -->
+            <term>过时且已修改的</term>
+            <listitem>
+      <!--
+              <para>The file has been changed both in the working
+                directory and in the repository.  An <command>svn
+                commit</command> of the file will fail with an
+                <quote>out-of-date</quote> error.  The file should be
+                updated first; an <command>svn update</command> command
+                will attempt to merge the public changes with the local
+                changes.  If Subversion can't complete the merge in a
+                plausible way automatically, it leaves it to the user to
+                resolve the conflict.</para>
+      -->
+              <para>文件在本地工作副本和仓库都被修改了. 对文件执行
+                <command>svn commit</command> 会由于文件已过时而失败.
+                首先应该更新文件, 命令 <command>svn update</command> 尝试
+                把仓库的修改合并到本地. 如果 Subversion 不能自动地以一种
+                合理的方式完成合并, 就会把冲突交由用户来解决.</para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.in-action.wc-funcdamentals">
+      <!--
+        <title>Fundamental working copy interactions</title>
+      -->
+        <title>工作副本的基本操作</title>
+
+      <!--
+        <para>A typical Subversion repository often holds the files (or
+          source code) for several projects; usually, each project is a
+          subdirectory in the repository's filesystem tree.  In this
+          arrangement, a user's working copy will usually correspond to
+          a particular subtree of the repository.</para>
+      -->
+        <para>一个典型的 Subversion 仓库经常存放着若干个项目的文件,
+          一般来说, 每一个项目都是仓库文件系统树的一个子目录. 在这种目录
+          布局下, 用户的一个工作副本就对应着仓库中的一个特定子目录.</para>
+
+      <!--
+        <para>For example, suppose you have a repository that contains
+          two software projects, <literal>paint</literal> and
+          <literal>calc</literal>.  Each project lives in its own
+          top-level subdirectory, as shown in <xref
+          linkend="svn.basic.in-action.wc.dia-1"/>.</para>
+      -->
+      <para>举例来说, 假设你有一个包含了两个软件项目的仓库, 这两个项目是
+        <literal>paint</literal> 和 <literal>calc</literal>, 每一个项目
+        都有一个属于自己的目录, 如
+        <xref linkend="svn.basic.in-action.wc.dia-1"/> 所示.</para>
+
+        <figure id="svn.basic.in-action.wc.dia-1">
+      <!--
+          <title>The repository's filesystem</title>
+      -->
+          <title>仓库的文件系统</title>
+          <graphic fileref="images/ch02dia6.png"/>
+        </figure>
+
+        <para>
+          <indexterm>
+            <primary>svn</primary>
+            <secondary>subcommands</secondary>
+            <tertiary>checkout</tertiary>
+          </indexterm>
+          <indexterm>
+            <primary>checking out</primary>
+          </indexterm>
+          <indexterm>
+            <primary>working copies</primary>
+            <secondary>creating</secondary>
+            <see>checking out</see>
+            </indexterm>
+    <!--
+            To get a working copy, you must <firstterm>check
+          out</firstterm> some subtree of the repository.  (The term
+          <emphasis>check out</emphasis> may sound like it has something to do
+          with locking or reserving resources, but it doesn't; it simply
+          creates a working copy of the project for you.)  For example,
+          if you check out <filename>/calc</filename>, you will get a
+          working copy like this:</para>
+    -->
+        为了得到一个工作副本, 你必须 <firstterm>检出</firstterm>
+        (<firstterm>checkout</firstterm>) 仓库的某些子树 (术语
+        <emphasis>检出</emphasis> 听起来好像会涉及到加锁和资源的预留, 但实际
+        上并没有, 它仅仅是为用户创建一份仓库的工作副本). 举例来说, 如果检出
+        <filename>/calc</filename>, 用户将会得到这样一份工作副本:</para>
+
+        <informalexample>
+          <screen>
+$ svn checkout http://svn.example.com/repos/calc
+A    calc/Makefile
+A    calc/integer.c
+A    calc/button.c
+Checked out revision 56.
+$ ls -A calc
+Makefile  button.c integer.c .svn/
+$
+</screen>
+        </informalexample>
+
+    <!--
+        <para>The list of letter <literal>A</literal>s in the left
+          margin indicates that Subversion is adding a number of items
+          to your working copy.  You now have a personal copy of the
+          repository's <filename>/calc</filename> directory, with one
+          additional entry&mdash;<filename>.svn</filename>&mdash;which
+          holds the extra information needed by Subversion, as mentioned
+          earlier.</para>
+    -->
+        <para>靠近左边界的几个字母 <literal>A</literal> 指出 Subversion 正
+          在往工作副本中添加项目 (item). 现在你就有了仓库
+          <literal>/calc</literal> 的一份私有副本, 外加一项额外的目录&mdash;
+          <filename>.svn</filename>&mdash;目录里存放了 Subversion 需要的
+          额外信息, 我们在前面已经介绍过了.</para>
+
+        <para>
+          <indexterm>
+            <primary>committing</primary>
+          </indexterm>
+          <indexterm>
+            <primary>checking in</primary>
+            <see>committing</see>
+          </indexterm>
+      <!--
+          Suppose you make changes
+          to <filename>button.c</filename>.  Since
+          the <filename>.svn</filename> directory remembers the file's
+          original modification date and contents, Subversion can tell
+          that you've changed the file.  However, Subversion does not
+          make your changes public until you explicitly tell it to.
+          The act of publishing your changes is more commonly known as
+          <firstterm>committing</firstterm> (or <firstterm>checking
+          in</firstterm>) changes to the repository.</para>
+      -->
+          假设用户修改了文件 <filename>button.c</filename>, 因为
+          <filename>.svn</filename> 记录了文件原来的修改日期和内容, 所以
+          Subversion 可以检测到用户修改了文件, 但是 Subversion 不会自动地
+          发布修改, 除非用户显式地告诉它要这么做. <quote>发布修改</quote>
+          这个操作更常见的说法是向仓库 <firstterm>提交</firstterm>
+          (<firstterm>committing</firstterm>) 或 <firstterm>检入</firstterm>
+          (<firstterm>checking in</firstterm>) 修改.</para>
+
+        <para>
+          <indexterm>
+            <primary>svn</primary>
+            <secondary>subcommands</secondary>
+            <tertiary>commit</tertiary>
+          </indexterm>
+          <indexterm>
+            <primary>committing</primary>
+          </indexterm>
+      <!--
+          To publish your changes, you can use
+          Subversion's <command>svn commit</command> command:</para>
+      -->
+        用户为了发布修改, 需要使用 Subversion 的命令
+        <command>svn commit</command>:</para>
+
+        <informalexample>
+          <screen>
+$ svn commit button.c -m "Fixed a typo in button.c."
+Sending        button.c
+Transmitting file data .
+Committed revision 57.
+$
+</screen>
+        </informalexample>
+
+      <!--
+        <para>Now your changes to <filename>button.c</filename> have
+          been committed to the repository, with a note describing your
+          change (namely, that you fixed a typo).  If another user
+          checks out a working copy of <filename>/calc</filename>, she
+          will see your changes in the latest version of the
+          file.</para>
+      -->
+        <para>用户对文件 <filename>button.c</filename> 的修改现在就已经正式
+          提交到了仓库中, 提交日志还附带了一条描述修改的注解 (在上面的例子中是
+          修改了一个拼写错误). 如果有另一个用户检出了
+          <filename>/calc</filename> 的工作副本, 他就会在最新版本
+          <filename>button.c</filename> 中看到用户新提交的修改.</para>
+
+      <!--
+        <para>Suppose you have a collaborator, Sally, who checked out a
+          working copy of <filename>/calc</filename> at the same time
+          you did.  When you commit your change to
+          <filename>button.c</filename>, Sally's working copy is left
+          unchanged; Subversion modifies working copies only at the
+          user's request.</para>
+      -->
+        <para>假设你有一个同事 Sally, 在你修改 <filename>button.c</filename>
+          的同时, 他也检出了一个 <filename>/calc</filename> 的工作副本. 当
+          你把 <filename>button.c</filename> 的修改提交到仓库后, Sally 的
+          工作副本并不会自动地把修改同步到本地&mdash;只有在用户的显式要求下,
+          Subversion 才会更新工作副本.</para>
+
+        <para>
+          <indexterm>
+            <primary>svn</primary>
+            <secondary>subcommands</secondary>
+            <tertiary>update</tertiary>
+          </indexterm>
+          <indexterm>
+            <primary>updating</primary>
+          </indexterm>
+          <indexterm>
+            <primary>working copies</primary>
+            <secondary>updating</secondary>
+            <see>updating</see>
+          </indexterm>
+      <!--
+          To bring her project up to date, Sally can ask
+          Subversion to <firstterm>update</firstterm> her working
+          copy, by using the <command>svn update</command> command.
+          This will incorporate your changes into her working copy, as
+          well as any others that have been committed since she
+          checked it out.</para>
+      -->
+        为了把工作副本更新到最新的状态, Sally 可以要求 Subversion
+        <firstterm>更新</firstterm> (<firstterm>update</firstterm>) 他的工作
+        副本, 用到的命令是 <command>svn update</command>. 如果在 Sally 检
+        出工作副本之后, 有人向仓库提交了修改, 命令就会把这些修改都合并到他
+        的工作副本中.</para>
+
+        <informalexample>
+          <screen>
+$ pwd
+/home/sally/calc
+$ ls -A
+Makefile button.c integer.c .svn/
+$ svn update
+Updating '.':
+U    button.c
+Updated to revision 57.
+$
+</screen>
+        </informalexample>
+
+      <!--
+        <para>The output from the <command>svn update</command> command
+          indicates that Subversion updated the contents of
+          <filename>button.c</filename>.  Note that Sally didn't need to
+          specify which files to update; Subversion uses the information
+          in the <filename>.svn</filename> directory as well as further
+          information in the repository, to decide which files need to
+          be brought up to date.</para>
+      -->
+        <para>上面 <command>svn update</command> 的输出指出了 Subversion
+          更新了 <filename>button.c</filename> 的内容. 注意, Sally 不需要
+          指定应该更新哪些文件, 根据 <filename>.svn</filename> 和仓库中的
+          信息, Subversion 可以自动判断出哪些文件需要更新.</para>
+
+      </sect3>
+
+      <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+      <sect3 id="svn.basic.in-action.mixedrevs">
+      <!--
+        <title>Mixed-revision working copies</title>
+      -->
+        <title>版本号混合的工作副本</title>
+
+        <para>
+          <indexterm>
+            <primary>working copies</primary>
+            <secondary>mixed-revision</secondary>
+          </indexterm>
+      <!--
+          As a general principle, Subversion tries to be
+          as flexible as possible.  One special kind of flexibility is
+          the ability to have a working copy containing files and
+          directories with a mix of different working revision
+          numbers.  Subversion working copies do not always correspond
+          to any single revision in the repository; they may contain
+          files from several different revisions.  For example,
+          suppose you check out a working copy from a repository whose
+          most recent revision is 4:</para>
+      -->
+        尽量保持灵活性是 Subversion 的总体原则, 其中一项灵活性是 Subversion
+        支持同一个工作副本中的文件和目录可以拥有不同的工作版本号. Subversion
+        的工作副本不必总是对应仓库中的一个单一的版本号, 其中的文件可以来自
+        不同的版本号. 例如, 假设用户从仓库检出了一个工作副本, 而该仓库最新
+        的版本号是 4:</para>
+
+        <informalexample>
+          <literallayout>
+calc/
+   Makefile:4
+   integer.c:4
+   button.c:4
+</literallayout>
+        </informalexample>
+
+      <!--
+        <para>At the moment, this working directory corresponds exactly
+          to revision 4 in the repository.  However, suppose you make a
+          change to <filename>button.c</filename>, and commit that
+          change.  Assuming no other commits have taken place, your
+          commit will create revision 5 of the repository, and your
+          working copy will now look like this:</para>
+      -->
+        <para>此时的工作副本对应仓库的版本号 4. 如果用户修改了文件
+          <filename>button.c</filename>, 并提交了修改, 假设在此之前没有其他
+          用户向提交提交过修改, 那么刚才的提交将会为仓库创建版本号 5,
+          工作副本变成了:</para>
+
+        <informalexample>
+          <literallayout>
+calc/
+   Makefile:4
+   integer.c:4
+   button.c:5
+</literallayout>
+        </informalexample>
+
+      <!--
+        <para>Suppose that, at this point, Sally commits a change to
+          <filename>integer.c</filename>, creating revision 6.  If you
+          use <command>svn update</command> to bring your working copy
+          up to date, it will look like this:</para>
+      -->
+        <para>假设这时候 Sally 提交了 <filename>integer.c</filename> 的
+          修改, 创建了版本号 6. 如果你执行了命令 <command>svn update</command>,
+          Subversion 就会把工作副本更新到最新版, 变成:</para>
+
+        <informalexample>
+          <literallayout>
+calc/
+   Makefile:6
+   integer.c:6
+   button.c:6
+</literallayout>
+        </informalexample>
+
+      <!--
+        <para>Sally's change to <filename>integer.c</filename> will
+          appear in your working copy, and your change will still be
+          present in <filename>button.c</filename>.  In this example,
+          the text of <filename>Makefile</filename> is identical in
+          revisions 4, 5, and 6, but Subversion will mark your working
+          copy of <filename>Makefile</filename> with revision 6 to
+          indicate that it is still current.  So, after you do a clean
+          update at the top of your working copy, it will generally
+          correspond to exactly one revision in the repository.</para>
+      -->
+        <para>Sally 对 <filename>integer.c</filename> 的修改出现在了你的工作
+          副本中, 你的修改依然保留在 <filename>button.c</filename> 中. 在这
+          个例子里, <filename>Makefile</filename> 在版本号 4, 5 和 6 中都
+          保持不变. 于是, 在工作副本的根目录执行了
+          <command>svn update</command> 后, 工作副本才精确地对应到了仓库的
+          同一个版本号.</para>
+  
+        <sect4 id="svn.basic.in-action.mixedrevs.update-commit">
+      <!--
+          <title>Updates and commits are separate</title>
+      -->
+          <title>更新和提交是分开的</title>
+
+      <!--
+          <para>One of the fundamental rules of Subversion is that
+            a <quote>push</quote> action does not cause
+            a <quote>pull</quote> nor vice versa.  Just
+            because you're ready to submit new changes to the repository
+            doesn't mean you're ready to receive changes that others
+            have checked in.  And if you have new changes still in progress,
+            <command>svn update</command> should gracefully merge
+            repository changes into your own, rather than forcing you to
+            publish them.</para>
+      -->
+          <para>Subversion 的一条基本规则是一次 <quote>推送</quote> (push)
+            操作不会产生一次 <quote>抓取</quote> (pull) 操作, 反之依然成立.
+            理由是用户准备好向仓库提交修改并不表示他已经准备好接收其他人提交
+            的修改, 另外, 如果用户的修改还未完全完成, 命令
+            <command>svn update</command> 应该把仓库的修改合并到本地, 但不
+            应该强迫用户提交本地未完成的修改.</para>
+
+      <!--
+          <para>The main side effect of this rule is that it means a
+            working copy has to do extra bookkeeping to track mixed
+            revisions as well as be tolerant of the mixture.  It's made
+            more complicated by the fact that directories themselves are
+            versioned.</para>
+      -->
+          <para>这条规则主要的副作用是工作副本必须记录额外的信息来跟踪混合
+            的版本号, 同时还要能够处理版本号混合的情况. 目录也是版本库的一部
+            分, 这使得情况变得更加复杂.</para>
+
+      <!--
+          <para>For example, suppose you have a working copy entirely
+            at revision 10, while others have been committing their
+            changes so that the youngest revision in the repository is
+            now revision 14.  You edit the file
+            <filename>foo.html</filename> and then perform
+            an <command>svn commit</command>, which creates revision
+            15 in the repository.  After the commit succeeds, many new
+            users would expect the working copy to be entirely at
+            revision 15, but that's not the case!  Any number of
+            changes might have happened in the repository between
+            revisions 10 and 15.  The client knows nothing of those
+            changes in the repository, since you haven't yet
+            run <command>svn update</command>, and <command>svn
+            commit</command> doesn't pull down new changes.  If, on
+            the other hand, <command>svn commit</command> were to
+            automatically download the newest changes, it would be
+            possible to set the entire working copy to revision
+            15&mdash;but then we'd be breaking the fundamental rule
+            of <quote>push</quote> and <quote>pull</quote> remaining
+            separate actions.  Therefore, the only safe thing the
+            Subversion client can do is mark the one
+            file&mdash;<filename>foo.html</filename>&mdash;as being at
+            revision 15.  The rest of the working copy remains at
+            revision 10.  Only by running <command>svn
+            update</command> can the latest changes be downloaded and
+            the whole working copy be marked as revision 15.</para>
+      -->
+          <para>举例来说, 假设你有一个版本号是 10 的工作副本, 检出后有人往
+            仓库提交了修改, 仓库最新的版本号是 14. 你修改了文件
+            <filename>foo.html</filename>, 然后向仓库提交了修改, 创建了新版本
+            号 15, 提交完成后, 许多 Subversion 新手可能会认为工作副本的版本号
+            会自动更新到 16, 但事实并非如此. 在版本号 10 和 15 之间, 仓库可
+            能发生了任意次数的修改, 但是客户端对此一无所知, 因为你并没有执行
+            <command>svn update</command>, 而 <command>svn commit</command>
+            并不会自动从仓库抓取更新. 如果让 <command>svn commit</command>
+            自动下载更新, 它就会把工作副本整体的版本号更新到 15&mdash;但是这
+            样做就违背了基本规则 <quote>推送和抓取是分开</quote>. 于是, 客户
+            端唯一能做的安全操作是只把文件 <filename>foo.html</filename> 的
+            版本号更新到 15, 工作副本中的其他文件与目录的版本号依然停留在 10.
+            只有在执行 <command>svn update</command> 后, 仓库的最新修改才会
+            被下载到本地, 并把工作副本的版本号更新到 15.</para>
+
+        </sect4>
+
+        <sect4 id="svn.basic.in-action.mixedrevs.normal">
+      <!--
+          <title>Mixed revisions are normal</title>
+      -->
+          <title>版本号混合是正常情况</title>
+
+      <!--
+          <para>The fact is, <emphasis>every time</emphasis> you run
+            <command>svn commit</command> your working copy ends up
+            with some mixture of revisions.  The things you just
+            committed are marked as having larger working revisions than
+            everything else.  After several commits (with no updates
+            in between), your working copy will contain a whole mixture
+            of revisions.  Even if you're the only person using the
+            repository, you will still see this phenomenon.  To examine
+            your mixture of working revisions, use the <command>svn
+            status</command> command with the <option>- -verbose</option>
+            (<option>-v</option>) option (see
+            <xref linkend="svn.tour.cycle.examine.status"/> for more
+            information).</para>
+      -->
+          <para>事实上, <emphasis>每次</emphasis> 执行
+            <command>svn commit</command> 都会产生新的版本号混合的情况, 刚被
+            提交的文件或目录的版本号是工作副本中的最大值. 再经历过几次提交
+            后 (提交之间没有执行更新操作), 工作副本的版本号就已经处于一种非常
+            混乱的情况, 即使在此期间只有一个人在往仓库提交修改, 这种情况也会
+            发生. 为了查看版本号的混乱情况, 带上选项
+            <option>--verbose</option> (<option>-v</option>) 执行
+            <command>svn status</command> (参考
+            <xref linkend="svn.tour.cycle.examine.status"/>).</para>
+
+      <!--
+          <para>Often, new users are completely unaware that their
+            working copy contains mixed revisions.  This can be
+            confusing, because many client commands are sensitive to the
+            working revision of the item they're examining.  For
+            example, the <command>svn log</command> command is used to
+            display the history of changes to a file or directory (see
+            <xref linkend="svn.tour.history.log"/>).  When the user
+            invokes this command on a working copy object, he expects
+            to see the entire history of the object.  But if the
+            object's working revision is quite old (often because
+            <command>svn update</command> hasn't been run in a long
+            time), the history of the <emphasis>older</emphasis>
+            version of the object is shown.</para>
+      -->
+          <para>新用户常常没有意识到他们的工作副本包含了混合的版本号, 有时候
+            可能会让他们感到很困惑, 因为很多客户端命令对文件或目录的版本号
+            很敏感. 例如, 命令 <command>svn log</command> 会列出文件或目录
+            的修改历史 (见 <xref linkend="svn.tour.history.log"/>), 当用户对
+            某个文件执行 <command>svn log</command> 时, 他很可能想看到文件的
+            全部修改历史, 但是如果文件在工作副本中的版本号太老了 (常常是因
+            为太久没有执行过 <command>svn update</command>), 那么较新的修改
+            历史就不会显示出来.</para>
+
+        </sect4>
+
+        <sect4 id="svn.basic.in-action.mixedrevs.useful">
+      <!--
+          <title>Mixed revisions are useful</title>
+      -->
+          <title>版本号混合是有益的</title>
+
+          <para>
+            <indexterm>
+              <primary>backdating</primary>
+            </indexterm>
+      <!--
+            If your project is sufficiently complex, you'll
+            discover that it's sometimes nice to
+            forcibly <firstterm>backdate</firstterm> (or update to a
+            revision older than the one you already have) portions of
+            your working copy to an earlier revision; you'll learn how
+            to do that in <xref linkend="svn.tour"/>.  Perhaps you'd
+            like to test an earlier version of a submodule contained
+            in a subdirectory, or perhaps you'd like to figure out
+            when a bug first came into existence in a specific file.
+            This is the <quote>time machine</quote> aspect of a
+            version control system&mdash;the feature that allows you
+            to move any portion of your working copy forward and
+            backward in history.</para>
+      -->
+          如果项目足够复杂, 你就会发现只把工作副本的某一部分
+          <firstterm>回退</firstterm> (<firstterm>backdate</firstterm>)
+          到一个较旧的版本会很方便&mdash;我们将会在 <xref linkend="svn.tour"/>
+          介绍如何完成这种操作. 也许是你想要测试存放在某个子目录中的子模块
+          早期版本, 又或许是你想要查出某个文件的问题是在什么时候第一次出现.
+          这是版本控制系统 <quote>时间机器</quote> 特性, 该特性允许用户把
+          工作副本的任意一部分在时间上向前或向后移动.</para>
+
+        </sect4>
+
+        <sect4 id="svn.basic.in-action.mixedrevs.limits">
+      <!--
+          <title>Mixed revisions have limitations</title>
+      -->
+          <title>版本号混合的限制</title>
+
+      <!--
+          <para>However you make use of mixed revisions in your working
+            copy, there are limitations to this flexibility.</para>
+      -->
+          <para>不过, 在使用工作副本的版本号混合特性时会有一些限制条件.</para>
+
+      <!--
+          <para>First, you cannot commit the deletion of a file or
+            directory that isn't fully up to date.  If a newer version
+            of the item exists in the repository, your attempt to delete
+            will be rejected to prevent you from accidentally
+            destroying changes you've not yet seen.</para>
+      -->
+          <para>首先, 如果你删除了过时的文件或目录, 则不能提交删除. 因为如果
+            仓库中有更新的版本, 该限制就可以避免用户在没有看到新版本的情况下
+            做出错误的决定.</para>
+
+      <!--
+          <para>Second, you cannot commit a metadata change to a
+            directory unless it's fully up to date.  You'll learn about
+            attaching <quote>properties</quote> to items in <xref
+            linkend="svn.advanced"/>.  A directory's working revision
+            defines a specific set of entries and properties, and thus
+            committing a property change to an out-of-date directory may
+            destroy properties you've not yet seen.</para>
+      -->
+          <para>然后, 除非目录是最新的, 否则不能提交该目录的元数据修改 (我们
+            将在 <xref linkend="svn.advanced"/> 介绍如何为项目 (item) 添加
+            属性). 目录的工作版本号定义了一个条目和属性的特定集合, 提交过时
+            的目录的属性修改可能会销毁用户还没有看到的属性.</para>
+
+      <!--
+          <para>Finally, beginning in Subversion 1.7, you cannot by
+            default use a mixed-revision working copy as the target of
+            a merge operation.  (This new requirement was introduced
+            to prevent common problems which stem from doing so.)</para>
+      -->
+          <para>最后, 从 Subversion 1.7 开始, 含有版本号混合情况的工作副本
+            不能作为合并操作的目标 (引入这个限制的原因和前面两条类似).</para>
+
+        </sect4>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.basic.summary">
+      <!--
+    <title>Summary</title>
+      -->
+    <title>小结</title>
+    
+      <!--
+    <para>We covered a number of fundamental Subversion concepts in
+      this chapter:</para>
+      -->
+    <para>本章介绍了 Subversion 的很多基本概念:</para>
+
+    <itemizedlist>
+      <listitem>
+      <!--
+        <para>We introduced the notions of the central repository,
+          the client working copy, and the array of repository
+          revision trees.</para>
+      -->
+        <para>介绍了中央版本库, 客户端工作副本, 以及仓库版本号树组成的队列.
+        </para>
+      </listitem>
+
+      <listitem>
+      <!--
+        <para>We saw some simple examples of how two collaborators
+          can use Subversion to publish and receive changes from one
+          another, using the <quote>copy-modify-merge</quote>
+          model.</para>
+      -->
+        <para>通过几个简单的例子, 介绍了如何利用 <quote>复制-修改-合并</quote>
+          模型, 和同事协作使用 Subversion 发布和接收修改.</para>
+      </listitem>
+
+      <listitem>
+      <!--
+        <para>We talked a bit about the way Subversion tracks and
+          manages information in a working copy.</para>
+      -->
+        <para>关于 Subversion 如何跟踪和管理工作副本的信息, 本章也进行了一
+          些介绍.</para>
+      </listitem>
+
+    </itemizedlist>
+
+      <!--
+    <para>At this point, you should have a good idea of how Subversion
+      works in the most general sense.  Armed with this knowledge, you
+      should now be ready to move into the next chapter, which is a
+      detailed tour of Subversion's commands and features.</para>
+      -->
+    <para>到这里为止, 对于 Subversion 的工作方式读者应该有了一个很直观的感受,
+      有了本章的基础知识作为后盾, 读者可以接着阅读下一章, 下一章会更加详细地
+      介绍 Subversion 的命令和特性.</para>
+
+  </sect1>
+
+</chapter>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "chapter")
+end:
+-->

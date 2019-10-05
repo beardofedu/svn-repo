@@ -1,0 +1,1437 @@
+<!-- -*- sgml -*- -->
+
+<preface id="svn.preface">
+<!--   <title>Preface</title> -->
+  <title>Lời Nói Đầu</title>
+
+<!-- 
+  <blockquote>
+    <attribution>Greg Hudson, Subversion developer</attribution>
+    <para><quote>It is important not to let the perfect become the
+      enemy of the good, even when you can agree on what perfect is.
+      Doubly so when you can't.  As unpleasant as it is to be trapped by
+      past mistakes, you can't make any progress by being afraid of your
+      own shadow during design.</quote></para>
+  </blockquote>
+ -->
+
+  <blockquote>
+    <attribution>Greg Hudson, nhà phát triển Subversion</attribution>
+    <para><quote>Điều quan trọng là không để cho sự hoàn hảo ảnh hưởng đến việc tạo ra một sản phẩm tốt, ngay cả khi bạn có thể đồng ý như thế nào là hoàn hảo. Gấp bội nếu bạn không thể. Sẽ rất khó chịu khi bị mắc kẹt bởi những sai lầm trong quá khứ, bạn không thể thực hiện bất kỳ sự tiến bộ nào nếu sợ cái bóng của chính mình trong quá trình thiết kế.</quote></para>
+  </blockquote>
+
+<!-- 
+  <para>
+    <indexterm>
+      <primary>Concurrent Versions System</primary>
+    </indexterm>
+    <indexterm>
+      <primary>CVS</primary>
+      <see>Concurrent Versions System</see>
+    </indexterm>In the world of open source software, the Concurrent
+    Versions System (CVS) was the tool of choice for version control
+    for many years.  And rightly so.  CVS was open source software
+    itself, and its nonrestrictive modus operandi and support for
+    networked operation allowed dozens of geographically dispersed
+    programmers to share their work.  It fit the collaborative nature
+    of the open source world very well.  CVS and its semi-chaotic
+    development model have since become cornerstones of open source
+    culture.</para>
+ -->
+
+  <para>
+    <indexterm>
+      <primary>Concurrent Versions System</primary>
+    </indexterm>
+    <indexterm>
+      <primary>CVS</primary>
+      <see>Concurrent Versions System</see>
+    </indexterm>Trong thế giới của phần mềm mã nguồn mở, Concurrent Versions System (CVS) đã là công cụ được chọn để kiểm soát phiên bản trong rất nhiều năm. Và đúng như vậy. CVS bản thân nó cũng là phần mềm mã nguồn mở, cách làm việc không bị giới hạn của nó và hỗ trợ làm việc qua mạng cho phép hàng chục lập trình viên ở những vị trí địa lý phân tán có thể chia sẽ công việc của họ. Nó ăn khớp rất tốt tính năng cộng tác của thế giới mã nguồn mở. CVS và mô hình phát triển hơi hỗn loạn của nó đã trở thành nền tảng của văn hoá mã nguồn mở.</para>
+
+<!-- 
+  <para>But CVS was not without its flaws, and simply fixing those
+    flaws promised to be an enormous effort.  Enter Subversion.
+    Subversion was designed to be a successor to CVS, and its
+    originators set out to win the hearts of CVS users in two
+    ways&mdash;by creating an open source system with a design
+    (and <quote>look and feel</quote>) similar to CVS, and by
+    attempting to avoid most of CVS's noticeable flaws.  While the
+    result wasn't&mdash;and isn't&mdash;the next great evolution in
+    version control design, Subversion <emphasis>is</emphasis> very
+    powerful, very usable, and very flexible.</para>
+ -->
+
+  <para>Nhưng CVS không phải là không có những khiếm khuyết, và để khắc phục những lỗ hổng này sẽ cần một nỗ lực rất lớn. Chuyển sang Subversion. Subversion được thiết kế để kế nhiệm CVS, và khởi đầu của nó được đặt ra là để chiếm được trái tim của những người dùng CVS theo hai điểm&mdash;tạo ra một hệ thống mã nguồn mở với thiết kế(và <quote>cảm nhận</quote>) tương tự như CVS, và cố gắng tránh những lỗ hổng thấy rõ của CVS. Mặc dù kết quả đã không&mdash;và chưa&mdash;phải là sự tiến hóa lớn tiếp theo trong thiết kế kiểm soát phiên bản, Subversion <emphasis>vẫn</emphasis> rất mạnh mẽ, tiện dụng và rất linh hoạt.</para>
+
+<!-- 
+  <para>This book is written to document the 1.8 series of the
+    Apache&trade; Subversion&reg;<footnote><para>We'll refer to it
+    simply as <quote>Subversion</quote> throughout this book.  You'll
+    thank us when you realize just how much space that
+    saves!</para></footnote> version control system.  We have made
+    every attempt to be thorough in our coverage.  However, Subversion
+    has a thriving and energetic development community, so already a
+    number of features and improvements are planned for future
+    versions that may change some of the commands and specific notes
+    in this book.</para>
+ -->
+
+  <para>Cuốn sách này được viết cho phiên bản 1.8 của hệ thống kiểm soát phiên bản Apache&trade; Subversion&reg;<footnote><para>Chúng ta sẽ đề cập tới nó chỉ đơn giản là <quote>Subversion</quote> xuyên suốt cuốn sách này. Rồi bạn sẽ thấy nó rút gọn được rất nhiều không gian!</para></footnote>. Chúng tôi đã nổ lực hết sức trong phạm vi khả năng của chúng tôi. Tuy nhiên, Subversions có một cộng đồng phát triển rộng lớn và nhiệt huyết, vì vậy một số tính năng và cải thiện đã được lên kế hoạch cho những phiên bản tương lai mà có thể thay đổi một vài câu lệnh và một vài ghi chú cụ thể trong cuốn sách này.</para>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.intro.whatis">
+<!--     <title>What Is Subversion?</title> -->
+    <title>Subversion Là Gì?</title>
+
+<!-- 
+    <para>
+      <indexterm>
+        <primary>Subversion</primary>
+      </indexterm>
+      <indexterm>
+        <primary>version control systems</primary>
+      </indexterm>
+      <indexterm>
+        <primary>VCS</primary>
+        <see>version control systems</see>
+      </indexterm>Subversion is a free/open source <firstterm>version
+      control system</firstterm> (VCS).  That is, Subversion manages
+      files and directories, and the changes made to them, over time.
+      This allows you to recover older versions of your data or
+      examine the history of how your data changed.  In this regard,
+      many people think of a version control system as a sort
+      of <quote>time machine.</quote></para>
+ -->
+
+    <para>
+      <indexterm>
+        <primary>Subversion</primary>
+      </indexterm>
+      <indexterm>
+        <primary>hệ thống kiểm soát phiên bản</primary>
+      </indexterm>
+      <indexterm>
+        <primary>VCS</primary>
+        <see>hệ thống kiểm soát phiên bản</see>
+      </indexterm>Subversion là một <firstterm>hệ thống kiểm soát phiên bản</firstterm> (VCS - version control systems) mã nguồn mở. Subversion quản lý xuyên suốt tập tin, thư mục và những thay đổi trên những tập tin và thư mục này. Nó cho phép bạn phục hồi lại những phiên bản dữ liệu cũ của bạn hoặc xem xét lịch sử của việc dữ liệu của bạn được thay đổi như thế nào. Về khía cạnh này, nhiều người nghĩ hệ thống kiểm soát phiên bản như một dạng của <quote>cỗ máy thời gian.</quote></para>
+    
+<!-- 
+    <para>Subversion can operate across networks, which allows it to
+      be used by people on different computers.  At some level, the
+      ability for various people to modify and manage the same set of
+      data from their respective locations fosters collaboration.
+      Progress can occur more quickly without a single conduit through
+      which all modifications must occur.  And because the work is
+      versioned, you need not fear that quality is the trade-off for
+      losing that conduit&mdash;if some incorrect change is made to
+      the data, just undo that change.</para>
+ -->
+
+    <para>Subversion có thể hoạt động xuyên suốt các hệ thống mạng và vì vậy nó được sử dụng bởi người dùng ở những máy tính khác nhau. Ở một vài cấp độ, việc cho phép nhiều người cùng chỉnh sửa và quản trị cùng một tập hợp dữ liệu từ những vị trí tương ứng của họ thúc đẩy việc hợp tác. Quá trình có thể xảy ra nhanh hơn mà không cần một dạng đường đi đơn lẽ thông qua đó tất cả thay đổi phải xảy ra. Và bởi vì công việc đã được đánh dấu phiên bản, bạn không cần phải lo lắng rằng chất lượng là cái giá cho việc không dùng đường đi đơn lẽ đó&mdash;nếu một vài thay đổi được thực hiện không đúng trên dữ liệu, chỉ việc hoàn tác thay đổi đó.</para>
+
+<!-- 
+    <para>
+      <indexterm>
+        <primary>software configuration management</primary>
+      </indexterm>
+      <indexterm>
+        <primary>SCM</primary>
+        <see>software configuration management</see>
+      </indexterm>Some version control systems are
+      also <firstterm>software configuration management</firstterm>
+      (SCM) systems.  These systems are specifically tailored to
+      manage trees of source code and have many features that are
+      specific to software development&mdash;such as natively
+      understanding programming languages, or supplying tools for
+      building software.  Subversion, however, is not one of these
+      systems.  It is a general system that can be used to manage
+      <emphasis>any</emphasis> collection of files.  For you, those
+      files might be source code&mdash;for others, anything from
+      grocery shopping lists to digital video mixdowns and
+      beyond.</para>
+ -->
+
+    <para>
+      <indexterm>
+        <primary>quản lý cấu hình phần mềm</primary>
+      </indexterm>
+      <indexterm>
+        <primary>SCM</primary>
+        <see>quản lý cấu hình phần mềm</see>
+      </indexterm>Một vài hệ thống kiểm soát phiên bản cũng là hệ thống <firstterm>quản lý cấu hình phần mềm</firstterm> (SCM - software configuration management). Các hệ thống này đặc biệt phù hợp với việc quản lý cây mã nguồn và có nhiều tính năng cụ thể dành cho việc phát triển phần mềm&mdash;như là hiểu ngôn ngữ lập trình, hoặc cung cấp công cụ để xây dựng phần mềm. Tuy nhiên, Subversion không phải là một hệ thống như vậy. Nó là một hệ thống mà có thể dùng để quản lý tập hợp các tập tin <emphasis>bất kỳ</emphasis>. Với bạn, những tập tin này có thể là mã nguồn&mdash;với những người khác, có thể là bất loại gì từ danh sách mua tạp hoá tới hoà trộn video kỹ thuật số và nhiều hơn nữa.</para>
+
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.righttool">
+<!--       <title>Is Subversion the Right Tool?</title> -->
+      <title>Subversion có phải là công cụ phù hợp?</title>
+  
+<!-- 
+      <para>If you're a user or system administrator pondering the use
+        of Subversion, the first question you should ask yourself is:
+        "Is this the right tool for the job?"  Subversion is a
+        fantastic hammer, but be careful not to view every problem as
+        a nail.</para>
+ -->
+
+      <para>Nếu bạn là người sử dụng hoặc quản trị hệ thống mà đang cân nhắc sử dụng Subversion, câu hỏi đầu tiên mà bạn nên tự hỏi mình là: "Đây có phải là công cụ phù hợp cho công việc hay không?" Subversion là một cái búa tuyệt vời, nhưng hãy cẩn thận đừng xem tất cả các vấn đề như một móng tay.</para>
+
+<!-- 
+      <para>As a first step, you need to decide if version control in
+        general is required for your purposes.  If you need to archive
+        old versions of files and directories, possibly resurrect
+        them, and examine logs of how they've changed over time, then
+        version control tools can do that.  If you need to collaborate
+        with people on documents (usually over a network) and keep
+        track of who made which changes, a version control tool can do
+        that, too.  In fact, this is why version control tools such as
+        Subversion are so often used in software development
+        environments&mdash;working on a development team is an
+        inherently social activity where changes to source code files
+        are constantly being discussed, made, evaluated, and even
+        sometimes unmade.  Version control tools facilitate that sort
+        of collaboration.</para>
+ -->
+
+      <para>Như bước khởi đầu, bạn cần quyết định nếu kiểm soát phiên bản nói chung là cần thiết cho các mục đích của bạn. Nếu bạn cần lưu trữ những phiên bản cũ của tập tin và thư mục, có nhu cầu phục hồi chúng, và kiểm tra các bản ghi nhật ký để xem chúng được thay đổi như thế nào xuyên suốt thời gian thì kiểm soát phiên bản có thể làm được. Nếu bạn cần hợp tác với nhiều người trên những tài liệu (thông thường là trên hệ thống mạng) và theo dõi việc ai thay đổi những gì, kiểm soát phiên bản cũng có thể làm được. Trên thực tế, đó là lý do vì sao những công cụ kiểm soát phiên bản như là Subversion thường được sử dụng trong môi trường phát triển phần mềm&mdash;làm việc trong một nhóm phát triển vốn là một hoạt động xã hội nơi mà việc thay đổi trên tập tin mã nguồn liên tục được thảo luận, thực hiện, đánh giá, và kể cả đôi khi phá bỏ. Những công cụ kiểm soát phiên bản tạo điều kiện cho loại hợp tác này.</para>
+
+<!-- 
+      <para>There is cost associated with using version control, too.
+        Unless you can outsource the administration of your version
+        control system to a third-party, you'll have the obvious costs
+        of performing that administration yourself.  When working with
+        the data on a daily basis, you won't be able to copy, move,
+        rename, or delete files the way you usually do.  Instead,
+        you'll have to do all of those things through the version
+        control system.</para>
+ -->
+
+      <para>Việc sử dụng kiểm soát phiên bản tất nhiên cũng có một số hạn chế. Trừ khi bạn có thể thuê ngoài việc quản trị hệ thống kiểm soát phiên bản của bạn cho bên-thứ-ba, việc tự bạn quản lý hệ thống vẫn có một số mặt hạn chế. Khi làm việc với dữ liệu trên cơ sở hàng ngày, bạn không thể sao chép, di chuyển, đổi tên hoặc xoá tập tin theo cách mà bạn thường làm. Thay vào đó, bạn sẽ phải thực hiện tất cả những việc đó thông qua hệ thống kiểm soát phiên bản.</para>
+
+<!-- 
+      <para>Even assuming that you are okay with the cost/benefit
+        tradeoff afforded by a version control system, you shouldn't
+        choose to use one merely because it <emphasis>can</emphasis>
+        do what you want.  Consider whether your needs are better
+        addressed by other tools.  For example, because Subversion
+        replicates data to all the collaborators involved, a common
+        misuse is to treat it as a generic distribution system.
+        People will sometimes use Subversion to distribute huge
+        collections of photos, digital music, or software packages.
+        The problem is that this sort of data usually isn't changing
+        at all.  The collection itself grows over time, but the
+        individual files within the collection aren't being changed.
+        In this case, using Subversion is
+        <quote>overkill.</quote><footnote><para>Or as a friend puts
+        it, <quote>swatting a fly with a
+        Buick.</quote></para></footnote> There are simpler tools that
+        efficiently replicate data <emphasis>without</emphasis> the
+        overhead of tracking changes, such as <command>rsync</command>
+        or <command>unison</command>.</para>
+ -->
+
+      <para>Ngay cả giả sử rằng bạn hài lòng với sự cân bằng về mặt hạn-chế/lợi-ích mà hệ thống kiểm soát phiên bản mang lại, bạn cũng không nên chọn sử dụng chỉ đơn thuần bởi vì nó <emphasis>có thể</emphasis> làm được những gì bạn muốn. Nên cân nhắc nhu cầu của bạn có thể được giải quyết bằng các công cụ khác. Ví dụ, bởi vì Subversion sao chép dữ liệu đến tất cả các cộng tác viên liên quan, một sự lạm dụng phổ biến đó là xem nó như một hệ thống phân phối. Đôi khi người ta sử dụng Subversion để phân phối những bộ sưu tập lớn hình ảnh, âm nhạc kỹ thuật số, hoặc những gói phần mềm. Vấn đề là tất cả những loại dữ liệu này thường không thay đổi. Bản thân bộ sưu phồng lên theo thời gian, nhưng những tập tin riêng lẽ trong bộ sưu tập thì không thay đổi. Trong trường hợp này, việc sử dụng Subversion là <quote>quá mức cần thiết</quote>.<footnote><para>Hoặc như một người bạn ví  von, <quote>chém ruồi bằng dao phay.</quote></para></footnote> Có nhiều công cụ đơn giản hơn để sao chép dữ liệu một cách hiệu quả <emphasis>mà không</emphasis> tốn thêm chi phí với phần theo dõi những thay đổi, ví dụ như <command>rsync</command> hoặc <command>unison</command>.</para>
+
+<!-- 
+      <para>
+        <indexterm>
+          <primary>version control systems</primary>
+          <secondary>centralized</secondary>
+        </indexterm>Once you've decided that you need a version
+        control solution, you'll find no shortage of available
+        options.  When Subversion was first designed and released, the
+        predominant methodology of version control
+        was <firstterm>centralized version control</firstterm>&mdash;a
+        single remote master storehouse of versioned data with
+        individual users operating locally against shallow copies of
+        that data's version history.  Subversion quickly emerged after
+        its initial introduction as the clear leader in this field of
+        version control, earning widespread adoption and supplanting
+        installations of many older version control systems.  It
+        continues to hold that prominent position today.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>hệ thống kiểm soát phiên bản</primary>
+          <secondary>tập trung hoá</secondary>
+        </indexterm>Một khi bạn đã quyết định rằng bạn cần một giải pháp kiểm soát phiên bản, bạn sẽ tìm thấy không thiếu những lựa chọn có sẵn. Ở thời điểm khi Subversion lần đầu được thiết kế và phân phối, phương pháp thống trị của kiểm soát phiên bản là <firstterm>kiểm soát phiên bản tập trung hoá</firstterm>&mdash;một tổng kho đơn từ xa chứa dữ liệu phiên bản với người dùng cá nhân làm việc cục bộ trên bản sao cạn (shallow copy) lịch sử phiên bản của dữ liệu. Subversion nhanh chóng nổi lên sau lần giới thiệu ban đầu như là một tiên phong trong lĩnh vực kiểm soát phiên bản, được tiếp nhận một cách rộng rãi và là giải pháp thay thế cho nhiều hệ thống kiểm soát phiên bản cũ hơn. Ngày nay nó tiếp tục nắm giữ vị trí nổi bật.</para>
+
+<!-- 
+      <para>
+        <indexterm>
+          <primary>version control systems</primary>
+          <secondary>distributed</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>DVCS</primary>
+          <see>version control systems, distributed</see>
+        </indexterm>Much has changed since that time, though.  In the
+        years since the Subversion project began its life, a newer
+        methodology of version control called <firstterm>distributed
+        version control</firstterm> has likewise garnered widespread
+        attention and adoption.  Tools such as Git
+        (<ulink url="http://git-scm.com/" />) and Mercurial
+        (<ulink url="http://mercurial.selenic.com/" />) have risen
+        to the tops of the distributed version control system (DVCS)
+        ranks.  Distributed version control harnesses the growing
+        ubiquity of high-speed network connections and low storage
+        costs to offer an approach which differs from the centralized
+        model in key ways.  First and most obvious is the fact that
+        there is no remote, central storehouse of versioned data.
+        Rather, each user keeps and operates against very
+        deep&mdash;complete, in a sense&mdash;local version history
+        data stores.  Collaboration still occurs, but is accomplished
+        by trading collections of changes made to versioned items
+        directly between users' local data stores, not via a
+        centralized master data store.  In fact, any semblance of a
+        canonical <quote>master</quote> source of a project's
+        versioned data is by convention only, a status imputed by
+        the various collaborators on that project.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>hệ thống kiểm soát phiên bản</primary>
+          <secondary>phân tán</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>DVCS</primary>
+          <see>hệ thống kiểm soát phiên bản, phân tán</see>
+        </indexterm>Tuy nhiên, đã có nhiều thay đổi kể từ đó. Trong những năm kể từ thời điểm dự án Subversion bắt đầu vòng đời của nó, một phương pháp kiểm soát phiên bản mới được gọi là <firstterm>kiểm soát phiên bản phân tán</firstterm> đã tương tự như vậy thu hút được sự chú ý và chấp nhận rộng rãi. Những công cụ như là Git (<ulink url="http://git-scm.com/" />) và Mercurial (<ulink url="http://mercurial.selenic.com/" />) đã nổi lên trên đỉnh xếp hạng của hệ thống kiểm soát phiên bản phân tán (DVCS). Hệ thống kiểm soát phiên bản phân tán khai thác sự phát triển phổ biến của kết nối mạng tốc độ cao và chi phí lưu trữ thấp để cung cấp một cách tiếp cận khác với mô hình tập trung ở những điểm chính. Trước tiên và rõ ràng nhất đó là thực tế không có tổng kho trung tâm của dữ liệu được đánh dấu phiên bản. Thay vào đó, mỗi người dùng lưu giữ và vận hành một phiên bản cục bộ đầy đủ&mdash;đầy đủ, theo một nghĩa nào đó&mdash;về lịch sử lưu trữ dữ liệu. Việc hợp tác vẫn xảy ra, nhưng được thực hiện thông qua việc trao đổi tập của những thay đổi được tạo trực tiếp giữa những bản dữ liệu lưu trữ cục bộ của người dùng, không phải thông qua lưu trữ dữ liệu tổng thể tập trung. Trên thực tế, bất kỳ hình thái nào của dữ liệu phiên bản của bộ dữ liệu của dự án chỉ là theo quy ước, một trạng thái được quy gán bởi các cộng tác viên khác nhau trong dự án đó.</para>
+
+<!-- 
+      <para>There are pros and cons to each version control approach.
+        Perhaps the two biggest benefits delivered by the DVCS tools
+        are incredible performance for day-to-day operations (because
+        the primary data store is locally held) and vastly better
+        support for merging between branches (because merge algorithms
+        serve as the very core of how DVCSes work at all).  The
+        downside is that distributed version control is an inherently
+        more complicated model, which can present a non-negligible
+        challenge to comfortable collaboration.  Also, DVCS tools do
+        what they do well in part because of a certain degree of
+        control withheld from the user which centalized systems freely
+        offer&mdash;the ability to implement path-based access
+        control, the flexibility to update or backdate individual
+        versioned data items, etc.  Fortunately, many wise
+        organizations have discovered that this needn't be a religious
+        debate, and that Subversion and a DVCS tool such as Git can be
+        used together harmoniously within the organization, each
+        serving the purposes best suited to the tool.</para>
+ -->
+      <para>Với mỗi hướng tiếp cập của kiểm soát phiên bản tồn tại những ưu và khuyết điểm. Có lẽ hai lợi ích lớn nhất được cung cấp bởi các công cụ DVCS là hiệu suất đáng kinh ngạc cho hoạt động hàng ngày (bởi vì dữ liệu chính được lưu trữ cục bộ) và hỗ trợ tốt hơn một cách rộng rãi cho việc hợp nhất giữa các nhánh (vì thuật toán hợp nhất đóng vai trò cốt lõi trong cách DVCS làm việc). Nhược điểm là kiểm soát phiên bản phân tán vốn là một mô hình phức tạp hơn, mà có thể hiện hữu một thách thức đáng kể ảnh hưởng tới tính tiện lợi của việc cộng tác. Ngoài ra, công cụ DVCS làm rất tốt cũng một phần vì một mức độ nhất định của kiểm soát nằm ở phía người dùng mà về cơ bản hệ thống tập trung cung cấp&mdash;khả năng thực hiện việc kiểm soát truy cập dựa trên đường dẫn, tính linh hoạt để có thể cập nhật hoặc huỷ cập nhật những mục dữ liệu phiên bản riêng lẻ, vv. May mắn thay, nhiều tổ chức sáng suốt đã phát hiện ra rằng điều này không cần phải là một cuộc tranh luận tôn giáo, công cụ Subversion và DVCS như là Git có thể sử dụng chung với nhau một cách hài hoà trong tổ chức, mỗi công cụ phục vụ cho một mục đích riêng phù hợp với nó.</para>
+
+<!-- 
+      <para>Alas, this book is about Subversion, so we'll not attempt
+        a full comparison of Subversion and other tools.  Readers
+        empowered to choose their version control system are
+        encouraged to research the available options and make the
+        determination that works best for themselves and their fellow
+        collaborators.  And if, after doing so, Subversion is the
+        chosen tool, there's <emphasis>plenty</emphasis> of detailed
+        information about how to use it successfully in the chapters
+        that follow!</para>
+ -->
+      <para>Cuốn sách này là về Subversion, vì vậy chúng tôi sẽ không cố gắng làm một so sánh đầy đủ của Subversion và các công cụ khác. Độc giả được trao quyền để lựa chọn hệ thống kiểm soát phiên bản của họ và được khuyến khích nghiên cứu các tùy chọn có sẵn để có lựa chọn phù hợp nhất cho bản thân và cộng tác viên của họ. Và nếu sau khi ra quyết định, Subversion được chọn, có <emphasis>nhiều</emphasis> thông tin chi tiết về cách làm thế nào để sử dụng nó một cách thành công trong các chương tiếp theo! </para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.history">
+  
+<!--       <title>Subversion's History</title> -->
+      <title>Lịch sử Subversion</title>
+  
+<!-- 
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>history of</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>CollabNet</primary>
+        </indexterm>In early 2000, CollabNet,
+        Inc. (<ulink url="http://www.collab.net"/>) began seeking
+        developers to write a replacement for CVS.  CollabNet
+        offered<footnote><para>CollabNet Enterprise Edition has since
+        been replaced by a new product line called CollabNet
+        TeamForge.</para></footnote> a collaboration software suite
+        called CollabNet Enterprise Edition (CEE), of which one
+        component was version control.  Although CEE used CVS as its
+        initial version control system, CVS's limitations were obvious
+        from the beginning, and CollabNet knew it would eventually
+        have to find something better.  Unfortunately, CVS had become
+        the de facto standard in the open source world largely because
+        there <emphasis>wasn't</emphasis> anything better, at least
+        not under a free license.  So CollabNet determined to write a
+        new version control system from scratch, retaining the basic
+        ideas of CVS, but without the bugs and misfeatures.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>lịch sử</secondary>
+        </indexterm>
+        <indexterm>
+          <primary>CollabNet</primary>
+        </indexterm>Trong những năm đầu 2000, CollabNet, Inc. (<ulink url="http://www.collab.net"/>) bắt đầu chiêu mộ nhiều lập trình viên để xây dựng một bản thay thế cho CVS. CollabNet cung cấp<footnote><para>CollabNet Enterprise Edition sau đó được thay thế bởi một dòng sản phẩm mới gọi là CollabNet TeamForge.</para></footnote> một bộ phần mềm cộng tác gọi là CollabNet Enterprise Edition (CEE), trong đó có một thành phần là kiểm soát phiên bản. Mặc dù ban đầu CEE dùng CVS làm hệ thống kiểm soát văn bản, những giới hạn của CVS là rõ ràng ngay từ ban đầu, và CollabNet biết là họ cuối cùng cần phải tìm một cái gì đó tốt hơn. Không may là CVS trên thực tế đã trở thành tiêu chuẩn trong phần lớn thế giới mã nguồn mở bởi vì <emphasis>không</emphasis> có cái nào tốt hơn, ít nhất là theo một giấy phép miễn phí. Vì vậy CollabNet đã quyết định xây dựng một hệ thống kiểm soát phiên bản mới hoàn toàn, giữ lại những ý tưởng cơ bản của CVS nhưng không có lỗi và bổ sung những tính năng còn thiếu.</para>
+        
+<!-- 
+      <para>In February 2000, they contacted Karl Fogel, the author of
+        <citetitle>Open Source Development with CVS</citetitle>
+        (Coriolis, 1999), and asked if he'd like to work on this new
+        project.  Coincidentally, at the time Karl was already
+        discussing a design for a new version control system with his
+        friend Jim Blandy.  In 1995, the two had started Cyclic
+        Software, a company providing CVS support contracts, and
+        although they later sold the business, they still used CVS
+        every day at their jobs.  Their frustration with CVS had led
+        Jim to think carefully about better ways to manage versioned
+        data, and he'd already come up with not only the Subversion
+        name, but also the basic design of the Subversion data store.
+        When CollabNet called, Karl immediately agreed to work on the
+        project, and Jim got his employer, Red Hat Software, to
+        essentially donate him to the project for an indefinite period
+        of time.  CollabNet hired Karl and Ben Collins-Sussman, and
+        detailed design work began in May 2000.  With the help of some
+        well-placed prods from Brian Behlendorf and Jason Robbins of
+        CollabNet, and from Greg Stein (at the time an independent
+        developer active in the WebDAV/DeltaV specification process),
+        Subversion quickly attracted a community of active developers.
+        It turned out that many people had encountered the same
+        frustrating experiences with CVS and welcomed the chance to
+        finally do something about it.</para>
+ -->
+      <para>Vào tháng 2 năm 2000, họ liên lạc với Karl Fogel là tác giả của <citetitle>Phát Triển Mã Nguồn Mở với CVS</citetitle> (Coriolis, 1999) và đề nghị ông tham gia vào dự án. Thật trùng hợp, lúc đó Karl đang thảo luận với bạn của mình Jim Blandy về việc thiết kế một hệ thống kiểm soát phiên bản mới. Trong năm 1995, cả hai đã mở công ty Cyclic Software là công ty chuyên cung cấp hợp đồng hỗ trợ CVS, và mặc dù sau đó đã bán công ty nhưng họ vẫn sử dụng CVS để làm việc hàng ngày. Sự thất vọng của họ với CVS đã khiến Jim phải suy nghĩ cẩn thận về những cách tốt hơn để kiểm soát dữ liệu phiên bản và ông đã không chỉ nghĩ ra cái tên Subversion mà còn xây dựng được những thiết kế cơ bản của dữ liệu lưu trữ Subversion. Khi CollabNet liên hệ, Karl ngay lập tức đồng ý tham gia vào dự án, và Jim có được chủ nhân của mình, Công ty Phần mềm Red Hat, để về cơ bản cống hiến cho dự án vô thời hạn. CollabNet thuê Karl và Ben Collins-Susman và việc thiết kế chi tiết đã bắt đầu vào tháng Ba năm 2000. Với sự giúp đỡ từ Brian Behlendorf và Jason Robbins của CollabNet, và từ Greg Stein (lúc đó là một nhà phát triển tự do chuyên về quy trình đặc điểm kỹ thuật WebDAV/DeltaV), Subversion nhanh chóng thu hút được một cộng đồng những nhà phát triển tích cực. Hoá ra có rất nhiều người có trải nghiệm thất vọng với CVS và họ hoan nghênh cơ hội để cuối cùng làm gì đó để giải quyết việc này.</para>
+  
+<!-- 
+      <para>The original design team settled on some simple goals.  They
+        didn't want to break new ground in version control methodology,
+        they just wanted to fix CVS.  They decided that Subversion would
+        match CVS's features and preserve the same development model,
+        but not duplicate CVS's most obvious flaws.  And although it did
+        not need to be a drop-in replacement for CVS, it should be
+        similar enough that any CVS user could make the switch with
+        little effort.</para>
+ -->
+      <para>Nhóm thiết kế ban đầu thiết lập một số mục tiêu. Họ không muốn thiết lập một tiêu chuẩn mới trong phương pháp kiểm soát phiên bản, họ chỉ muốn sửa CVS. Họ quyết định rằng Subversion sẽ đồng nhất với CVS về mặt tính năng và bảo tồn y nguyên mô hình phát triển, nhưng không lặp lại những lỗi quá rõ ràng của CVS. Và mặc dù nó không cần phải là một sự thay thế cho CVS, nó nên giống vừa đủ để bất kỳ người dùng nào cũng có thể thực hiện chuyển đổi với rất ít nỗ lực.</para>
+  
+<!-- 
+      <para>After 14 months of coding, Subversion became
+        <quote>self-hosting</quote> on August 31, 2001.  That is,
+        Subversion developers stopped using CVS to manage Subversion's
+        own source code and started using Subversion instead.</para>
+ -->
+      <para>Sau 14 tháng lập trình, Subversion bắt đầu <quote>tự-lưu-trữ</quote> vào ngày 31 tháng 8 năm 2001. Đó là, các nhà phát triển Subversion ngừng sử dụng CVS để quản lý mã nguồn riêng của Subversion và bắt đầu sử dụng Subversion để thay thế.</para>
+
+<!-- 
+      <para>
+        <indexterm>
+          <primary>Apache Subversion</primary>
+          <seealso>Subversion</seealso>
+        </indexterm>While CollabNet started the project, and still
+        funds a large chunk of the work (it pays the salaries of a few
+        full-time Subversion developers), Subversion is run like most
+        open source projects, governed by a loose, transparent set of
+        rules that encourage meritocracy.  In 2009, CollabNet worked
+        with the Subversion developers towards the goal of integrating
+        the Subversion project into the Apache Software Foundation
+        (ASF), one of the most well-known collectives of open source
+        projects in the world.  Subversion's technical roots,
+        community priorities, and development practices were a perfect
+        fit for the ASF, many of whose members were already active
+        Subversion contributors.  In early 2010, Subversion was fully
+        adopted into the ASF's family of top-level projects, moved its
+        project web presence to
+        <ulink url="http://subversion.apache.org"/>, and was
+        rechristened <quote>Apache Subversion</quote>.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>Apache Subversion</primary>
+          <seealso>Subversion</seealso>
+        </indexterm>Trong lúc CollabNet bắt đầu dự án và vẫn đang đóng góp một phần lớn công việc (trả lương cho một số lập trình viên Subversion làm việc toàn thời gian), Subversion được duy trì như đa số những dự án mã nguồn mở khác, quản lý bởi một tập hợp lỏng lẻo, các quy tắc minh bạch nhằm khuyến khích nhân tài. Trong năm 2009, CollabNet đã làm việc với những nhà phát triển Subversion hướng tới mục tiêu tích hợp dự án Subversion vào Quỹ Phần mềm Apache (ASF - Apache Software Foundation), một trong những tập thể nổi tiếng nhất trên thế giới của dự án mã nguồn mở. Kỹ thuật gốc của Subversion, hướng đến cộng đồng và thực tiễn phát triển là phù hợp hoàn hảo với ASF, nhiều người trong số các thành viên đã là những người đóng góp tích cực vào Subversion. Vào đầu năm 2010, Subversion được tiếp nhận hoàn toàn vào danh sách những dự án quan trọng của ASF, chuyển địa chỉ website của dự án tới <ulink url="http://subversion.apache.org"/> và được đặt lại tên là <quote>Apache Subversion</quote>.</para>
+
+    </sect2>
+  
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.architecture">
+  
+<!--       <title>Subversion's Architecture</title> -->
+      <title>Kiến trúc Subversion</title>
+    
+<!-- 
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>architecture</secondary>
+        </indexterm><xref linkend="svn.intro.architecture.dia-1"/>
+        illustrates a <quote>mile-high</quote> view of Subversion's
+        design.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>kiến trúc</secondary>
+        </indexterm><xref linkend="svn.intro.architecture.dia-1"/> minh hoạ <quote>mile-high</quote> thiết kế của Subversion.</para>
+      
+<!-- 
+      <figure id="svn.intro.architecture.dia-1">
+        <title>Subversion's architecture</title>
+        <graphic width="5in" depth="6.25in"
+                 fileref="images/svn-arch-diagram.png"/>
+      </figure>
+ -->
+      <figure id="svn.intro.architecture.dia-1">
+        <title>Kiến trúc Subversion</title>
+        <graphic width="5in" depth="6.25in"
+                 fileref="images/svn-arch-diagram.png"/>
+      </figure>
+  
+<!-- 
+      <para>On one end is a Subversion repository that holds all of
+        your versioned data.  On the other end is your Subversion
+        client program, which manages local reflections of portions of
+        that versioned data.  Between these extremes are multiple
+        routes through a Repository Access (RA) layer, some of which
+        go across computer networks and through network servers which
+        then access the repository, others of which bypass the network
+        altogether and access the repository directly.</para>
+ -->
+      <para>Ở một phía là kho lưu trữ Subversion lưu giữ toàn bộ dữ liệu phiên bản của bạn. Ở phía còn lại là ứng dụng khách quản lý cục bộ phần phản xạ của những phần dữ liệu phiên bản. Giữa hai cực đó là rất nhiều tuyến đường xuyên qua một lớp Quyền Truy Cập Kho Lưu Trữ (RA - Repository Access), một số trong đó thông qua mạng máy tính kết nối vào các máy chủ mạng mà sau đó truy cập vào kho lưu trữ, số khác bỏ qua mạng hoàn toàn và truy cập trực tiếp vào kho lưu trữ.</para>
+  
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.components">
+  
+      <!-- <title>Subversion's Components</title> -->
+      <title>Thành phần Subversion</title>
+        
+<!-- 
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>components</secondary>
+        </indexterm>Subversion, once installed, has a number of
+        different pieces.  The following is a quick overview of what
+        you get.  Don't be alarmed if the brief descriptions leave you
+        scratching your head&mdash;<emphasis>plenty</emphasis> more
+        pages in this book are devoted to alleviating that
+        confusion.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>thành phần</secondary>
+        </indexterm>Subversion, sau khi cài đặt, có một số phần khác nhau. Sau đây là tổng quan của những gì bạn nhận được. Đừng lo lắng nếu phần mô tả làm cho bạn phải gãi đầu&mdash;<emphasis>rất nhiều</emphasis> trang trong cuốn sách này được dành để làm giảm bớt sự rối rắm này.</para>    
+  
+      <variablelist>
+        <indexterm>
+          <primary>svn</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnversion</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnlook</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnadmin</primary>
+        </indexterm>
+        <indexterm>
+          <primary>mod_dav_svn</primary>
+        </indexterm> 
+        <indexterm>
+          <primary>svnserve</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svndumpfilter</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnsync</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnrdump</primary>
+        </indexterm>
+        <indexterm>
+          <primary>svnmucc</primary>
+        </indexterm>
+
+<!-- 
+        <varlistentry>
+          <term>svn</term>
+          <listitem>
+            <para>The command-line client program</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svn</term>
+          <listitem>
+            <para>Ứng dụng khách Subversion giao-diện-dòng-lệnh</para>
+          </listitem>
+        </varlistentry>
+  
+<!-- 
+        <varlistentry>
+          <term>svnversion</term>
+          <listitem>
+            <para>A program for reporting the state (in terms of
+              revisions of the items present) of a working copy</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnversion</term>
+          <listitem>
+            <para>Chương trình để báo cáo tình trạng (về các phiên bản của những mục hiện hữu) của một bản sao làm việc (working copy)</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>svnlook</term>
+          <listitem>
+            <para>A tool for directly inspecting a Subversion repository</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnlook</term>
+          <listitem>
+            <para>Công cụ để kiểm tra kho lưu trữ Subversion</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>svnadmin</term>
+          <listitem>
+            <para>A tool for creating, tweaking, or repairing a Subversion
+              repository</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnadmin</term>
+          <listitem>
+            <para>Công cụ để tạo, chỉnh, hoặc sửa chữa kho lưu trữ Subversion</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>mod_dav_svn</term>
+          <listitem>
+           <para>A plug-in module for the Apache HTTP Server, used to
+              make your repository available to others over a
+              network</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>mod_dav_svn</term>
+          <listitem>
+           <para>Thành phần plug-in dành cho Apache HTTP Server, được sử dụng để làm cho kho lưu trữ của bạn có sẵn cho những người khác trong một mạng lưới</para>
+          </listitem>
+        </varlistentry>
+  
+<!-- 
+        <varlistentry>
+          <term>svnserve</term>
+          <listitem>
+            <para>A custom standalone server program, runnable as a
+              daemon process or invokable by SSH; another way to make
+              your repository available to others over a network</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnserve</term>
+          <listitem>
+            <para>Chương trình tuỳ biến độc lập chạy trên máy chủ, có thể được thực thi như là một tiến trình daemon hoặc kích hoạt thông qua SSH; một cách khác để làm cho kho lưu trữ của bạn có sẵn cho những người khác trong một mạng lưới</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>svndumpfilter</term>
+          <listitem>
+            <para>A program for filtering Subversion repository dump
+              streams</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svndumpfilter</term>
+          <listitem>
+            <para>Chương trình để lọc những luồng kết xuất của kho lưu trữ Subversion</para>
+          </listitem>
+        </varlistentry>
+  
+<!-- 
+        <varlistentry>
+          <term>svnsync</term>
+          <listitem>
+            <para>A program for incrementally mirroring one repository
+              to another over a network</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnsync</term>
+          <listitem>
+            <para>Chương trình để đồng bộ từng bước một kho lưu trữ sang một kho khác trong một mạng lưới</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>svnrdump</term>
+          <listitem>
+            <para>A program for performing repository history dumps
+              and loads over a network</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnrdump</term>
+          <listitem>
+            <para>Chương trình để thực hiện việc kết xuất và nạp lịch sử của kho lưu trữ trong một mạng lưới</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>svnmucc</term>
+          <listitem>
+            <para>A program for performing multiple repository
+              URL-based operations in a single commit and without the
+              use of a working copy</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>svnmucc</term>
+          <listitem>
+            <para>Một chương trình để thực hiện nhiều thao tác kho lưu trữ dựa-trên-URL trong một lần chuyển giao (commit) và không cần bản sao làm việc (working copy)</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.intro.whatsnew">
+
+      <!-- <title>What's New in Subversion</title> -->
+      <title>Có gì mới trong Subversion</title>
+
+<!-- 
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>history of</secondary>
+        </indexterm>The first edition of this book was published by
+        O'Reilly Media in 2004, shortly after Subversion had reached
+        1.0.  Since that time, the Subversion project has continued to
+        release new major releases of the software.  Here's a quick
+        summary of major new changes since Subversion 1.0.  Note that
+        this is not a complete list; for full details, please visit
+        Subversion's web site at
+        <ulink url="http://subversion.apache.org"/>.</para>
+ -->
+      <para>
+        <indexterm>
+          <primary>Subversion</primary>
+          <secondary>Lịch sử</secondary>
+        </indexterm>Ấn bản đầu tiên của cuốn sách này được phát hành bởi O'Reilly Media vào năm 2004, ngay sau khi Subversion hoàn thành phiên bản 1.0. Kể từ đó, dự án Subversion tiếp tục phát hành phiên bản chính mới của phần mềm. Đây là bản tóm tắt của những thay đổi chính kể từ Subversion 1.0. Lưu ý rằng đây không phải là một danh sách hoàn chỉnh; để có đầy đủ thông tin chi tiết, vui lòng truy cập website của Subversion tại địa chỉ <ulink url="http://subversion.apache.org"/>.</para>
+
+      <variablelist>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.1 (September 2004)</term>
+          <listitem>
+            <para>Release 1.1 introduced FSFS, a flat-file repository
+              storage option for the repository.  While the Berkeley DB
+              backend is still widely used and supported, FSFS has
+              since become the default choice for
+              newly created repositories due to its low barrier to
+              entry and minimal maintenance requirements.  Also in
+              this release came the ability to put symbolic links
+              under version control, auto-escaping of URLs, and a
+              localized user interface.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.1 (Tháng Chín 2004)</term>
+          <listitem>
+            <para>Bản phát hành 1.1 giới thiệu FSFS, một tuỳ chọn lưu trữ dạng tập tin. Trong khi Berkeley DB bên dưới vẫn được sử dụng và hỗ trợ một cách rộng rãi, FSFS kể từ đó trở thành sự lựa chọn mặc nhiên cho việc tạo kho lưu trữ do dễ triển khai và yêu cầu bảo trì tối thiểu. Bản phát hành này còn cung cấp khả năng cho phép đặt liên kết tượng trưng (symlink) vào kiểm soát phiên bản, tự động mã hoá URL và giao diện người dùng địa phương hoá.</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.2 (May 2005)</term>
+          <listitem>
+            <para>Release 1.2 introduced the ability to create
+              server-side locks on files, thus serializing commit
+              access to certain resources.  While Subversion is still
+              a fundamentally concurrent version control system,
+              certain types of binary files (e.g. art assets)
+              cannot be merged together.  The locking feature fulfills
+              the need to version and protect such resources.  With
+              locking also came a complete WebDAV auto-versioning
+              implementation, allowing Subversion repositories to be
+              mounted as network folders.  Finally, Subversion 1.2
+              began using a new, faster binary-differencing algorithm
+              to compress and retrieve old versions of files.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.2 (Tháng Năm 2005)</term>
+          <listitem>
+            <para>Bản phát hành 1.2 giới thiệu khả năng tạo khoá phía máy chủ trên các tập tin, do đó tuần tự hoá việc chuyển giao vào những tài nguyên cụ thể. Trong khi Subversion vẫn cơ bản là một hệ thống kiểm soát phiên bản đồng thời, một vài loại tập tin nhị phân (ví dụ. tập tin hình ảnh) không thể được trộn chung. Chức năng khoá đáp ứng nhu cầu đánh phiên bản và bảo vệ loại tài nguyên này. Cùng với chức năng khoá, bản phát hành này còn đi kèm với việc tích hợp tự-động-đánh-phiên-bản WebDAV một cách toàn diện, cho phép kho lưu trữ Subversion có thể được ánh xạ như là một thư mục mạng lưới. Cuối cùng, Subversion 1.2 bắt đầu sử dụng thuật toán binary-differencing mới và nhanh hơn để nén và truy xuất phiên bản cũ của những tập tin.</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.3 (December 2005)</term>
+          <listitem>
+            <para>Release 1.3 brought path-based authorization
+              controls to the <command>svnserve</command> server,
+              matching a feature formerly found only in the Apache
+              server.  The Apache server, however, gained some new
+              logging features of its own, and Subversion's API
+              bindings to other languages also made great leaps
+              forward.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.3 (Tháng Mười Hai 2005)</term>
+          <listitem>
+            <para>Bản phát hành 1.3 mang chức năng kiểm soát uỷ quyền theo đường dẫn vào máy chủ <command>svnserve</command>, đồng nhất với tính năng mà trước đó chỉ có trên máy chủ Apache. Tuy nhiên, máy chủ Apache đã đạt được một vài tính năng ghi nhật ký của riêng nó và API của Subversion kết hợp với các ngôn ngữ khác cũng đã có bước nhảy vọt về phía trước.</para>
+          </listitem>
+        </varlistentry>
+
+<!--        <varlistentry>
+          <term>Subversion 1.4 (September 2006)</term>
+          <listitem>
+            <para>Release 1.4 introduced a whole new
+              tool&mdash;<command>svnsync</command>&mdash;for doing
+              one-way repository replication over a network.  Major
+              parts of the working copy metadata were revamped to no
+              longer use XML (resulting in client-side speed gains),
+              while the Berkeley DB repository backend gained the
+              ability to automatically recover itself after a server
+              crash.</para>
+          </listitem>
+        </varlistentry>-->
+        
+        <varlistentry>
+          <term>Subversion 1.4 (Tháng Chín 2006)</term>
+          <listitem>
+            <para>Bản phát hành 1.4 giới thiệu một tính năng hoàn toàn mới&mdash;<command>svnsync</command>&mdash;để thực hiện việc sao chép một chiều kho lưu trữ trong một mạng lưới. Nhiều phần chính của siêu dữ liệu của bản sao làm việc được tân trang để không còn sử dụng XML (kết quả là tăng tốc độ phía ứng dụng khách), trong khi kho lưu trữ Barkeley DB bên dưới đã đạt được khả năng tự phục hồi chính nó sau khi một máy chủ gặp sự cố.</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.5 (June 2008)</term>
+          <listitem>
+            <para>Release 1.5 took much longer to finish than prior
+              releases, but the headliner feature was gigantic:
+              semi-automated tracking of branching and merging.  This
+              was a huge boon for users, and pushed Subversion far
+              beyond the abilities of CVS and into the ranks of
+              commercial competitors such as Perforce and ClearCase.
+              Subversion 1.5 also introduced a bevy of other
+              user-focused features, such as interactive resolution of
+              file conflicts, sparse checkouts, client-side
+              management of changelists, powerful new syntax for
+              externals definitions, and SASL authentication support for
+              the <command>svnserve</command> server.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.5 (Tháng Sáu 2008)</term>
+          <listitem>
+            <para>Bản phát hành 1.5 mất nhiều thời gian hơn để hoàn thành so với các phiên bản khác, nhưng tính năng mở đầu là rất ấn tượng: theo dõi các phân nhánh và hợp nhất một cách bán tự động. Đó là một lợi ích lớn cho người sử dụng và đã nâng Subversion cao hơn rất nhiều so với khả năng của CVS và vào trong nhóm của những đối thủ cạnh tranh thương mại như là Perfoce và ClearCase. Subversion 1.5 cũng giới thiệu một loạt những tính năng khác hướng tới người dùng như là tương tác giải quyết xung đột tập tin, kiểm xuất rời rạc, quản lý danh sách thay đổi ở phía khách, cú pháp mới mạnh mẽ cho mục bên ngoài và hỗ trợ xác thực SASL cho máy chủ <command>svnserve</command></para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.6 (March 2009)</term>
+          <listitem>
+            <para>Release 1.6 continued to make branching and merging
+              more robust by introducing tree conflicts, and offered
+              improvements to several other existing features: more
+              interactive conflict resolution options; de-telescoping
+              and outright exclusion support for sparse checkouts;
+              file-based externals definitions; and operational
+              logging support for <command>svnserve</command> similar
+              to what <command>mod_dav_svn</command> offered.  Also,
+              the command-line client introduced a new shortcut syntax
+              for referring to Subversion repository URLs.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.6 (Tháng Ba 2009)</term>
+          <listitem>
+            <para>Bản phát hành 1.6 tiếp tục nâng cấp mạnh mẽ hơn chức năng phân nhánh và hợp nhất với việc giới thiệu cây xung đột và cung cấp cải tiến cho một loạt những tính năng đã có: nhiều tuỳ chọn giải quyết xung đột tương tác; tách và loại trừ hoàn toàn sự hỗ trợ cho kiểm xuất rời rạc; mục bên ngoài dựa trên tập tin; và hỗ trợ ghi nhật ký hoạt động cho <command>svnserve</command> tương tự như những gì <command>mod_dav_svn</command> đã có. Ứng dụng khách Subversion giao-diện-dòng-lệnh cũng giới thiệu một cú pháp phím tắt mới để tham chiếu tới URL của kho lưu trữ.</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.7 (October 2011)</term>
+          <listitem>
+            <para>Release 1.7 was primarily a delivery vehicle for two
+              big plumbing overhauls of existing Subversion
+              components.  The largest and most impactful of these was
+              the so-called <quote>WC-NG</quote>&mdash;a complete
+              rewrite of the <command>libsvn_wc</command> working copy
+              management library.  The second change was the
+              introduction of a sleeker HTTP protocol for Subversion
+              client/server interaction.  Subversion 1.7 delivered a
+              handful of additional features, many bug fixes, and some
+              notable performance improvements, too.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.7 (Tháng Mười 2011)</term>
+          <listitem>
+            <para>Bản phát hành 1.7 chủ yếu phân phối hai bản sửa chữa lớn của những thành phần Subversion đã tồn tại. Mục lớn nhất và có ảnh hưởng lớn nhất có tên <quote>WC-NG</quote>&mdash;là bản viết lại hoàn toàn của thư viện quản lý bản sao làm việc <command>libsvn_wc</command>. Mục thay đổi thứ hai là sự giới thiệu của một giao thức HTTP bóng bảy hơn cho giao tiếp chủ/khách Subversion. Subversion 1.7 cũng phân phối một vài tính năng khác, sửa nhiều lỗi và một vài cải tiến đáng ghi nhận về mặt hiệu năng.</para>
+          </listitem>
+        </varlistentry>
+
+<!-- 
+        <varlistentry>
+          <term>Subversion 1.8 (June 2013)</term>
+          <listitem>
+
+            <para>In release 1.8, Subversion's client now tracks
+              renamed files and directories more thoroughly, and
+              its <command>svn merge</command> command has grown
+              intelligent enough to make the
+              <option>~~reintegrate</option> option unnecessary.
+              Certain new versioned property values can be inherited
+              from parent directories.  That feature now allows a
+              repository to dictate default values for automatic
+              property settings and ignorable file patterns, bringing
+              consistency across the user base of that repository in a
+              way which previously had to be managed socially.  There
+              is also a new built-in command-line file merge tool for
+              interactive conflict resolution.  As always, Subversion
+              1.8 includes many additional features, defect fixes, and
+              improvements in behavior and performance.</para>
+          </listitem>
+        </varlistentry>
+ -->
+        <varlistentry>
+          <term>Subversion 1.8 (Tháng Sáu 2013)</term>
+          <listitem>
+
+            <para>Trong bản phát hành 1.8, ứng dụng khách Subversion giờ đây theo dõi việc đổi tên tập tin và thư mục một cách triệt để, và lệnh <command>svn merge</command> của nó đã thông minh hơn làm cho tuỳ chọn <option>--reintegrate</option> không còn cần thiết. Một vài giá trị thuộc tính phiên bản mới có thể được kế thừa từ thư mục cha. Tính năng đó giờ đây cho phép một kho lưu trữ đọc giá trị mặc định cho các thiết lập thuộc tính tự động và mẫu tập tin có thể bỏ qua, mang lại sự nhất quán xuyên suốt cơ sở người dùng của kho lưu trữ đó theo cách mà trước đây cần phải được quản lý thủ công bởi người dùng của kho lưu trữ. Ngoài ra cũng có một lệnh kiểu dòng lệnh mới là công cụ hợp nhất tập tin để giải quyết xung đột tương tác. Như mọi khi, Subversion phiên bản 1.8 bao gồm nhiều tính năng bổ sung, sửa chữa khiếm khuyết và cải tiến về mặt hiệu năng và hành vi.</para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </sect2>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.audience">
+
+<!--     <title>Audience</title> -->
+    <title>Độc Giả</title>
+    
+<!-- 
+    <para>This book is written for computer-literate folk who want to
+      use Subversion to manage their data.  While Subversion runs on a
+      number of different operating systems, its primary user
+      interface is command-line-based.  That command-line tool
+      (<command>svn</command>), and some additional auxiliary
+      programs, are the focus of this book.</para>
+ -->
+    <para>Cuốn sách này được viết cho những ai có kiến thức về máy tính muốn sử dụng Subversion để quản lý dữ liệu của họ. Mặc dù Subversion chạy được trên một số hệ điều hành, giao diện người dùng chính của nó là dựa-trên-dòng-lệnh. Công cụ dòng lệnh đó (<command>svn</command>) và một vài chương trình phụ trợ thêm khác là tiêu điểm của cuốn sách này.</para>
+
+<!-- 
+    <para>For consistency, the examples in this book assume that the reader
+      is using a Unix-like operating system and is relatively comfortable
+      with Unix and command-line interfaces.  That said, the
+      <command>svn</command> program also runs on non-Unix platforms
+      such as Microsoft Windows.  With a few minor exceptions, such as
+      the use of backward slashes (<literal>\</literal>) instead of
+      forward slashes (<literal>/</literal>) for path separators, the
+      input to and output from this tool when run on Windows are
+      identical to that of its Unix counterpart.</para>
+ -->
+    <para>Để đồng nhất, những ví dụ trong cuốn sách này giả sử rằng độc giả đang sử dụng hệ điều hành tương tự Unix và khá thoải mái với Unix và với giao diện dòng lệnh. Như đã nói, chương trình <command>svn</command> cũng chạy được trên những nền tảng khác Unix như là Microsoft Windows. Với một vài ngoại lệ, ví dụ như việc sử dụng những dấu gạch chéo ngược (<literal>\</literal>) thay vì dấu gạch chéo xuôi (<literal>/</literal>) cho những dấu phân cách đường dẫn, giá trị đầu vào và đầu ra của công cụ này khi chạy trên Windows là tương đồng với những giá trị của ứng dụng chạy trên Unix.</para>
+
+<!-- 
+    <para>Most readers are probably programmers or system
+      administrators who need to track changes to source code.  This
+      is the most common use for Subversion, and therefore it is the
+      scenario underlying all of the book's examples.  But Subversion
+      can be used to manage changes to any sort of
+      information&mdash;images, music, databases, documentation, and
+      so on.  To Subversion, all data is just data.</para>
+ -->
+    <para>Đa số độc giả có lẽ là lập trình viên hoặc quản trị hệ thống là những người cần phải theo dõi những thay đổi trên mã nguồn. Đây là ứng dụng thông dụng nhất của Subversion và vì vậy nó là kịch bản cơ bản của những ví dụ trong cuốn sách. Ngoài ra Subversion còn được sử dụng để quản lý thay đổi trên bất kỳ những loại thông tin&mdash;hình ảnh, âm nhạc, cơ sở dữ liệu, tài liệu và vv. Với Subversion, tất cả dữ liệu chỉ là dữ liệu.</para>
+    
+<!-- 
+    <para>While this book is written with the assumption that the
+      reader has never used a version control system, we've also tried
+      to make it easy for users of CVS (and other systems) to make a
+      painless leap into Subversion.  Special sidebars may mention
+      other version control systems from time to time, and
+      <xref linkend="svn.forcvs"/> summarizes many of the differences
+      between CVS and Subversion.</para>
+ -->
+    <para>Mặc dù cuốn sách này được viết với giả định rằng độc giả chưa bao giờ sử dụng một hệ thống kiểm soát phiên bản, chúng tôi cũng cố gắng soạn nó theo hướng dễ dàng cho người sử dụng CVS (và những hệ thống khác) tiếp cận nhanh chóng Subversion. Theo thời gian, một vài khung lề có thể đề cập tới những hệ quản lý phiên bản khác và phụ lục <xref linkend="svn.forcvs"/> tóm tắt rất nhiều những khác biệt giữa CVS và Subversion.</para>
+
+<!-- 
+    <para>Note also that the source code examples used throughout the
+      book are only examples.  While they will compile with the proper
+      compiler incantations, they are intended to illustrate a
+      particular scenario and not necessarily to serve as examples of good
+      programming style or practices.</para>
+ -->
+    <para>Cũng lưu ý rằng mã nguồn ví dụ được sử dụng xuyên suốt cuốn sách chỉ là ví dụ. Mặc dù những mã nguồn này có thể được biên dịch với một trình biên dịch phù hợp, những mã nguồn này chỉ có ý định minh hoạ một tình huống cụ thể và không nên xem chúng như là những ví dụ về phong cách lập trình hoặc những thực nghiệm chuẩn.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.howread">
+<!--     <title>How to Read This Book</title> -->
+    <title>Đối Tượng Nên Đọc Cuốn Sách Này</title>
+
+<!-- 
+    <para>Technical books always face a certain dilemma: whether to
+      cater to <quote>top-down</quote> or to <quote>bottom-up</quote>
+      learners.  A top-down learner prefers to read or skim
+      documentation, getting a large overview of how the system works;
+      only then does she actually start using the software.  A
+      bottom-up learner is a <quote>learn by doing</quote>
+      person&mdash;someone who just wants to dive into the software
+      and figure it out as she goes, referring to book sections when
+      necessary.  Most books tend to be written for one type of person
+      or the other, and this book is undoubtedly biased toward
+      top-down learners.  (And if you're actually reading this
+      section, you're probably already a top-down learner yourself!)
+      However, if you're a bottom-up person, don't despair.  While the
+      book may be laid out as a broad survey of Subversion topics, the
+      content of each section tends to be heavy with specific examples
+      that you can try-by-doing.  For the impatient folks who just
+      want to get going, you can jump right to
+      <xref linkend="svn.intro"/>.</para>
+ -->
+    <para>Những cuốn sách kỹ thuật luôn luôn gặp phải tình huống khó xử: liệu để phục vụ cho cách học <quote>từ-trên-xuống</quote> hoặc cho <quote>từ-dưới-lên</quote>. Người học từ-trên-xuống ưa thích đọc hoặc đọc lướt tài liệu, nắm được bao quát hệ thống hoạt động như thế nào; chỉ sau đó cô ấy mới thực sự bắt đầu sử dụng phần mềm. Người học từ-dưới-lên là người <quote>vừa học vừa làm</quote>&mdash;là người chỉ muốn nhảy vào phần mềm và tìm hiểu nó trong lúc cô ấy đang làm việc, tham khảo từng chương của cuốn sách khi cần. Đa số những cuốn sách có xu hướng được viết cho một trong hai loại độc giả này, và cuốn sách này chắc chắn thiên về hướng dành cho người học từ-trên-xuống. (Và nếu bạn thực tế đang đọc phần này, chắc chắn bạn là người học từ-trên-xuống!). Tuy nhiên, nếu bạn là người học từ-dưới-lên, đừng tuyệt vọng. Mặc dù cuốn sách được trình bày như là một nghiên cứu rộng những chủ đề của Subversion, nội dung của từng phần có xu hướng thiên về những ví dụ cụ thể mà bạn có thể vừa-thử-vừa-làm. Với những người thiếu kiên nhẫn chỉ muốn bắt đầu, các bạn có thể chuyển ngay đến phần <xref linkend="svn.intro"/>.</para>
+
+<!-- 
+    <para>Regardless of your learning style, this book aims to be
+      useful to people of widely different backgrounds&mdash;from
+      those with no previous experience in version control to
+      experienced system administrators.  Depending on your own
+      background, certain chapters may be more or less important to
+      you.  The following can be considered a
+      <quote>recommended reading list</quote> for various types of
+      readers:</para>
+ -->
+    <para>Bất kể phong cách học của bạn là gì, mục đích của cuốn sách này là trở nên hữu ích với những người có nền tảng kiến thức khác nhau đáng kể&mdash;từ những người trước đó không có kinh nghiệm với kiểm soát phiên bản tới những nhà quản trị hệ thống nhiều kinh nghiệm. Tuỳ thuộc vào kiến thức nền tảng của bạn, những chương cụ thể nào đó có thể ít hoặc nhiều quan trọng với bạn. Sau đây có thể được coi là một <quote>danh sách đọc đề nghị</quote> với nhiều loại hình độc giả:</para>
+
+    <variablelist>
+      <varlistentry>
+<!--         <term>Experienced system administrators</term> -->
+        <term>Nhà quản trị hệ thống nhiều kinh nghiệm</term>
+        <listitem>
+<!-- 
+          <para>The assumption here is that you've probably used
+            version control before and are dying to get a
+            Subversion server up and running ASAP.
+            <xref linkend="svn.reposadmin"/> and
+            <xref linkend="svn.serverconfig"/> will show you how to
+            create your first repository and make it available over
+            the network.  After that's done,
+            <xref linkend="svn.tour"/> and
+            <xref linkend="svn.forcvs"/> are the fastest routes to
+            learning the Subversion client.</para>
+ -->
+          <para>Giả định rằng bạn đã sử dụng kiểm soát phiên bản trước đây và bạn đang nóng lòng triển khai hệ thống máy chủ Subversion chạy càng sớm càng tốt. <xref linkend="svn.reposadmin"/> và <xref linkend="svn.serverconfig"/> sẽ chỉ cho bạn làm thế nào để tạo kho lưu trữ đầu tiên của bạn và làm cho nó sẵn sàng. Sau khi xong việc đó, <xref linkend="svn.tour"/> và <xref linkend="svn.forcvs"/> là con đường nhanh nhất để học về ứng dụng khách Subversion.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <!-- <term>New users</term> -->
+        <term>Người dùng mới</term>
+        <listitem>
+<!-- 
+          <para>Your administrator has probably set up Subversion
+            already, and you need to learn how to use the client.  If
+            you've never used a version control system, then
+            <xref linkend="svn.basic"/> is a vital introduction to the
+            ideas behind version control.  <xref linkend="svn.tour"/>
+            is a guided tour of the Subversion client.</para>
+ -->
+          <para>Quản trị hệ thống của bạn chắc chắn đã thiết lập Subversion, và bạn cần phải học cách sử dụng ứng dụng khách. Nếu bạn chưa bao giờ sử dụng một hệ kiểm soát phiên bản nào thì <xref linkend="svn.basic"/> là một giới thiệu quan trọng cho những khái niệm của kiểm soát phiên bản. <xref linkend="svn.tour"/> là một chuyến du lịch có hướng dẫn của ứng dụng khách Subversion.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+<!--         <term>Advanced users</term> -->
+        <term>Người dùng cao cấp</term>
+        <listitem>
+<!-- 
+          <para>Whether you're a user or administrator, eventually
+            your project will grow larger.  You're going to want to
+            learn how to do more advanced things with Subversion, such
+            as how to use Subversion's property support
+            (<xref linkend="svn.advanced"/>), how to use branches and
+            perform merges (<xref linkend="svn.branchmerge"/>), how to
+            configure runtime options
+            (<xref linkend="svn.customization"/>), and other things.
+            These chapters aren't critical at first, but be sure to
+            read them once you're comfortable with the basics.</para>
+ -->
+          <para>Bất kể bạn là người sử dụng hay quản trị hệ thống, cuối cùng dự án của bạn cũng sẽ phình to lên. Bạn sẽ muốn học cách làm những việc phức tạp hơn với Subversion ví dụ như sử dụng hỗ trợ thuộc tính của Subversion như thế nào (<xref linkend="svn.advanced"/>), sử dụng những nhánh và thực hiện việc hợp nhất như thế nào (<xref linkend="svn.branchmerge"/>), cấu hình tuỳ chọn thời gian thực như thế nào (<xref linkend="svn.customization"/>), và những vấn đề khác. Các chương này không quan trọng lúc đầu, nhưng hãy chắc chắn đọc chúng một khi bạn đã nắm rõ những điều cơ bản.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+<!--         <term>Developers</term> -->
+        <term>Nhà phát triển</term>
+        <listitem>
+<!-- 
+          <para>Presumably, you're already familiar with Subversion,
+            and now want to either extend it or build new software on
+            top of its many APIs.  <xref linkend="svn.developer"/> is
+            just for you.</para>
+ -->
+          <para>Có lẽ, bạn đã quen thuộc với Subversion, và bây giờ muốn hoặc mở rộng nó hoặc xây dựng phần mềm mới dựa trên nhiều hàm API của nó. <xref linkend="svn.developer"/> là dành cho bạn.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+
+<!-- 
+    <para>The book ends with reference material&mdash;<xref
+      linkend="svn.ref"/> is a reference guide for all Subversion
+      commands, and the appendixes cover a number of useful topics.
+      These are the chapters you're most likely to come back to
+      after you've finished the book.</para>
+ -->
+    <para>Cuốn sách kết thúc với tài liệu tham khảo&mdash;<xref linkend="svn.ref"/> là một hướng dẫn tham khảo cho tất cả các lệnh Subversion, và những mục phụ lục bao hàm một số chủ đề hữu ích. Đây là những chương mà bạn có nhiều khả năng trở lại để sau khi bạn đã hoàn thành cuốn sách.</para>
+
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.organization">
+<!--     <title>Organization of This Book</title> -->
+    <title>Trình Bày Của Cuốn Sách</title>
+
+<!-- 
+    <para>The chapters that follow and their contents are listed
+      here:</para>
+ -->
+    <para>Những chương tiếp theo và nội dung của chúng được liệt kê ở đây:</para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term><xref linkend="svn.basic"/></term>
+        <listitem>
+<!-- 
+          <para>Explains the basics of version control and different
+            versioning models, along with Subversion's repository,
+            working copies, and revisions.</para>
+ -->
+          <para>Giải thích những khái niệm cơ bản của kiểm soát phiên bản và những mô hình kiểm soát phiên bản khác cùng với kho lưu trữ Subversion, bản sao làm việc và phiên bản.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.tour"/></term>
+        <listitem>
+<!-- 
+          <para>Walks you through a day in the life of a Subversion
+            user.  It demonstrates how to use a Subversion client to
+            obtain, modify, and commit data.</para>
+ -->
+          <para>Đưa bạn qua một ngày làm việc của một người sử dụng Subversion. Nó trình diễn cách sử dụng ứng dụng khách Subversion như thế nào để lấy về, chỉnh sửa và chuyển giao dữ liệu.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.advanced"/></term>
+        <listitem>
+<!-- 
+          <para>Covers more complex features that regular users will
+            eventually come into contact with, such as versioned
+            metadata, file locking, and peg revisions.</para>
+ -->
+          <para>Bao hàm những tính năng phức tạp hơn mà những người sử dụng thường xuyên thường hay tiếp xúc, như là siêu dữ liệu phiên bản, khoá tập tin và chốt phiên bản.</para>
+          <!-- ### TODO: peg revisions hiện đang được dịch là "chốt phiên bản" tuy nhiên bản dịch này chưa phù hợp lắm ### -->          
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.branchmerge"/></term>
+        <listitem>
+<!-- 
+          <para>Discusses branches, merges, and tagging, including
+            best practices for branching and merging, common
+            use cases, how to undo changes, and how to easily swing
+            from one branch to the next.</para>
+ -->
+          <para>Thảo luận về nhánh, hợp nhất, gắn thẻ, bao gồm cả những cách thực hành tốt nhất(best practice) cho việc rẽ nhánh và hợp nhất, tình huống sử dụng chung, hồi tác những thay đổi như thế nào, và chuyển từ nhánh này đến nhánh tiếp theo như thế nào.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.reposadmin"/></term>
+        <listitem>
+<!-- 
+          <para>Describes the basics of the Subversion repository,
+            how to create, configure, and maintain a repository, and
+            the tools you can use to do all of this.</para>
+ -->
+          <para>Mô tả những khái niệm cơ bản của kho lưu trữ Subversion, tạo mới như thế nào, cấu hình, duy trì một kho lưu trữ và những công cụ bạn có thể sử dụng để thực hiện tất cả những yêu cầu này.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.serverconfig"/></term>
+        <listitem>
+<!-- 
+          <para>Explains how to configure your Subversion server and
+            offers different ways to access your repository:
+            <literal>HTTP</literal>, the <literal>svn</literal>
+            protocol, and local disk access.  It also covers the details
+            of authentication, authorization and anonymous
+            access.</para>
+ -->
+          <para>Trình bày cách cấu hình máy chủ Subversion và cung cấp những cách khác nhau để truy cập kho lưu trữ của bạn: giao thức <literal>HTTP</literal>, <literal>svn</literal>, và truy cập đĩa cục bộ. Nó cũng bao hàm chi tiết về xác thực, phân quyền và truy cập ẩn danh.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.customization"/></term>
+        <listitem>
+<!-- 
+          <para>Explores the Subversion client configuration files,
+            the handling of internationalized text, and how to make
+            external tools cooperate with Subversion.</para>
+ -->
+          <para>Tìm hiểu tập tin cấu hình ứng dụng khách Subversion, xử lý văn bản quốc tế hoá, và làm cách nào để những công cụ bên ngoài có thể tương tác với Subversion.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.developer"/></term>
+        <listitem>
+<!-- 
+          <para>Describes the internals of Subversion, the
+            Subversion filesystem, and the working copy
+            administrative areas from a programmer's point of view.
+            It also demonstrates how to use the public APIs to write a
+            program that uses Subversion.</para>
+ -->
+          <para>Mô tả những phần bên trong của Subversion, hệ thống tập tin Subversion, và những vùng quản trị bản sao làm việc dưới góc nhìn của lập trình viên. Ngoài ra nó cũng trình diễn cách sử dụng những hàm API mở để xây dựng một ứng dụng mà kết hợp chức năng Subversion.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.ref"/></term>
+        <listitem>
+<!-- 
+          <para>Explains in great detail every subcommand of
+            <command>svn</command>, <command>svnadmin</command>, and
+            <command>svnlook</command> with plenty of examples for
+            the whole family!</para>
+ -->
+          <para>Giải thích rất chi tiết từng lệnh con của <command>svn</command>, <command>svnadmin</command>, và <command>svnlook</command> với rất nhiều ví dụ cho tất cả các lệnh!</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.intro"/></term>
+        <listitem>
+<!-- 
+          <para>For the impatient, a whirlwind explanation of how to
+            install Subversion and start using it immediately.  You
+            have been warned.</para>
+ -->
+          <para>Dành cho những người thiếu kiên nhẫn, giải thích nhanh về việc cài đặt và sử dụng nó ngay như thế nào.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.forcvs"/></term>
+        <listitem>
+<!-- 
+          <para>Covers the similarities and differences between
+            Subversion and CVS, with numerous suggestions on how to
+            break all the bad habits you picked up from years of
+            using CVS.  Included are descriptions of Subversion
+            revision numbers, versioned directories, offline
+            operations, <command>update</command>
+            versus <command>status</command>, branches, tags, metadata,
+            conflict resolution, and authentication.</para>
+ -->
+          <para>Bao gồm những điểm tương đồng và khác biệt giữa Subversion và CVS, với rất nhiều đề xuất về việc làm cách nào để phá vỡ những thói quen chưa phù hợp bạn đã chọn từ những năm sử dụng CVS. Bao gồm mô tả về số phiên bản Subversion, những thư mục phiên bản, những thao tác ngoại tuyến, <command>update</command> và <command>status</command>, nhánh, thẻ, siêu dữ liệu, giải quyết xung đột và xác thực.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.webdav"/></term>
+        <listitem>
+<!-- 
+          <para>Describes the details of WebDAV and DeltaV and how
+            you can configure your Subversion repository to be
+            mounted read/write as a DAV share.</para>
+ -->
+          <para>Mô tả chi tiết về WebDAV và DeltaV và làm cách nào bạn có thể cấu hình kho lưu trữ của bạn thành một mục chia sẽ ánh xạ DAV với quyền ghi và đọc.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><xref linkend="svn.copyright"/></term>
+        <listitem>
+<!-- 
+          <para>A copy of the Creative Commons Attribution License,
+            under which this book is licensed.</para>
+ -->
+          <para>Một bản sao của Giấy Phép Ghi Công Creative Commons, theo đó cuốn sách này được cấp phép.</para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </sect1>
+
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.free">
+<!--     <title>This Book Is Free</title> -->
+    <title>Đây Là Cuốn Sách Miễn Phí</title>
+
+<!-- 
+    <para>This book started out as bits of documentation written by
+      Subversion project developers, which were then coalesced into a
+      single work and rewritten.  As such, it has always been under a
+      free license (see <xref linkend="svn.copyright"/>).  In fact,
+      the book was written in the public eye, originally as part of
+      the Subversion project itself.  This means two things:</para>
+ -->
+    <para>Cuốn sách này được bắt đầu như là những phần nhỏ của các tài liệu được viết bởi các nhà phát triển dự án Subversion, mà sau đó được kết hợp lại thành một tác phẩm duy nhất và được viết lại. Như vậy, nó luôn luôn được theo một giấy phép miễn phí (xem <xref linkend="svn.copyright"/>). Trong thực tế, cuốn sách đã được viết một cách công khai, khởi điểm như là một phần của bản thân dự án Subversion. Điều đó có nghĩa là hai điều sau:</para>
+
+    <itemizedlist>
+      <listitem>
+<!-- 
+        <para>You will always find the latest version of this book in
+          the book's own Subversion repository.</para>
+ -->
+        <para>Bạn luôn luôn có thể tìm thấy phiên bản mới nhất của cuốn sách này trong kho lưu trữ Subversion riêng của cuốn sách.</para>
+      </listitem>
+
+      <listitem>
+<!-- 
+        <para>You can make changes to this book and redistribute it
+          however you wish&mdash;it's under a free license.  Your only
+          obligation is to maintain proper attribution to the original
+          authors.  Of course, we'd much rather you send feedback and
+          patches to the Subversion developer community, instead of 
+          distributing your private version of this book.</para>
+ -->
+        <para>Bạn có thể thay đổi trong cuốn sách này và phát hành lại nó tuỳ ý&mdash;nó theo giấy phép miễn phí. Điều ràng buộc duy nhất đó là bạn cần phải duy trì ghi công với tác giả ban đầu. Dĩ nhiên, chúng tôi muốn bạn gửi phản hồi và bản vá tới cộng đồng những nhà phát triển Subversion, thay vì phân phối phiên bản riêng của bạn về cuốn sách này.</para>
+      </listitem>
+    </itemizedlist>
+    
+<!-- 
+    <para>The online home of this book's development and most of the
+      volunteer-driven translation efforts regarding it is
+      <ulink url="http://svnbook.red-bean.com"/>.  There you can find
+      links to the latest releases and tagged versions of the book in
+      various formats, as well as instructions for accessing the
+      book's Subversion repository (where its DocBook XML source
+      code lives).  Feedback is welcomed&mdash;encouraged, even.  Please
+      submit all comments, complaints, and patches against the book
+      sources to <email>svnbook-dev@red-bean.com</email>.</para>
+ -->
+    <para>Địa chỉ trực tuyến của dự án phát triển cuốn sách này và đa số những nỗ lực dịch thuật của những tình nguyện viên là <ulink url="http://svnbook.red-bean.com"/>. Tại đây bạn có thể tìm thấy liên kết tới những bản phát hành mới nhất và những phiên bản đánh dấu của cuốn sách ở nhiều định dạng, cũng như là phần hướng dẫn truy cập kho lưu trữ Subversion của cuốn sách (là nơi là mã nguồn DocBook XML của nó được lưu trữ). Góp ý luôn luôn được chào đón&mdash;thậm chí, khuyến khích. Vui lòng chuyển tất cả các ý kiến, khiếu nại và bản vá của mã nguồn cuốn sách đến địa chỉ <email>svnbook-dev@red-bean.com</email>.</para>
+
+  </sect1>
+
+  <!-- O'Reilly put its "Using Code Examples", "Safari Books Online",
+       and "How to Contact Us" sections here.  -->
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.preface.acks">
+<!--     <title>Acknowledgments</title> -->
+    <title>Lời Cảm Ơn</title>
+
+<!-- 
+    <para>This book would not be possible (nor very useful) if
+      Subversion did not exist.  For that, the authors would like to
+      thank Brian Behlendorf and CollabNet for the vision to fund such
+      a risky and ambitious new open source project; Jim Blandy for
+      the original Subversion name and design&mdash;we love you, Jim;
+      and Karl Fogel for being such a good friend and a great
+      community leader, in that order.<footnote><para>Oh, and thanks,
+      Karl, for being too overworked to write this book
+      yourself.</para></footnote></para>
+ -->
+    <para>Cuốn sách này sẽ không được hoàn thành (cũng không hữu ích) nếu Subversion không tồn tại. Vì lý do đó, tác giả muốn cảm ơn Brian Behlendorf và CollabNet với tầm nhìn để hỗ trợ một dự án mã nguồn mở mới đầy rủi ro và tham vọng; Jim Blandy cho tên gọi ban đầu và thiết kế của Subversion&mdash;chúng tôi quý bạn, Jim; và Karl Fogel vì là một người bạn tốt và một người chỉ huy cộng đồng tuyệt vời, theo đúng thứ tự đó.<footnote><para>Ồ, và cảm ơn, Karl, đã làm việc quá sức để tự viết cuốn sách này.</para></footnote></para>
+
+<!-- 
+    <para>Thanks to O'Reilly and the team of professional editors who
+      have helped us polish this text at various stages of its
+      evolution: Chuck Toporek, Linda Mui, Tatiana Apandi, Mary Brady,
+      and Mary Treseler.  Your patience and support has been
+      tremendous.</para>
+ -->
+    <para>Cảm ơn O'Reilly và đội ngũ những biên tập viên chuyên nghiệp là những người đã giúp đỡ chúng tôi trau chuốt văn bản này ở các giai đoạn khác nhau trong quá trình phát triển của nó: Chuck Tôprek, Linda Mui, Tatiana Apandi, Mary Brady và Mary Treseler. Các bạn đã rất kiên nhẫn và nhiệt tình hỗ trợ.</para>
+
+<!-- 
+    <para>Finally, we thank the countless people who contributed to
+      this book with informal reviews, suggestions, and patches.  An
+      exhaustive listing of those folks' names would be impractical to
+      print and maintain here, but may their names live on forever in
+      this book's version control history!</para>
+ -->
+    <para>Cuối cùng, chúng tôi xin cảm ơn rất nhiều người đã đóng góp vào cuốn sách này với những đánh giá không chính thức, với những đề nghị và những bản vá lỗi. Một danh sách đầy đủ với tên của các bạn sẽ không thực tế để in và duy trì ở đây, nhưng tên của các bạn mãi mãi tồn tại trong lịch sử kiểm soát phiên bản của cuốn sách này!</para>
+
+  </sect1>
+
+</preface>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "chapter")
+end:
+-->

@@ -1,0 +1,2037 @@
+<!-- -*- sgml -*- -->
+
+<chapter id="svn.developer">
+      <!--
+  <title>Embedding Subversion</title>
+      -->
+  <title>嵌入 Subversion</title>
+  
+  <para>
+    <indexterm>
+      <primary>API</primary>
+    </indexterm>
+    <indexterm>
+      <primary>application programming interface</primary>
+      <see>API</see>
+    </indexterm>
+    Subversion 具有模块化的设计: 它由众多由 C 编写而成的库函数实现. 每一个
+    库函数都有一个定义良好的目标和应用程序编程接口 (Application Programming
+    Interface, 简称 API), 这种接口不仅可以被 Subversion 使用, 还能被任意一个希
+    望通过编程接口控制 Subversion 的软件使用. 另外, Subversion 的 API 不仅能被
+    C 程序使用, 也能被其他高级语言编写的程序使用, 例如 Python, Perl, Java 和
+    Ruby.</para>
+      <!--
+    Subversion has a modular design: it's implemented as a
+    collection of libraries written in C.  Each library has a
+    well-defined purpose and application programming interface (API),
+    and that interface is available not only for Subversion itself to
+    use, but for any software that wishes to embed or otherwise
+    programmatically control Subversion.  Additionally, Subversion's
+    API is available not only to other C programs, but also to
+    programs written in higher-level languages such as Python, Perl,
+    Java, and Ruby.</para>
+      -->
+
+      <!--
+  <para>This chapter is for those who wish to interact with Subversion
+    ### TODO: language binding
+    through its public API or its various language bindings.  If you
+    wish to write robust wrapper scripts around Subversion
+    functionality to simplify your own life, are trying to develop
+    more complex integrations between Subversion and other pieces of
+    software, or just have an interest in Subversion's various library
+    modules and what they offer, this chapter is for you.  If,
+    however, you don't foresee yourself participating with Subversion
+    at such a level, feel free to skip this chapter with the
+    confidence that your experience as a Subversion user will not be
+    affected.</para>
+      -->
+  <para>本章的目标读者是那些希望通过 Subversion API 或它的各种语言绑定来控制
+    Subversion 的人. 如果你希望围绕 Subversion 编写健壮的包装脚本来简化
+    你的工作, 或者正在开发 Subversion 与其他软件之间更加复杂的集成, 或者仅仅
+    是对 Subversion 的库函数感到好奇, 那你应该认真阅读本章. 但是如果你觉得
+    自己没必要从开发的层次上使用 Subversion, 那你完全可以跳过本章, 这并不会
+    影响到你作为一个 Subversion 普通用户的体验.</para>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.developer.layerlib">
+      <!--
+    <title>Layered Library Design</title>
+      -->
+    <title>层次化的函数库设计</title>
+
+    <para>
+      <indexterm>
+        <primary>API</primary>
+        <secondary>layers</secondary>
+      </indexterm>
+      Subversion 的每一个核心函数库都隶属于三个层次之一&mdash;仓库层, 仓库访问
+      (Repository Access, 简称 RA) 层和客户端层 (见 <xref
+        linkend="svn.intro.architecture.dia-1" />). 我们将会简单地介绍这些层次,
+      但是在这之前, 先简单地总结一下 Subversion 的各个函数库. 为了保持一致,
+      我们把函数库的名字写成删除了扩展名后, 在 Unix 中的库文件名 (例如
+      <filename>libsvn_fs</filename>, <filename>libsvn_wc</filename>,
+      <filename>mod_dav_svn</filename> 等).</para>
+      <!--
+      Each of Subversion's core libraries can be said to
+      exist in one of three main layers&mdash;the Repository layer,
+      the Repository Access (RA) layer, or the Client layer (see
+      <xref linkend="svn.intro.architecture.dia-1" /> in the Preface).
+      We will examine these layers shortly, but first, let's briefly
+      summarize Subversion's various libraries.  For the sake of
+      consistency, we will refer to the libraries by their
+      extensionless Unix library names
+      (<filename>libsvn_fs</filename>, <filename>libsvn_wc</filename>,
+      <filename>mod_dav_svn</filename>, etc.).</para>
+      -->
+
+    <variablelist>
+      <varlistentry>
+        <term>libsvn_client</term> 
+      <!--
+        <listitem><para>Primary interface for client
+          programs</para></listitem>
+      -->
+        <listitem><para>客户端程序的主要接口</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_delta</term>
+      <!--
+        <listitem><para>Tree and byte-stream differencing
+          routines</para></listitem>
+      -->
+        <listitem><para>目录树和字节流差异比较例程</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_diff</term>
+      <!--
+        <listitem><para>Contextual differencing and merging
+          routines</para></listitem>
+      -->
+        <listitem><para>文件内容差异比较和合并例程</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_fs</term>
+      <!--
+        <listitem><para>Filesystem commons and module
+          loader</para></listitem>
+      -->
+        <listitem><para>文件系统公共函数和模块加载例程</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_fs_base</term>
+      <!--
+        <listitem><para>The Berkeley DB filesystem
+          backend</para></listitem>
+      -->
+        <listitem><para>Berkeley DB 文件系统后端</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_fs_fs</term>
+      <!--
+        <listitem><para>The native filesystem (FSFS)
+          backend</para></listitem>
+      -->
+        <listitem><para>原生文件系统 (FSFS) 后端</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_ra</term>
+      <!--
+           ### TODO
+        <listitem><para>Repository Access commons and module
+          loader</para></listitem>
+      -->
+        <listitem><para>仓库访问公共例程和模块加载例程</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_ra_local</term>
+      <!--
+        <listitem><para>The local Repository Access
+          module</para></listitem>
+      -->
+        <listitem><para>本地仓库访问模块</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_ra_serf</term>
+      <!--
+        <listitem><para>Another (experimental) WebDAV Repository
+          Access module</para></listitem>
+      -->
+        <listitem><para>另一个 WebDAV 仓库访问模块 (试验性的)</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_ra_svn</term>
+      <!--
+        <listitem><para>The custom protocol Repository Access
+          module</para></listitem>
+      -->
+        <listitem><para>使用定制协议的仓库访问模块</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_repos</term>
+      <!--
+        <listitem><para>Repository interface</para></listitem>
+      -->
+        <listitem><para>仓库接口</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_subr</term>
+      <!--
+        <listitem><para>Miscellaneous helpful
+          subroutines</para></listitem>
+      -->
+        <listitem><para>各种辅助例程</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>libsvn_wc</term>
+      <!--
+        <listitem><para>The working copy management
+          library</para></listitem>
+      -->
+        <listitem><para>工作副本管理函数库</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>mod_authz_svn</term>
+      <!--
+        <listitem><para>Apache authorization module for Subversion
+          repositories access via WebDAV</para></listitem>
+      -->
+        <listitem><para>Apache 授权模块, 用于借助 WebDAV 的 Subversion
+            仓库访问</para></listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>mod_dav_svn</term>
+      <!--
+        <listitem><para>Apache module for mapping WebDAV operations to
+          Subversion ones</para></listitem>
+      -->
+      <listitem><para>Apache 模块, 用于将 WebDAV 操作映射到 Subversion 的
+          对应操作</para></listitem>
+      </varlistentry>
+    </variablelist>
+
+      <!--
+    <para>The fact that the word <quote>miscellaneous</quote>
+      appears only once in the previous list is a good sign.  The
+      Subversion development team is serious about making sure that
+      functionality lives in the right layer and libraries.  Perhaps
+      the greatest advantage of the modular design is its lack of
+      complexity from a developer's point of view.  As a developer,
+      you can quickly formulate that kind of <quote>big
+      picture</quote> that allows you to pinpoint the location of
+      certain pieces of functionality with relative ease.</para>
+      -->
+    <para>在上面的介绍中, <quote>各种</quote> 这个词只出现了一次, 这是一个
+      好现象, 因为 Subversion 开发团队总是尽量将功能放到正确的层次和函数库
+      中实现. 站在开发人员的角度来看, 模块化设计最大的好处可能是降低了复杂
+      度, 于是你就可以快速地勾勒出 <quote>整体面貌</quote>, 更加容易地决定
+      功能所属的位置.</para>
+
+      <!--
+    <para>Another benefit of modularity is the ability to replace a
+      given module with a whole new library that implements the same
+      API without affecting the rest of the code base.  In some sense,
+      this happens within Subversion already.  The
+      <filename>libsvn_ra_local</filename>,
+      <filename>libsvn_ra_serf</filename>, and
+      <filename>libsvn_ra_svn</filename> libraries each implement the
+      same interface, all working as plug-ins to
+      <filename>libsvn_ra</filename>.  And all three communicate with
+      the Repository layer&mdash;<filename>libsvn_ra_local</filename>
+      connects to the repository directly; the others do so over a
+      network.  The <filename>libsvn_fs_base</filename> and
+      <filename>libsvn_fs_fs</filename> libraries are another pair of
+      libraries that implement the same functionality in different
+      ways&mdash;both are plug-ins to the common
+      <filename>libsvn_fs</filename> library.</para>
+      -->
+    <para>模块化设计的另一个好处是允许我们重新实现给定的模块, 只要保持 API 兼容
+      性, 就不会影响其他模块. 在某种意义上, Subversion 已经在这样做了. 函数库
+      <filename>libsvn_ra_local</filename>, <filename>libsvn_ra_serf</filename>
+      和 <filename>libsvn_ra_svn</filename> 各自都实现了一套相同的接口, 它们都
+      是作为 <filename>libsvn_ra</filename> 的插件与仓库访问层通信&mdash;
+      <filename>libsvn_ra_local</filename> 与仓库直接通信, 另外两个通过网络与
+      仓库通信. <filename>libsvn_fs_base</filename> 和
+      <filename>libsvn_fs_fs</filename> 是另一对用不同方式实现了相同接口的函数
+      库&mdash;它们是作为 <filename>libsvn_fs</filename> 的插件.</para>
+
+      <!--
+    <para>The client itself also highlights the benefits of modularity
+      in the Subversion design.  Subversion's
+      <filename>libsvn_client</filename> library is a one-stop shop
+      for most of the functionality necessary for designing a working
+      Subversion client (see <xref
+      linkend="svn.developer.layerlib.client"/>).  So while the
+      Subversion distribution provides only the <command>svn</command>
+      command-line client program, several third-party
+      programs provide various forms of graphical client UIs.
+      These GUIs use the same APIs that the stock command-line client
+      does.  This type of modularity has played a large role in the
+      proliferation of available Subversion clients and IDE
+      integrations and, by extension, to the tremendous adoption rate
+      of Subversion itself.</para>
+      -->
+    <para>客户端本身也突出了 Subversion 模块化设计的优越性. 函数库
+      <filename>libsvn_client</filename> 是开发 Subversion 客户端的一站式商店
+      (见 <xref linkend="svn.developer.layerlib.client"/>). 所以说虽然
+      Subversion 发行版提供了命令行客户端工具 <command>svn</command>, 但还有
+      一些第三方程序提供了图形化的客户端工具, 这些图形化工具使用了和命令行工具
+      相同的 API. 模块化设计在 Subversion 的推广中起到了非常重要的作用.</para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.layerlib.repos">
+      <!--
+      <title>Repository Layer</title>
+      -->
+      <title>仓库层</title>
+
+      <para>
+        <indexterm>
+          <primary>API</primary>
+          <secondary>layers</secondary>
+          <tertiary>Repository Layer</tertiary>
+        </indexterm>
+        当说到 Subversion 仓库层时, 我们通常谈论的是两个基本概念&mdash;版本化
+        文件系统的实现 (通过 <filename>libsvn_fs</filename> 函数库访问, 它依赖
+        <filename>libsvn_fs_base</filename> 和 <filename>libsvn_fs_fs</filename>
+        这两个函数库), 以及围绕它的仓库逻辑 (在
+        <filename>libsvn_repos</filename> 里实现). 这些函数库为版本化数据的各
+        个版本提供了存储和报告机制. 仓库层通过仓库访问层连接到客户端层, 从
+        Subversion 用户的角度来看, 仓库层是 <quote>线段的另一端</quote></para>
+      <!--
+        When referring to Subversion's Repository layer, we're
+        generally talking about two basic concepts&mdash;the versioned
+        filesystem implementation (accessed via
+        <filename>libsvn_fs</filename>, and supported by its
+        <filename>libsvn_fs_base</filename> and
+        <filename>libsvn_fs_fs</filename> plug-ins), and the repository
+        logic that wraps it (as implemented in
+        <filename>libsvn_repos</filename>).  These libraries provide
+        the storage and reporting mechanisms for the various revisions
+        of your version-controlled data.  This layer is connected to
+        the Client layer via the Repository Access layer, and is, from
+        the perspective of the Subversion user, the stuff at the
+        <quote>other end of the line.</quote></para>
+      -->
+
+      <para>
+        <indexterm>
+          <primary>repositories</primary>
+          <secondary>filesystem</secondary>
+        </indexterm>
+        Subversion 文件系统并不是在操作系统内核态实现的文件系统 (在内核态实现
+        的文件系统有 Linux ext2 或 NTFS 等), 它是一个虚拟文件系统,
+        <quote>文件</quote> 和 <quote>目录</quote> 不是以真实的文件和目录的
+        形式 (真实的文件和目录就是你在 shell 中能够看到的那些文件和目录) 存放
+        到磁盘上, 而是使用了两种抽象存储后端&mdash;Berkeley DB 或一个平坦文件
+        系统 (关于这两种存储后端的更多信息, 见 <xref
+          linkend="svn.reposadmin.basics.backends"/>). Subversion 开发团队甚至
+        在考虑为 Subversion 支持更多类型的后端数据库系统, 他们或许会通过 ODBC
+        (Open Database Connectivity, 开放数据库连接) 实现这一特性. 实际上,
+        Google 代码托管 (Google Code Project Hosting) 服务已经做过类似的工作:
+        Google 在 2006 年中期宣称他们的开源团队已经开发了一个私有的 Subversion
+        文件系统插件, 该插件允许 Subversion 使用 Google Bigtable 数据库作为
+        存储后端.</para>
+      <!--
+        The Subversion filesystem is not a kernel-level filesystem
+        that one would install in an operating system (such as the
+        Linux ext2 or NTFS), but instead is a virtual filesystem.
+        Rather than storing <quote>files</quote> and
+        <quote>directories</quote> as real files and directories (the
+        kind you can navigate through using your favorite shell
+        program), it uses one of two available abstract storage
+        backends&mdash;either a Berkeley DB database environment or a
+        flat-file representation.  (To learn more about the two
+        repository backends, see <xref
+        linkend="svn.reposadmin.basics.backends"/>.)  There has even
+        been considerable interest by the development community in
+        giving future releases of Subversion the ability to use other
+        backend database systems, perhaps through a mechanism such as
+        Open Database Connectivity (ODBC).  In fact, Google did
+        something similar to this before launching the Google Code
+        Project Hosting service:  they announced in mid-2006 that
+        members of its open source team had written a new proprietary
+        Subversion filesystem plug-in that used Google's ultra-scalable
+        Bigtable database for its storage.</para>
+      -->
+
+      <para>
+        <indexterm>
+          <primary>repositories</primary>
+          <secondary>filesystem tree</secondary>
+        </indexterm>
+        其他文件系统 API 所能提供的功能, <filename>libsvn_fs</filename> 的 API
+        也能提供&mdash;你可以创建或删除文件和目录, 复制或移动, 修改文件内容等.
+        除此之外, <filename>libsvn_fs</filename> 还提供了不太常见的功能, 例如
+        在文件和目录上添加, 修改和删除元数据 (<quote>属性</quote>). 更重要的是,
+        Subversion 的文件系统是一个版本化的文件系统, 这意味着在你修改目录树时,
+        Subversion 记住了目录树被修改前的样子, 以及上次修改前的样子, 上上次
+        修改前的样子, 可以一直追溯到文件系统被创建的时候.</para>
+      <!--
+        The filesystem API exported by
+        <filename>libsvn_fs</filename> contains the kinds of
+        functionality you would expect from any other filesystem
+        API&mdash;you can create and remove files and directories,
+        copy and move them around, modify file contents, and so on.
+        It also has features that are not quite as common, such as the
+        ability to add, modify, and remove metadata
+        (<quote>properties</quote>) on each file or directory.
+        Furthermore, the Subversion filesystem is a versioning
+        filesystem, which means that as you make changes to your
+        directory tree, Subversion remembers what your tree looked
+        like before those changes.  And before the previous changes.
+        And the previous ones.  And so on, all the way back through
+        versioning time to (and just beyond) the moment you first
+        started adding things to the filesystem.</para>
+      -->
+
+      <!--
+      <para>All the modifications you make to your tree are done
+        within the context of a Subversion commit transaction.  The
+        following is a simplified general routine for modifying your
+        filesystem:</para>
+      -->
+      <para>针对目录树的所有修改都是在一个 Subversion 提交事务的上下文中完成,
+        下面是修改文件系统的简化过程:</para>
+
+      <orderedlist>
+        <listitem>
+      <!--
+          <para>Begin a Subversion commit transaction.</para>
+      -->
+          <para>开始一个 Subversion 提交事务.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Make your changes (adds, deletes, property
+            modifications, etc.).</para>
+      -->
+          <para>执行修改 (添加, 删除, 修改属性等).</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Commit your transaction.</para>
+      -->
+          <para>提交事务.</para>
+        </listitem>
+      </orderedlist>
+
+      <!--
+      <para>Once you have committed your transaction, your filesystem
+        modifications are permanently stored as historical artifacts.
+        Each of these cycles generates a single new revision of your
+        tree, and each revision is forever accessible as an immutable
+        snapshot of <quote>the way things were.</quote></para>
+      -->
+      <para>事务一旦提交, 文件系统的修改就已经作为历史财产持久化地保存下来.
+        每次轮回都会产生一个新的版本号, 每个版本号都是一个永远可访问的只读
+        快照.</para>
+
+      <sidebar>
+      <!--
+        <title>The Transaction Distraction</title>
+      -->
+        <title>两种事务</title>
+
+      <!--
+        <para>The notion of a Subversion transaction can become easily
+          confused with the transaction support provided by the
+          underlying database itself, especially given the former's
+          ### TODO
+          close proximity to the Berkeley DB database code in
+          <filename>libsvn_fs_base</filename>.  Both types of
+          transaction exist to provide atomicity and isolation.  In
+          other words, transactions give you the ability to perform a
+          set of actions in an all-or-nothing fashion&mdash;either all
+          the actions in the set complete with success, or they all
+          get treated as though <emphasis>none</emphasis> of them ever
+          happened&mdash;and in a way that does not interfere with
+          other processes acting on the data.</para>
+      -->
+        <para>用户很容易把 Subversion 的事务与后端数据库所提供的事务支持弄混.
+          这两种事务都用于提供原子性和隔离性, 换句话说, 事务允许用户以这样一
+          种方式执行一个操作集合&mdash;要么集合中的所有操作都执行成功, 要么一
+          个都不执行&mdash;同时不会干扰到操作数据的其他进程.</para>
+
+      <!--
+        <para>Database transactions generally encompass small
+          operations related specifically to the modification of data
+          in the database itself (such as changing the contents of a
+          table row).  Subversion transactions are larger in scope,
+          encompassing higher-level operations such as making
+          modifications to a set of files and directories that are
+          intended to be stored as the next revision of the filesystem
+          tree.  If that isn't confusing enough, consider the fact
+          that Subversion uses a database transaction during the
+          creation of a Subversion transaction (so that if the
+          creation of a Subversion transaction fails, the database will
+          look as though we had never attempted that creation in the first
+          place)!</para>
+      -->
+        <para>数据库事务所围绕的操作通常与修改数据库的数据有关 (例如修改表的一
+          行), 而 Subversion 事务所涵盖的范围更大, 层次也更高, 例如针对文件或
+          目录集合的修改, 这些修改将作为一个新的版本号存放到文件系统中. 如果
+          读者的思路还跟得上, 再考虑这样一个事实&mdash;Subversion 是在一个数据
+          库事务中完成 Subversion 事务的创建 (如果 Subversion 事务创建失败,
+          那么数据库看起来就像是从来没有创建过 Subversion 事务).</para>
+
+      <!--
+        <para>Fortunately for users of the filesystem API, the
+          transaction support provided by the database system itself
+          is hidden almost entirely from view (as should be expected
+          from a properly modularized library scheme).  It is only
+          when you start digging into the implementation of the
+          filesystem itself that such things become visible (or
+          interesting).</para>
+      -->
+        <para>幸运的是对于文件系统 API 用户而言, 由数据库所提供的事务支持几乎
+          是不可见的 (对于模块化的函数库而言, 这应该是人们所期待的效果), 只
+          有当人们想知道文件系统的实现细节时, 数据库事务才变成可见的.</para>
+
+      </sidebar>
+
+      <!--
+      <para>Most of the functionality the filesystem
+        interface provides deals with actions that occur on individual
+        filesystem paths.  That is, from outside the filesystem, the
+        primary mechanism for describing and accessing the individual
+        revisions of files and directories comes through the use of
+        path strings such as <filename>/foo/bar</filename>, just as though
+        you were addressing files and directories through your
+        favorite shell program.  You add new files and directories by
+        passing their paths-to-be to the right API functions.  You
+        query for information about them by the same mechanism.</para>
+      -->
+      <para>文件系统接口提供的大多数功能都是针对文件系统中的路径进行操作, 也
+        就是说从文件系统外部看来, 描述与访问文件版本号的主要机制都要通过路径
+        字符串 (例如 <filename>/foo/bar</filename>) 实施, 类似于在 shell 程序
+        中处理文件与目录. 你可以用路径参数调用正确的函数来创建新文件与目录,
+        也可以用其他函数查询文件信息.</para>
+
+      <!--
+      <para>Unlike most filesystems, though, a path alone is not
+        enough information to identify a file or directory in
+        Subversion.  Think of a directory tree as a two-dimensional
+        system, where a node's siblings represent a sort of
+        left-and-right motion, and navigating into the node's
+        subdirectories represents a downward motion.  <xref
+        linkend="svn.developer.layerlib.repos.dia-1"/> shows a typical
+        representation of a tree as exactly that.</para>
+      -->
+      <para>与大多数文件系统不同的是, 仅仅依靠路径无法在 Subversion 中唯一
+        地识别一个文件或目录. 把目录树看成是一个二维系统, 结点的兄弟代表了
+        一种横向移动, 而进入结点的子目录则是一种纵向移动. <xref
+          linkend="svn.developer.layerlib.repos.dia-1"/> 展示了一个目录树的
+        典型表示.</para>
+
+      <figure id="svn.developer.layerlib.repos.dia-1">
+      <!--
+        <title>Files and directories in two dimensions</title>
+      -->
+        <title>二维坐标系下的文件与目录</title>
+        <graphic fileref="images/ch08dia1.png"/>
+      </figure>
+
+      <!--
+      <para>The difference here is that the Subversion filesystem has
+        a nifty third dimension that most filesystems do not
+        have&mdash;Time!<footnote><para>We understand that this may
+        come as a shock to sci-fi fans who have long been under the
+        impression that Time was actually
+        the <emphasis>fourth</emphasis> dimension, and we apologize
+        for any emotional trauma induced by our assertion of a
+        different theory.</para></footnote>  In the filesystem
+        interface, nearly every function that has a
+        <parameter>path</parameter> argument also expects a
+        <parameter>root</parameter> argument.  This
+        <literal>svn_fs_root_t</literal> argument describes
+        either a revision or a Subversion transaction (which is simply
+        a revision in the making) and provides that third dimension
+        of context needed to understand the difference between
+        <filename>/foo/bar</filename> in revision 32, and the same
+        path as it exists in revision 98.  <xref
+        linkend="svn.developer.layerlib.repos.dia-2"/> shows revision
+        history as an added dimension to the Subversion filesystem
+        universe.</para>
+      -->
+      <para>Subversion 文件系统的不同点在于它还有第三个维度&mdash;时间
+        <footnote><para>某些科幻迷可能会感到震惊, 因为他们一直以来都认为时间
+            是第 <emphasis>四</emphasis> 个维度, 对此造成的情感创伤我们表示
+            道歉.</para></footnote> Subversion 文件系统提供的函数如果需要一
+        个 <parameter>path</parameter> 参数, 那么很可能也会需要一个
+        <parameter>root</parameter> 参数, 这个 <literal>svn_fs_root_t</literal>
+        类型的参数或者描述了一个版本号, 或者描述了一个 Subversion 事务 (完成中
+        的版本号), 它所提供的第三个维度可用于区分不同版本号下的
+        <filename>/foo/bar</filename>. <xref
+          linkend="svn.developer.layerlib.repos.dia-2"/> 展示了增加了第三个
+        维度后, 目录树的三维表示.</para>
+
+      <figure id="svn.developer.layerlib.repos.dia-2">
+      <!--
+        <title>Versioning time&mdash;the third dimension!</title>
+      -->
+        <title>Subversion 目录树的三维表示</title>
+        <graphic fileref="images/ch08dia2.png"/>
+      </figure>
+
+      <!--
+      <para>As we mentioned earlier, the
+        <filename>libsvn_fs</filename> API looks and feels like any
+        other filesystem, except that it has this wonderful versioning
+        capability.  It was designed to be usable by any program
+        interested in a versioning filesystem.  Not coincidentally,
+        Subversion itself is interested in that functionality.  But
+        while the filesystem API should be sufficient for basic file
+        and directory versioning support, Subversion wants
+        more&mdash;and that is where <filename>libsvn_repos</filename>
+        comes in.</para>
+      -->
+      <para>我们前面已经说过, <filename>libsvn_fs</filename> API 类似于其他
+        文件系统, 不同点是它提供了版本控制的功能, 不仅限于 Subversion, 任何
+        对版本化文件系统感兴趣的程序都能使用它的接口. 虽然文件系统 API 对于
+        基本的文件与目录的版本控制已经提供了足够的支持, 但 Subversion 的要求
+        不仅于此, 所以就有了 <filename>libsvn_repos</filename>.</para>
+
+      <!--
+      <para>The Subversion repository library
+        (<filename>libsvn_repos</filename>) sits (logically speaking)
+        atop the <filename>libsvn_fs</filename> API, providing
+        additional functionality beyond that of the underlying
+        versioned filesystem logic.  It does not completely wrap each
+        and every filesystem function&mdash;only certain major steps
+        in the general cycle of filesystem activity are wrapped by the
+        repository interface.  Some of these include the creation and
+        commit of Subversion transactions and the modification of
+        revision properties.  These particular events are wrapped by
+        the repository layer because they have hooks associated with
+        them.  A repository hook system is not strictly related to
+        implementing a versioning filesystem, so it lives in the
+        repository wrapper library.</para>
+      -->
+      <para>Subversion 仓库函数库 <filename>libsvn_repos</filename> 从逻辑上
+        讲处于 <filename>libsvn_fs</filename> 之上, 在下层版本化文件系统的
+        基础上提供了更多的功能. <filename>libsvn_repos</filename> 只封装了
+        文件系统的某些接口, 包括 Subversion 事务的创建与提交, 版本号属性的修改,
+        之所以要封装这些接口是因为仓库层为它们关联了钩子. 仓库的钩子系统
+        并不要求一定要关联到一个版本化文件系统, 因此它们位于仓库函数库.</para>
+      
+      <!--
+      <para>The hooks mechanism is but one of the reasons for the
+        abstraction of a separate repository library from the rest of
+        the filesystem code.  The <filename>libsvn_repos</filename>
+        API provides several other important utilities to Subversion.
+        These include the abilities to:</para>
+      -->
+      <para>钩子机制是把仓库函数库与文件系统函数库分开的原因之一.
+        <filename>libsvn_repos</filename> 还提供了以下功能:</para>
+
+      <itemizedlist>
+        <listitem>
+      <!--
+          <para>Create, open, destroy, and perform recovery steps on a
+            Subversion repository and the filesystem included in that
+            repository.</para>
+      -->
+          <para>创建, 打开, 销毁和恢复 Subversion 仓库 (包括仓库里的文件系统).
+          </para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Describe the differences between two filesystem
+            trees.</para>
+      -->
+          <para>描述两个文件系统树之间的差异.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Query for the commit log messages associated with all
+            (or some) of the revisions in which a set of files was
+            modified in the filesystem.</para>
+      -->
+          <para>查询全部 (或部分) 版本号的提交日志消息, 在每个版本号中
+            都有一些文件系统中的文件与目录被修改.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Generate a human-readable <quote>dump</quote> of the
+            filesystem&mdash;a complete representation of the revisions in
+            the filesystem.</para>
+      -->
+          <para>生成一个人类可读懂的文件系统 <quote>转储</quote> 文件&mdash;
+            它是文件系统中版本号的完整表示.</para>
+        </listitem>
+        <listitem>
+      <!--
+          <para>Parse that dump format, loading the dumped revisions
+            into a different Subversion repository.</para>
+      -->
+          <para>解析转储文件, 把转储后的版本号加载到另一个 Subversion 仓库里.
+          </para>
+        </listitem>
+      </itemizedlist>
+
+      <!--
+      <para>As Subversion continues to evolve, the repository library
+        will grow with the filesystem library to offer increased
+        functionality and configurable option support.</para>
+      -->
+      <para>随着 Subversion 的不断演变, 仓库函数库将与文件系统函数库共同成长,
+        提供越来越丰富的功能.</para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.layerlib.ra">
+      <!--
+      <title>Repository Access Layer</title>
+      -->
+      <title>仓库访问层</title>
+
+      <para>
+        <indexterm>
+          <primary>API</primary>
+          <secondary>layers</secondary>
+          <tertiary>Repository Access (RA) Layer</tertiary>
+          </indexterm>
+          如果说 Subversion 仓库层是 <quote>线段的另一端</quote>, 那么仓库
+          访问层 (Repository Access, 简称 RA) 就是线段本身. 仓库访问层充满了
+          客户端函数库与仓库函数库之间互相传递的数据. 仓库访问层包含的
+          函数库有模块加载库 <filename>libsvn_ra</filename>, 仓库访问模块本身
+          (目前的访问模块有 <filename>libsvn_ra_local</filename>,
+          <filename>libsvn_ra_serf</filename> 和
+          <filename>libsvn_ra_svn</filename>), 以及仓库访问模块所需的其他
+          函数库 (例如 <filename>mod_dav_svn</filename> 或
+          <filename>svnserve</filename>).</para>
+      <!--
+          If the Subversion Repository layer is at <quote>the other
+        end of the line,</quote> the Repository Access (RA) layer is
+      ### TODO
+        the line itself.  Charged with marshaling data between the
+        client libraries and the repository, this layer includes the
+        <filename>libsvn_ra</filename> module loader library, the RA
+        modules themselves (which currently includes
+        <filename>libsvn_ra_local</filename>,
+        <filename>libsvn_ra_serf</filename>, and
+        <filename>libsvn_ra_svn</filename>), and any additional
+        libraries needed by one or more of those RA modules (such as
+        the <filename>mod_dav_svn</filename> Apache module or
+        <filename>libsvn_ra_svn</filename>'s server,
+        <command>svnserve</command>).</para>
+      -->
+
+      <para>
+        <indexterm>
+          <primary>repository URL</primary>
+        </indexterm>
+        Subversion 使用 URL 标识仓库资源, URL 的协议部分 (通常是
+        <literal>file://</literal>, <literal>http://</literal>,
+        <literal>https://</literal>, <literal>svn://</literal> 或
+        <literal>svn+ssh://</literal>) 决定了使用哪种仓库访问模块处理请求.
+        每个仓库访问模块都注册了它支持的协议, 于是 RA 加载函数就能在运行时决定
+        使用哪个模块. 用户可以执行 <userinput>svn --version</userinput> 查看
+        可用的 RA 模块及其所支持的协议:</para>
+      <!--
+        Since Subversion uses URLs to identify its repository
+        resources, the protocol portion of the URL scheme (usually
+        <literal>file://</literal>, <literal>http://</literal>,
+        <literal>https://</literal>, <literal>svn://</literal>, or
+        <literal>svn+ssh://</literal>) is used to determine which RA
+        module will handle the communications.  Each module registers
+        a list of the protocols it knows how to <quote>speak</quote>
+        so that the RA loader can, at runtime, determine which module
+        to use for the task at hand.  You can determine which RA
+        modules are available to the Subversion command-line client,
+        and what protocols they claim to support, by running
+        <userinput>svn - -version</userinput>:</para>
+      -->
+
+      <informalexample>
+        <screen>
+$ svn --version
+svn, version 1.8.0-dev (under development)
+   compiled Jan  8 2013, 11:45:25 on i686-pc-linux-gnu
+
+Copyright (C) 2013 The Apache Software Foundation.
+This software consists of contributions made by many people;
+see the NOTICE file for more information.
+Subversion is open source software, see http://subversion.apache.org/
+
+The following repository access (RA) modules are available:
+
+* ra_svn : Module for accessing a repository using the svn network protocol.
+  - with Cyrus SASL authentication
+  - handles 'svn' scheme
+* ra_local : Module for accessing a repository on local disk.
+  - handles 'file' scheme
+* ra_serf : Module for accessing a repository via WebDAV protocol using serf.
+  - handles 'http' scheme
+  - handles 'https' scheme
+
+$
+</screen>
+      </informalexample>
+
+      <!--
+      <para>The public API exported by the RA layer contains
+        functionality necessary for sending and receiving versioned
+        data to and from the repository.  And each of the available RA
+        plug-ins is able to perform that task using a specific
+        protocol&mdash;<filename>libsvn_ra_serf</filename> speaks HTTP/WebDAV
+        (optionally using SSL encryption) with an Apache HTTP Server
+        that is running the <filename>mod_dav_svn</filename>
+        Subversion server module; <filename>libsvn_ra_svn</filename>
+        speaks a custom network protocol with the
+        <command>svnserve</command> program; and so on.</para>
+      -->
+      <para>RA 层导出的 API 包含了用于发送和接收版本化数据的必要功能, 而且每
+        一个 RA 插件都可以使用一种特定的协议完成这些任务, 例如
+        <filename>libsvn_ra_serf</filename> 使用 HTTP/WebDAV (还可以选择使用
+        SSL 加密) 与运行着 <filename>mod_dav_svn</filename> 模块的 Apache
+        HTTP 服务器通信; <filename>libsvn_ra_svn</filename> 使用一种 Subversion
+        特有的协议与 <command>svnserve</command> 服务器通信.</para>
+
+      <!--
+      <para>For those who wish to access a Subversion repository
+        using still another protocol, that is precisely why the
+        Repository Access layer is modularized!  Developers can simply
+        write a new library that implements the RA interface on one
+        side and communicates with the repository on the other.  Your
+        new library can use existing network protocols or you can
+        invent your own.  You could use interprocess communication
+        (IPC) calls, or&mdash;let's get crazy, shall we?&mdash;you
+        could even implement an email-based protocol.  Subversion
+        supplies the APIs; you supply the creativity.</para>
+      -->
+      <para>RA 层使用了模块化的设计, 因为 Subversion 开发人员考虑到人们可能
+        还想使用其他协议访问 Subversion 仓库, 这就使得新协议的开发更加方便.
+        开发人员仅仅需要写一个实现了 RA 接口的函数库, 新的函数库可以使用已
+        有的网络协议或你自己发明的新协议, 你甚至可以使用进程间通信 (IPC) 或
+        基于电子邮件的协议. Subversion 提供了 API, 而你则提供创造性.
+      </para>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.layerlib.client">
+      <!--
+      <title>Client Layer</title>
+      -->
+      <title>客户端层</title>
+      
+      <para>
+        <indexterm>
+          <primary>API</primary>
+          <secondary>layers</secondary>
+          <tertiary>Client Layer</tertiary>
+        </indexterm>
+        在客户端, 工作副本是所有操作发生的地方, 客户端实现的所有功能都是为
+        了更好地管理工作副本&mdash;包含了众多文件与子目录的目录, 作为一个
+        或多个仓库在本地的, 可编辑的 <quote>映射</quote>&mdash;并且向仓库
+        访问层发送或接收修改.</para>
+      <!--
+        On the client side, the Subversion working copy is where
+        all the action takes place.  The bulk of functionality
+        implemented by the client-side libraries exists for the sole
+        purpose of managing working copies&mdash;directories full of
+        files and other subdirectories that serve as a sort of local,
+        editable <quote>reflection</quote> of one or more repository
+        locations&mdash;and propagating changes to and from the
+        Repository Access layer.</para>
+      -->
+
+      <para>
+        <indexterm>
+          <primary>administrative directory</primary>
+        </indexterm>
+        Subversion 工作副本函数库 <filename>libsvn_wc</filename> 负责管理工作
+        副本的数据, 为了完成这个任务, 函数库把工作副本有关的管理信息都存放在
+        一个特殊的子目录内, 这个子目录的名字是 <filename>.svn</filename>, 每
+        个工作副本都有这个目录, 目录内包含了用于记录工作副本状态的各种文件与
+        目录, 为管理性的操作提供了一个私有工作空间. 如果读者熟悉 CVS, 就会发
+        现 <filename>.svn</filename> 的功能与 CVS 工作副本里的
+        <filename>CVS</filename> 目录非常类似.</para>
+      <!--
+        Subversion's working copy library,
+        <filename>libsvn_wc</filename>, is directly responsible for
+        managing the data in the working copies.  To accomplish this,
+        the library stores administrative information about the
+        working copy within a special subdirectory.  This
+        subdirectory, named <filename>.svn</filename>, is present in
+        each working copy and contains various other files
+        and directories that record state and provide a private
+        workspace for administrative action.  For those familiar with
+        CVS, this <filename>.svn</filename> subdirectory is similar in
+        purpose to the <filename>CVS</filename> administrative
+        directories found in CVS working copies.</para>
+      -->
+
+      <!--
+      <para>The Subversion client library,
+        <filename>libsvn_client</filename>, has the broadest
+        responsibility; its job is to mingle the functionality of the
+        working copy library with that of the Repository Access layer,
+        and then to provide the highest-level API to any application
+        that wishes to perform general revision control actions.  For
+        example, the function
+        <function>svn_client_checkout()</function> takes a URL as an
+        argument.  It passes this URL to the RA layer and opens an
+        authenticated session with a particular repository.  It then
+        asks the repository for a certain tree, and sends this tree
+        into the working copy library, which then writes a full
+        working copy to disk (<filename>.svn</filename> directories
+        and all).</para>
+      -->
+      <para>Subversion 客户端函数库 <filename>libsvn_client</filename>
+        所负责的工作是最广泛的, 它负责混合工作副本函数库与仓库访问层函数
+        库的功能, 进而向应用程序提供最高层次的 API, 允许应用程序执行最一
+        般的版本控制操作. 例如函数 <function>svn_client_checkout</function>
+        接收一个 URL 作为参数, 它将 URL 传递给 RA 层, 并打开一个关联到特定
+        仓库的已认证会话, 然后函数向仓库请求一个特定的目录树, 并将此目录树
+        发送给工作副本函数库, 最终在磁盘上得到一个完整的工作副本 (包括目录
+        <filename>.svn</filename>).</para>
+
+      <!--
+      <para>The client library is designed to be used by any
+        application.  While the Subversion source code includes a
+        standard command-line client, it should be very easy to write
+        any number of GUI clients on top of the client library.  New
+        GUIs (or any new client, really) for Subversion need not be
+        clunky wrappers around the included command-line
+        client&mdash;they have full access via the
+        <filename>libsvn_client</filename> API to the same functionality,
+        data, and callback mechanisms that the command-line client
+        uses.  In fact, the Subversion source code tree contains a
+        small C program (which you can find at
+        <filename>tools/examples/minimal_client.c</filename>) that
+        exemplifies how to wield the Subversion API to create a simple
+        client program.</para>
+      -->
+      <para>客户端函数库被设计成可被任意的应用程序使用, Subversion 源代码
+        包已经包含了一个命令行客户端, 不过基于客户端函数库写出一个 GUI 客户
+        端并没有多大的难度. 新的客户端没必要封装已有的命令行客户端&mdash;
+        它们完全可以通过 <filename>libsvn_client</filename> API 获得相同的
+        功能, 数据和回调机制. 实际上, Subversion 源代码包包含了一个最小化的
+        客户端实现 (代码在
+        <filename>tools/examples/minimal_client.c</filename>), 展示了如何使
+        用 Subversion API 实现一个简单的客户端程序.</para>
+
+      <sidebar>
+      <!--
+        <title>Binding Directly&mdash;A Word About Correctness</title>
+      -->
+        <title>直接绑定&mdash;关于正确性的一些话</title>
+
+      <!--
+        <para>Why should your GUI program bind directly with a
+          <filename>libsvn_client</filename> instead of acting as a
+          wrapper around a command-line program?  Besides simply being
+          more efficient, it can be more correct as well.  A
+          command-line program (such as the one supplied with
+          Subversion) that binds to the client library needs to
+          effectively translate feedback and requested data bits from
+          C types to some form of human-readable output.  This type of
+          translation can be lossy.  That is, the program may not
+          display all of the information harvested from the API or may
+          combine bits of information for compact
+          representation.</para>
+      -->
+        <para>为什么你的 GUI 程序应该使用 <filename>libsvn_client</filename>
+          开发, 而不是直接封装一个命令行程序? 前者除了效率更高之外, 也更
+          加正确. 基于客户端函数库开发的命令行程序 (例如 Subversion 所提供的)
+          需要把 C 类型的反馈或请求数据高效地翻译成人类可读懂的格式, 这种
+          翻译是有损的, 也就是说程序可能无法呈现从 API 获取到的所有信息,
+          或者为了紧凑显示而与其他信息进行组合.</para>
+
+      <!--
+        <para>If you wrap such a command-line program with yet another
+          program, the second program has access only to
+          already interpreted (and as we mentioned, likely incomplete)
+          information, which it must <emphasis>again</emphasis>
+          translate into <emphasis>its</emphasis> representation
+          format.  With each layer of wrapping, the integrity of the
+          original data is potentially tainted more and more, much
+          like the result of making a copy of a copy (of a copy&hellip;)
+          of a favorite audio or video cassette.</para>
+      -->
+        <para>如果你的程序建立在命令行程序的封装之上, 那么程序只能访问到已
+          被翻译过的信息 (上面我们刚说过, 信息可能是不完整的), 而这些信息
+          将被 <emphasis>再次</emphasis> 翻译成
+          <emphasis>程序自己的</emphasis> 表示格式. 每一次封装, 原始数据
+          的完整性被破坏的就越多, 类似于拷贝音频或视频磁带的拷贝 (的拷贝
+          &hellip;).</para>
+ 
+      <!--
+        <para>But the most compelling argument for binding directly to
+          the APIs instead of wrapping other programs is that the
+          Subversion project makes compatibility promises regarding
+          its APIs.  Across minor versions of those APIs (such as
+          between 1.3 and 1.4), no function's prototype will change.
+          In other words, you aren't forced to update your program's
+          source code simply because you've upgraded to a new version
+          of Subversion.  Certain functions might be deprecated, but
+          they still work, and this gives you a buffer of time to
+          eventually embrace the newer APIs.  These kinds of
+          compatibility promises do not exist for Subversion
+          command-line program output, which is subject to change from
+          release to release.</para>
+      -->
+        <para>基于 API 进行开发, 而不是封装其他程序的另一大原因是 Subversion
+          保证了 API 的兼容性. 在次版本号不同的 API 之间 (例如 1.3 和
+          1.4), 其函数原型不会发生变化, 也就是说在升级 Subversion 时, 不
+          必升级你自己的程序. 特定的一些函数可能不再赞成使用, 但它们仍然可
+          以正常工作, 这就给了你一定的缓冲时间升级到最新的 API. 然而
+          Subversion 命令行程序的输出无法保证这种兼容性.</para>
+
+      </sidebar>
+
+    </sect2>
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.developer.usingapi">
+      <!--
+    <title>Using the APIs</title>
+      -->
+    <title>使用 API</title>
+
+      <!--
+    <para>Developing applications against the Subversion library APIs
+      is fairly straightforward.  Subversion is primarily a set of C
+      libraries, with header (<filename>.h</filename>) files that live
+      in the <filename>subversion/include</filename> directory of the
+      source tree.  These headers are copied into your system
+      locations (e.g., <filename>/usr/local/include</filename>)
+      when you build and install Subversion itself from source.  These
+      headers represent the entirety of the functions and types meant
+      to be accessible by users of the Subversion libraries.  The
+      Subversion developer community is meticulous about ensuring that
+      the public API is well documented&mdash;refer directly to the
+      header files for that documentation.</para>
+      -->
+    <para>基于 Subversion 函数库 API 开发应用程序是一件相对比较直截了当
+      的事. Subversion 主要由 C 函数库组成, 它们的头文件
+      (<filename>.h</filename>) 在源代码包的
+      <filename>subversion/include</filename> 目录内. 如果你从源代码编译
+      安装了 Subversion, 这些头文件就会被复制到你的系统目录中 (例如
+      <filename>/usr/local/include</filename>). 这些头文件代表了能够被
+      用户访问到的 Subversion 函数库的全部函数与类型. Subversion 开发
+      社区非常注重 API 的文档&mdash;头文件里已经包含了关于如何使用 API 的
+      完整文档.</para>
+
+      <!--
+    <para>When examining the public header files, the first thing you
+      might notice is that Subversion's datatypes and functions are
+      namespace-protected.  That is, every public Subversion symbol
+      name begins with <literal>svn_</literal>, followed by a short
+      code for the library in which the symbol is defined (such as
+      <literal>wc</literal>, <literal>client</literal>,
+      <literal>fs</literal>, etc.), followed by a single underscore
+      (<literal>_</literal>), and then the rest of the symbol name.
+      Semipublic functions (used among source files of a given
+      library but not by code outside that library, and found inside
+      the library directories themselves) differ from this naming
+      scheme in that instead of a single underscore after the library
+      code, they use a double underscore
+      (<literal>_&thinsp;_</literal>).  Functions that are private to
+      a given source file have no special prefixing and are declared
+      <literal>static</literal>.  Of course, a compiler isn't
+      interested in these naming conventions, but they help to clarify
+      the scope of a given function or datatype.</para>
+      -->
+    <para>浏览头文件时, 你注意到的第一件事可能是 Subversion 的数据类型
+      和函数是被名字空间保护起来的, 详细地说, 每一个公开的 Subversion 符号
+      名都以 <literal>svn_</literal> 开始, 然后是表示该符号定义所在的
+      函数库的编码 (例如 <literal>wc</literal>, <literal>client</literal>,
+      <literal>fs</literal> 等), 然后是一个下划线 (<literal>_</literal>),
+      然后是符号名剩下的部分. 半公开的函数 (只被单个函数库的源文件们使用,
+      在该函数库外无法使用, 而且这些半公开函数的定义位于能使用它们的库函数
+      目录内) 使用不同的命名模式, 在函数库编码后面是两个连续的下划线
+      (<literal>_&thinsp;_</literal>), 而非一个下划线. 源文件内的私有函数
+      没有特定的前缀, 它们都被声明为 <literal>static</literal>. 当然, 这些
+      命名规范对编译器没什么意义, 但却有助于开发人员理解函数和数据类型的
+      作用域.</para>
+
+      <!--
+    <para>Another good source of information about programming against
+      the Subversion APIs is the project's own hacking guidelines,
+      which you can find at
+      <ulink url="http://subversion.apache.org/docs/community-guide/"
+      />.  This document contains useful information, which, while
+      aimed at developers and would-be developers of Subversion
+      itself, is equally applicable to folks developing against
+      Subversion as a set of third-party
+      libraries.<footnote><para>After all, Subversion uses
+      Subversion's APIs, too.</para></footnote></para>
+      -->
+    <para>学习如何使用 Subversion API 进行开发的另一个信息来源是官网的
+      编程文档 (<ulink
+        url="http://subversion.apache.org/docs/community-guide/"/>).
+      这篇文档主要针对 Subversion 开发人员, 但对于把 Subversion 用作第
+      三方函数库的开发人员来说同样有用.<footnote><para>毕竟 Subversion
+          也使用了 Subversion 的 API.</para></footnote></para>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.usingapi.apr">
+      <!--
+      <title>The Apache Portable Runtime Library</title>
+      -->
+      <title>Apache 可移植运行库</title>
+
+      <!--
+      <para>Along with Subversion's own datatypes, you will see many
+        references to datatypes that begin with
+        <literal>apr_</literal>&mdash;symbols from the Apache Portable
+        Runtime (APR) library.  APR is Apache's portability library,
+        originally carved out of its server code as an attempt to
+        separate the OS-specific bits from the OS-independent portions
+        of the code.  The result was a library that provides a generic
+        API for performing operations that differ mildly&mdash;or
+        wildly&mdash;from OS to OS.  While the Apache HTTP Server was
+        obviously the first user of the APR library, the Subversion
+        developers immediately recognized the value of using APR as
+        well.  This means that there is practically no OS-specific
+        code in Subversion itself.  Also, it means that the Subversion
+        client compiles and runs anywhere that the Apache HTTP Server
+        does.  Currently, this list includes all flavors of Unix,
+        Win32, BeOS, OS/2, and Mac OS X.</para>
+      -->
+      <para>除了 Subversion 自己的数据类型, 你还会看到很多以
+        <literal>apr_</literal> 开始的数据类型&mdash;这些类型来自
+        Apache 可移植运行库 (Apache Portable Runtime, 简称 APR). APR
+        是 Apache 开发的可移植库, 最初是为了将服务器代码中与操作系统
+        相关的代码和不相关的代码分离开, 最终产生了一个提供通用 API 的
+        函数库, 这些 API 隐藏了操作系统之间的差异. 虽然 Apache HTTP 服务
+        器是 APR 的第一个用户, 但 Subversion 开发团队很快就意识到了 APR
+        的价值. 使用 APR 库意味着在 Subversion 代码中不存在依赖操作系统版
+        本的代码, 同时还意味着只要操作系统能编译和运行 Apache HTTP 服务器,
+        那它就能够编译和运行 Subversion 客户端程序, 目前 APR 支持的操作系统
+        包括所有的 Unix 系统, Win32, BeOS, OS/2 和 Mac OS X.</para>
+
+      <!--
+      <para>In addition to providing consistent implementations of
+        system calls that differ across operating
+        systems,<footnote><para>Subversion uses ANSI system calls and
+        datatypes as much as possible.</para></footnote> APR gives
+        Subversion immediate access to many custom datatypes, such as
+        dynamic arrays and hash tables.  Subversion uses these types
+        extensively.  But perhaps the most pervasive APR datatype,
+        found in nearly every Subversion API prototype, is the
+        <literal>apr_pool_t</literal>&mdash;the APR memory pool.
+        Subversion uses pools internally for all its memory allocation
+        needs (unless an external library requires a different memory
+        management mechanism for data passed through its
+        API),<footnote><para>Berkeley DB is an example of such a
+        library.</para></footnote> and while a person coding against
+        the Subversion APIs is not required to do the same,
+        she <emphasis>is</emphasis> required to provide pools to the
+        API functions that need them.  This means that users of the
+        Subversion API must also link against APR, must
+        call <function>apr_initialize()</function> to initialize the
+        APR subsystem, and then must create and manage pools for use
+        with Subversion API calls, typically by
+        using <function>svn_pool_create()</function>,
+        <function>svn_pool_clear()</function>, and
+        <function>svn_pool_destroy()</function>.</para>
+      -->
+      <para>除了为不同的操作系统提供一致的系统调用实现外,<footnote>
+          <para>Subversion 尽可能使用 ANSI 规定的系统调用和数据类型.
+        </para></footnote> APR 还提供了许多定制化的数据类型, 例如动态数
+        组和哈希表, 这些数据类型在 Subversion 中用得非常广泛, 其中出现
+        得最多的类型是 <literal>apr_pool_t</literal>&mdash;APR 内存池&mdash;
+        它几乎出现在每一个 Subversion API 函数原型中. Subversion 使用
+        内存池完成所有内部的内存分配, (除非外部的函数库为它的参数指定了
+        一个不同的内存管理机制 <footnote><para>Berkeley DB 就是这样一种
+            函数库.</para></footnote>) 不过并不要求 Subversion API 的用户
+        也要用 APR 内存池完成内存管理, 他只需要向 Subversion API 提供一
+        个内存池参数即可. 这就要求 Subversion API 用户必须在编译时链接
+        APR, 必须调用 <function>apr_initialize()</function> 初始化 APR 子
+        系统, 然后调用 <function>svn_pool_create()</function>,
+        <function>svn_pool_clear()</function> 和
+        <function>svn_pool_destroy()</function> 完成内存池的创建和管理.
+      </para>
+
+      <sidebar>
+      <!--
+        <title>Programming with Memory Pools</title>
+      -->
+        <title>面向内存池编程</title>
+
+        <para>
+          <indexterm>
+            <primary>API</primary>
+            <secondary>memory pools</secondary>
+          </indexterm>
+          几乎每一个用过 C 语言做过开发的程序员都会对内存管理感到畏惧.
+          分配足够多的内存, 跟踪内存的分配, 不再使用时释放内存&mdash;
+          这些工作可以变得非常复杂. 如果处理不当, 很可能会导致程序&mdash;
+          甚至整个操作系统&mdash;崩溃.</para>
+      <!--
+          Almost every developer who has used the C programming
+          language has at some point sighed at the daunting task of
+          managing memory usage.  Allocating enough memory to use,
+          keeping track of those allocations, freeing the memory when
+          you no longer need it&mdash;these tasks can be quite
+          complex.  And of course, failure to do those things properly
+          can result in a program that crashes itself, or worse,
+          crashes the computer.</para>
+      -->
+
+      <!--
+        <para>Higher-level languages, on the other hand, either take
+          the job of memory management away from you completely or
+          make it something you toy with only when doing extremely
+          tight program optimization.  Languages such as Java and
+          Python use <firstterm>garbage collection</firstterm>,
+          allocating memory for objects when needed, and automatically
+          freeing that memory when the object is no longer in
+          use.</para>
+      -->
+        <para>另一方面, 高级程序设计语言要么把内存管理的工作从程序员的
+          手中完成解放出来, 要么只有在非常有必要的情况下 (例如极致的内存
+          优化) 才由程序员来管理内存. 例如 Java 和 Python 使用了
+          <firstterm>垃圾收集</firstterm> (<firstterm>garbage
+            collection</firstterm>), 当需要时为对象分配内存, 以及当对象
+          不再被使用时释放内存.</para>
+
+      <!--
+        <para>APR provides a middle-ground approach called
+          <firstterm>pool-based memory management</firstterm>.  It
+          allows the developer to control memory usage at a lower
+          resolution&mdash;per chunk (or <quote>pool</quote>) of
+          memory, instead of per allocated object.  Rather than using
+          <function>malloc()</function> and friends to allocate enough
+          memory for a given object, you ask APR to allocate the
+          memory from a memory pool.  When you're finished using the
+          objects you've created in the pool, you destroy the entire
+          pool, effectively de-allocating the memory consumed by
+          <emphasis>all</emphasis> the objects you allocated from it.
+          Thus, rather than keeping track of individual objects that
+          need to be de-allocated, your program simply considers the
+          general lifetimes of those objects and allocates the objects
+          in a pool whose lifetime (the time between the pool's
+          creation and its deletion) matches the object's
+          needs.</para>
+      -->
+        <para>APR 提供了一种介于两者之间的方法, 称为
+          <firstterm>基于池的内存管理</firstterm> (<firstterm>pool-based
+            memory management</firstterm>), 内存池允许程序员使用一种比较
+          粗糙的粒度控制内存的使用&mdash;关注内存的每一大块 (或
+          <quote>池</quote>), 而非每一个分配的对象. 不是使用
+          <function>malloc()</function> 及其亲友来分配内存, 而是调用
+          APR 库函数从内存池中分配内存. 如果从内存池中分配而来的对象都
+          已使用完毕, 你就可以销毁整个内存池, 同时也销毁了从该内存池中
+          分配的 <emphasis>所有</emphasis> 对象. 于是, 你的程序不用再跟踪
+          将被释放的单个对象, 只需要考虑这些对象普遍的生命周期, 然后从
+          生命周期 (内存池被创建和销毁的时间) 匹配的内存池中分配这些对象.
+        </para>
+
+      </sidebar>
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.usingapi.funcsbatons">
+      <!--
+      <title>Functions and Batons</title> 
+      -->
+      <title>函数与不透明数据</title>
+
+      <para>
+        <indexterm>
+          <primary>API</primary>
+          <secondary>batons</secondary>
+        </indexterm>
+        为了充分利用异步化的行为, 以及向 Subversion API 用户提供钩子函数,
+        以便按照定制化的方式处理数据, 许多函数都接受这样一对参数: 一个
+        指向回调函数的指针以及一个指向不透明数据 (称为
+        <firstterm>baton</firstterm>) 的指针, baton 携带了回调函数所需的
+        各种上下文信息. Baton 通常就是一个 C 语言结构体, 它带有回调函数所需
+        的额外信息, 而这些信息对于调用回调函数的代码来说是不透明的.</para>
+      <!--
+        To facilitate <quote>streamy</quote> (asynchronous) behavior
+        and provide consumers of the Subversion C API with hooks for
+        handling information in customizable ways, many functions in
+        the API accept pairs of parameters: a pointer to a callback
+        function, and a pointer to a blob of memory called
+        a <firstterm>baton</firstterm> that carries context
+        information for that callback function.  Batons are typically
+        C structures with additional information that the callback
+        function needs but which is not given directly to the callback
+        function by the driving API function.</para>
+      -->
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.usingapi.urlpath">
+      <!--
+      <title>URL and Path Requirements</title>
+      -->
+      <title>URL 和路径要求</title>
+
+      <!--
+      <para>With remote version control operation as the whole point
+        of Subversion's existence, it makes sense that some attention
+        has been paid to internationalization (i18n) support.  After
+        all, while <quote>remote</quote> might mean <quote>across the
+        office,</quote> it could just as well mean <quote>across the
+        globe.</quote> To facilitate this, all of Subversion's public
+        interfaces that accept path arguments expect those paths to be
+        canonicalized&mdash;which is most easily accomplished by
+        passing them through <function>svn_dirent_canonicalize()</function>
+        or <function>svn_uri_canonicalize()</function> (depending on
+        whether you are canonicalizing a local system path or a URL,
+        respectively)&mdash;and encoded in UTF-8.  This means, for
+        example, that any new client binary that drives the
+        <filename>libsvn_client</filename> interface needs to first
+        convert paths from the locale-specific encoding to UTF-8
+        before passing those paths to the Subversion libraries, and
+        then reconvert any resultant output paths from Subversion
+        back into the locale's encoding before using those paths for
+        non-Subversion purposes.  Fortunately, Subversion provides a
+        suite of functions (see
+        <filename>subversion/include/svn_utf.h</filename>) that 
+        any program can use to do these conversions.</para>
+      -->
+      <para>由于远程版本控制操作是 Subversion 存在的最重要理由, 因此我们
+        需要注意对国际化 (i18n) 的支持. 毕竟 <quote>远程</quote> 不仅意味
+        着 <quote>跨越办公室</quote>, 它还可能意味着 <quote>跨越国界</quote>.
+        为了支持国际化, Subversion 所有接受路径参数的公共接口都要求这些路径
+        是规范化的&mdash;可通过调用函数
+        <function>svn_dirent_canonicalize()</function> 和
+        <function>svn_uri_canonicalize()</function> 分别得到规范化的本地
+        文件系统路径和 URL&mdash;而且是 UTF-8 编码. 举个例子, 任意一个使用
+        <filename>libsvn_client</filename> 的客户端程序在把路径传递给
+        Subversion 函数库之前, 都要先把本地编码的路径转换成 UTF-8 编码.
+        在得到 Subversion 产生的路径之后, 要先把这些路径转换成本地编码,
+        然后再交给非 Subversion 函数进行处理. 幸运的是, Subversion 提供了
+        一套函数 (见
+        <filename>subversion/include/svn_utf.h</filename>) 用于完成这些
+        编码转换.</para>
+
+      <!--
+      <para>Also, Subversion APIs require all URL parameters to be
+        properly URI-encoded.  So, instead of passing
+        <uri>file:///home/username/My&nbsp;File.txt</uri> as the URL of a
+        file named <filename>My&nbsp;File.txt</filename>, you need to pass
+        <uri>file:///home/username/My%20File.txt</uri>.  Again,
+        Subversion supplies helper functions that your application can
+        use&mdash;<function>svn_path_uri_encode()</function> and
+        <function>svn_path_uri_decode()</function>, for URI encoding
+        and decoding, respectively.</para>
+      -->
+      <para>另外, Subversion API 要求所有的 URL 参数必须符合 URI 编码
+        规则. 比如说你不能把文件 <filename>My&nbsp;File.txt</filename>
+        的 URL 写成 <uri>file:///home/username/My&nbsp;File.txt</uri>,
+        而应该写成 <uri>file:///home/username/My%20File.txt</uri>. 同样,
+        Subversion 提供了函数 <function>svn_path_uri_encode()</function>
+        和 <function>svn_path_uri_decode()</function> 分别用于 URI 的编码
+        和解码.</para>
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.usingapi.otherlangs">
+      <!--
+      <title>Using Languages Other Than C and C++</title> 
+      -->
+      <title>使用除了 C 和 C++ 之外的语言</title>
+
+      <!--
+      <para>If you are interested in using the Subversion libraries in
+        conjunction with something other than a C program&mdash;say, a
+        Python or Perl script&mdash;Subversion has some support for this
+        via the Simplified Wrapper and Interface Generator (SWIG).  The
+        SWIG bindings for Subversion are located in
+        ### TODO (binding)
+        <filename>subversion/bindings/swig</filename>.  They are still
+        maturing, but they are usable.  These bindings allow you
+        to call Subversion API functions indirectly, using wrappers that
+        translate the datatypes native to your scripting language into
+        the datatypes needed by Subversion's C libraries.</para>
+      -->
+      <para>如果你希望使用除了 C 之外的程序&mdash;例如 Python 或 Perl
+        脚本&mdash;调用 Subversion 函数库, 对此, Subversion 通过 SWIG
+        (Simplified Wrapper and Interface Generator) 提供了一些支持.
+        Subversion 的 SWIG 绑定位于
+        <filename>subversion/bindings/swig</filename>, 虽然它们还在不断
+        成熟中, 但是现在已经是可用的了. 这些绑定通过封装脚本, 把脚本语言
+        的数据类型翻译成 Subversion C 函数库所需的数据类型, 从而允许你
+        间接调用 Subversion API.</para>
+
+      <!--
+      <para>Significant efforts have been made toward creating
+        ### TODO (SWIG-generated)
+        functional SWIG-generated bindings for Python, Perl, and Ruby.
+        To some extent, the work done preparing the SWIG interface
+        files for these languages is reusable in efforts to generate
+        bindings for other languages supported by SWIG (which include
+        versions of C#, Guile, Java, MzScheme, OCaml, PHP, and Tcl,
+        among others).  However, some extra programming is required to
+        compensate for complex APIs that SWIG needs some help
+        translating between languages.  For more information on SWIG
+        itself, see the project's web site at <ulink
+        url="http://www.swig.org/"/>.</para>
+      -->
+    <para>Subversion 开发团队已经花了很多精力为 Python, Perl 和 Ruby
+      开发功能齐全的 SWIG 绑定, 在一定程度上, 为这些脚本语言准备 SWIG
+      接口所做的准备工作可以重用到 SWIG 支持的其他语言上 (包括 C#, Guile,
+      Java, MzScheme, OCaml, PHP, Tcl 等). 然而, 如果接口过于复杂, SWIG
+      在不同语言之间翻译还需要帮助时, 那么开发人员还需要付出额外的开发工作.
+      关于 SWIG 的详细信息, 见官网 <ulink url="http://www.swig.org/"/>.
+    </para>
+
+      <!--
+      <para>Subversion also has language bindings for Java.  The
+        javahl bindings (located in
+        <filename>subversion/bindings/java</filename> in the
+        Subversion source tree) aren't SWIG-based, but are instead a
+        mixture of Java and hand-coded JNI.  Javahl covers most
+        Subversion client-side APIs and is specifically targeted at
+        implementors of Java-based Subversion clients and IDE
+        integrations.</para>
+      -->
+      <para>Subversion 还拥有针对 Java 的语言绑定. Javahl 绑定 (位于
+        <filename>subversion/bindings/java</filename>) 不是基于 SWIG,
+        而是 Java 和手工编写的 JNI 的混合物. Javahl 涵盖了 Subversion
+        客户端的大部分 API, 它主要面对基于 Java 的 Subversion 客户端实现
+        和 IDE 集成.</para>
+
+      <!-- ### TODO -->
+      <!--
+      <para>Subversion's language bindings tend to lack the level of
+        developer attention given to the core Subversion modules, but
+        can generally be trusted as production-ready.  A number of
+        scripts and applications, alternative Subversion GUI clients,
+        and other third-party tools are successfully using
+        Subversion's language bindings today to accomplish their
+        Subversion integrations.</para>
+      -->
+      <para>Subversion 的语言绑定倾向于让用户相信这些绑定已经是生产就绪
+        的了, 而不是让他们把注意力放在 Subversion 核心模块上. 有大量的脚本
+        和应用程序, Subversion GUI 客户端和其他第三方工具都已经成功地把
+        Subversion 语言绑定应用到它们的 Subversion 集成中.</para>
+
+      <!--
+      <para>It's worth noting here that there are other options for
+        interfacing with Subversion using other languages:  alternative
+        bindings for Subversion that aren't provided by the
+        Subversion development community at all.  There
+        are a couple of popular ones we feel are especially
+        noteworthy.  First, Barry Scott's PySVN bindings (<ulink
+        url="https://pysvn.sourceforge.io/" />) are a popular option for
+        binding with Python.  PySVN boasts of a more Pythonic
+        interface than the more C-like APIs provided by Subversion's
+        own Python bindings.  And if you're looking for a pure Java
+        implementation of Subversion, check out SVNKit (<ulink
+        url="http://svnkit.com/" />), which is Subversion rewritten
+        from the ground up in Java.</para>
+      -->
+      <para>为了使用其他语言与 Subversion 交互, 如果我们还能有其他一些选择,
+        那将会是一件非常有价值的事情, 例如不是由 Subversion 开发社区提供的
+        语言绑定, 其他有两个值得我们关注. 第一个是 Barry Scott 开发的 PySVN
+        绑定 (<ulink url="https://pysvn.sourceforge.io/" />), 一种很流行的
+        Python 绑定. 与 Subversion 所提供的 Python 相比, PySVN 呈现的接口
+        更具有 Python 风格. 如果你正在寻找一种纯 Java 实现的 Subversion,
+        可以试试 SVNKit (<ulink url="http://svnkit.com/" />).</para>
+
+      <sidebar>
+      <!--
+        <title>SVNKit Versus javahl</title>
+      -->
+        <title>SVNKit 与 javahl</title>
+
+      <!--
+        <para>In 2005, a small company called TMate announced the
+          1.0.0 release of JavaSVN&mdash;a pure Java implementation of
+          Subversion.  Since then, the project has been renamed to
+          SVNKit (available at <ulink url="http://svnkit.com/" />)
+          and has seen great success as a provider of Subversion
+          functionality to various Subversion clients, IDE
+          integrations, and other third-party tools.</para>
+      -->
+        <para>2005 年, 一个叫做 TMate 的小公司宣布发行 JavaSVN 1.0.0
+          &mdash;它是 Subversion 的纯 Java 语言实现. 从那时起, 该项目被重
+          命名为 SVNKit (官网是 <ulink url="http://svnkit.com/" />),
+          SVNKit 获得了巨大的成功, 它为不同的 Subversion 客户端, IDE 集成
+          和第三方工具提供 Subversion 功能.</para>
+
+      <!--
+        <para>The SVNKit library is interesting in that, unlike the
+          javahl library, it is not merely a wrapper around the
+          official Subversion core libraries.  In fact, it shares no
+          code with Subversion at all.  But while it is easy to
+          confuse SVNKit with javahl, and easier still to not even
+          realize which of these libraries you are using, folks should
+          be aware that SVNKit differs from javahl in some significant
+          ways.  First, while SVNKit is developed as open source
+          software just like Subversion, SVNKit's license is more
+          restrictive than that of
+          Subversion.<footnote><para>Redistributions in any form must
+          be accompanied by information on how to obtain complete
+          source code for the software that uses SVNKit and any
+          accompanying software that uses the software that uses
+          SVNKit. See <ulink url="http://svnkit.com/license.html" />
+          for details.</para></footnote>  Finally, by aiming to be a
+          pure Java Subversion library, SVNKit is limited in which
+          portions of Subversion can be reasonably cloned while still
+          keeping up with Subversion's releases.  This has already
+          happened once&mdash;SVNKit cannot access BDB-backed
+          Subversion repositories via the <literal>file://</literal>
+          protocol because there's no pure Java implementation of
+          Berkeley DB that is file-format-compatible with the native
+          implementation of that library.</para>
+      -->
+        <para>与 javahl 的不同点在于 SVNKit 不是 Subversion 核心函数库的封装,
+          事实上 SVNKit 与 Subversion 没有共享一行代码, 但是人们还是很容易
+          混淆 SVNKit 和 javahl, 甚至搞不清楚自己正在用的是哪个函数库. 读者
+          必须清醒地认识到 SVNKit 和 javahl 在某些方面非常不同, 首先, SVNKit
+          和 Subversion 一样都是开源软件, 但 SVNKit 的授权更加严格. <footnote>
+            <para>如果软件用到了 SVNKit, 或者用到了使用了 SVNKit 的软件, 那么
+              任意形式的二次发布必须携带关于如何获取软件完整源代码的信息. 详细
+              的授权见 <ulink url="http://svnkit.com/license.html" />.
+            </para></footnote> 然后,
+          SVNKit 的目标是完全用 Java 实现, 因此在复制 Subversion 的功能时,
+          既要跟上官方 Subversion 的脚步, 也要考虑用 Java 实现相同功能的可
+          行性. 例如 SVNKit 无法通过 <literal>file://</literal> 协议访问
+          使用 Berkeley DB 作为后端存储的仓库, 因为不存在纯 Java 实现的
+          Berkeley DB, 其文件格式可以完全兼容 Berkeley DB 的原生语言实现.
+        </para>
+
+      <!--
+        <para>That said, SVNKit has a well-established track record of
+          reliability.  And a pure Java solution is much more robust
+          in the face of programming errors&mdash;a bug in SVNKit
+          might raise a catchable Java Exception, but a bug in the
+          Subversion core libraries as accessed via javahl can bring
+          down your entire Java Runtime Environment.  So, weigh the
+          costs when choosing a Java-based Subversion
+          implementation.</para>
+      -->
+        <para>SVNKit 具有完善的可靠性记录跟踪机制. 作为一个纯 Java 实现的
+          软件, 在面对编程错误时将更加健壮&mdash;SVNKit 的错误会产生一个
+          可捕获的 Java 异常, 而如果通过 javahl 使用 Subversion 核心函数库
+          时发生了错误, 可能会导致整个 JRE (Java Runtime Environment) 崩溃.
+          所以说在选择基于 Java 的 Subversion 实现时, 应该仔细衡量代价.
+        </para>
+
+      </sidebar>
+
+    </sect2>
+
+    <!-- =============================================================== -->
+    <sect2 id="svn.developer.usingapi.codesamples">
+      <!--
+      <title>Code Samples</title> 
+      -->
+      <title>代码示例</title>
+
+      <!--
+      <para><xref linkend="svn.developer.layerlib.repos.ex-1" />
+        contains a code segment (written in C) that illustrates some
+        of the concepts we've been discussing.  It uses both the
+        repository and filesystem interfaces (as can be determined by
+        the prefixes <literal>svn_repos_</literal> and
+        <literal>svn_fs_</literal> of the function names,
+        respectively) to create a new revision in which a directory is
+        added.  You can see the use of an APR pool, which is passed
+        around for memory allocation purposes.  Also, the code reveals
+        a somewhat obscure fact about Subversion error
+        handling&mdash;all Subversion errors must be explicitly
+        handled to avoid memory leakage (and in some cases,
+        application failure).</para>
+      -->
+      <para><xref linkend="svn.developer.layerlib.repos.ex-1" /> 展示了一
+        个用 C 语言编写的代码示例, 说明了我们已经介绍过的几个概念. 示例
+        同时使用了仓库和文件系统接口 (可以从函数名的
+        <literal>svn_repos_</literal> 和 <literal>svn_fs_</literal> 前缀
+        看出) 来创建一个新的版本号, 该版本号添加了一个新目录. 你可以从示例
+        里看到 APR 内存池的用法&mdash;它们只是作为参数被传递给 Subversion
+        库函数. 示例还展示了 Subversion 较为晦涩的错误处理&mdash;必须显式
+        处理所有的 Subversion 错误, 以避免出现内存泄漏 (或程序失败).</para>
+
+      <example id="svn.developer.layerlib.repos.ex-1">
+      <!--
+        <title>Using the repository layer</title>
+      -->
+        <title>使用仓库层</title>
+
+        <programlisting>
+/* Convert a Subversion error into a simple boolean error code.
+ *
+ * NOTE:  Subversion errors must be cleared (using svn_error_clear())
+ *        because they are allocated from the global pool, else memory
+ *        leaking occurs.
+ */
+#define INT_ERR(expr)                           \
+  do {                                          \
+    svn_error_t *__temperr = (expr);            \
+    if (__temperr)                              \
+      {                                         \
+        svn_error_clear(__temperr);             \
+        return 1;                               \
+      }                                         \
+    return 0;                                   \
+  } while (0)
+
+/* Create a new directory at the path NEW_DIRECTORY in the Subversion
+ * repository located at REPOS_PATH.  Perform all memory allocation in
+ * POOL.  This function will create a new revision for the addition of
+ * NEW_DIRECTORY.  Return zero if the operation completes
+ * successfully, nonzero otherwise.
+ */
+static int
+make_new_directory(const char *repos_path,
+                   const char *new_directory,
+                   apr_pool_t *pool)
+{
+  svn_error_t *err;
+  svn_repos_t *repos;
+  svn_fs_t *fs;
+  svn_revnum_t youngest_rev;
+  svn_fs_txn_t *txn;
+  svn_fs_root_t *txn_root;
+  const char *conflict_str;
+
+  /* Open the repository located at REPOS_PATH. 
+   */
+  INT_ERR(svn_repos_open(&amp;repos, repos_path, pool));
+
+  /* Get a pointer to the filesystem object that is stored in REPOS. 
+   */
+  fs = svn_repos_fs(repos);
+
+  /* Ask the filesystem to tell us the youngest revision that
+   * currently exists. 
+   */
+  INT_ERR(svn_fs_youngest_rev(&amp;youngest_rev, fs, pool));
+
+  /* Begin a new transaction that is based on YOUNGEST_REV.  We are
+   * less likely to have our later commit rejected as conflicting if we
+   * always try to make our changes against a copy of the latest snapshot
+   * of the filesystem tree. 
+   */
+  INT_ERR(svn_repos_fs_begin_txn_for_commit2(&amp;txn, repos, youngest_rev,
+                                             apr_hash_make(pool), pool));
+
+  /* Now that we have started a new Subversion transaction, get a root
+   * object that represents that transaction. 
+   */
+  INT_ERR(svn_fs_txn_root(&amp;txn_root, txn, pool));
+  
+  /* Create our new directory under the transaction root, at the path
+   * NEW_DIRECTORY. 
+   */
+  INT_ERR(svn_fs_make_dir(txn_root, new_directory, pool));
+
+  /* Commit the transaction, creating a new revision of the filesystem
+   * which includes our added directory path.
+   */
+  err = svn_repos_fs_commit_txn(&amp;conflict_str, repos, 
+                                &amp;youngest_rev, txn, pool);
+  if (! err)
+    {
+      /* No error?  Excellent!  Print a brief report of our success.
+       */
+      printf("Directory '%s' was successfully added as new revision "
+             "'%ld'.\n", new_directory, youngest_rev);
+    }
+  else if (err-&gt;apr_err == SVN_ERR_FS_CONFLICT)
+    {
+      /* Uh-oh.  Our commit failed as the result of a conflict
+       * (someone else seems to have made changes to the same area 
+       * of the filesystem that we tried to modify).  Print an error
+       * message.
+       */
+      printf("A conflict occurred at path '%s' while attempting "
+             "to add directory '%s' to the repository at '%s'.\n", 
+             conflict_str, new_directory, repos_path);
+    }
+  else
+    {
+      /* Some other error has occurred.  Print an error message.
+       */
+      printf("An error occurred while attempting to add directory '%s' "
+             "to the repository at '%s'.\n", 
+             new_directory, repos_path);
+    }
+
+  INT_ERR(err);
+} 
+</programlisting>
+      </example>
+
+      <!--
+      <para>Note that in <xref
+        linkend="svn.developer.layerlib.repos.ex-1" />, the code could
+        just as easily have committed the transaction using
+        <function>svn_fs_commit_txn()</function>.  But the filesystem
+        API knows nothing about the repository library's hook
+        mechanism.  If you want your Subversion repository to
+        automatically perform some set of non-Subversion tasks every
+        time you commit a transaction (e.g., sending an
+        email that describes all the changes made in that transaction
+        to your developer mailing list), you need to use the
+        <filename>libsvn_repos</filename>-wrapped version of that
+        function, which adds the hook triggering
+        functionality&mdash;in this case,
+        <function>svn_repos_fs_commit_txn()</function>.  (For more
+        information regarding Subversion's repository hooks, see <xref
+        linkend="svn.reposadmin.hooks" />.)</para>
+      -->
+    <para>注意到在 <xref
+        linkend="svn.developer.layerlib.repos.ex-1" /> 里, 代码本可以简单
+      地调用 <function>svn_fs_commit_txn()</function> 来提交事务, 但文件
+      系统 API 对于仓库函数库的钩子机制一无所知. 如果你希望每次提交完一个
+      事务后, Subversion 仓库都会自动执行一些非 Subversion 任务 (例如发送
+      一封描述了事务所做的修改的邮件到邮件列表), 你需要使用
+      <filename>libsvn_repos</filename> 包装后的函数&mdash;在上面的例子里
+      就是 <function>svn_repos_fs_commit_txn()</function>&mdash;这些函数添
+      加了钩子触发功能. (关于 Subversion 钩子机制的更多内容, 见 <xref
+        linkend="svn.reposadmin.hooks" />.)</para>
+
+      <!--
+      <para>Now let's switch languages.  <xref
+        linkend="svn.developer.usingapi.otherlangs.ex-1" /> is a
+        sample program that uses Subversion's SWIG Python bindings to
+        recursively crawl the youngest repository revision, and to
+        print the various paths reached during the crawl.</para>
+      -->
+      <para>现在换另一种语言. <xref
+          linkend="svn.developer.usingapi.otherlangs.ex-1" /> 使用了
+        Subversion 的 SWIG Python 绑定来递归地搜索仓库最新的版本号, 并打印
+        出在搜索过程中达到的不同路径.</para>
+
+      <example id="svn.developer.usingapi.otherlangs.ex-1">
+      <!--
+        <title>Using the repository layer with Python</title>
+      -->
+        <title>使用 Python 访问仓库层</title>
+
+        <programlisting>
+#!/usr/bin/python
+
+"""Crawl a repository, printing versioned object path names."""
+
+import sys
+import os.path
+import svn.fs, svn.core, svn.repos
+
+def crawl_filesystem_dir(root, directory):
+    """Recursively crawl DIRECTORY under ROOT in the filesystem, and return
+    a list of all the paths at or below DIRECTORY."""
+
+    # Print the name of this path.
+    print directory + "/"
+    
+    # Get the directory entries for DIRECTORY.
+    entries = svn.fs.svn_fs_dir_entries(root, directory)
+
+    # Loop over the entries.
+    names = entries.keys()
+    for name in names:
+        # Calculate the entry's full path.
+        full_path = directory + '/' + name
+
+        # If the entry is a directory, recurse.  The recursion will return
+        # a list with the entry and all its children, which we will add to
+        # our running list of paths.
+        if svn.fs.svn_fs_is_dir(root, full_path):
+            crawl_filesystem_dir(root, full_path)
+        else:
+            # Else it's a file, so print its path here.
+            print full_path
+
+def crawl_youngest(repos_path):
+    """Open the repository at REPOS_PATH, and recursively crawl its
+    youngest revision."""
+    
+    # Open the repository at REPOS_PATH, and get a reference to its
+    # versioning filesystem.
+    repos_obj = svn.repos.svn_repos_open(repos_path)
+    fs_obj = svn.repos.svn_repos_fs(repos_obj)
+
+    # Query the current youngest revision.
+    youngest_rev = svn.fs.svn_fs_youngest_rev(fs_obj)
+    
+    # Open a root object representing the youngest (HEAD) revision.
+    root_obj = svn.fs.svn_fs_revision_root(fs_obj, youngest_rev)
+
+    # Do the recursive crawl.
+    crawl_filesystem_dir(root_obj, "")
+    
+if __name__ == "__main__":
+    # Check for sane usage.
+    if len(sys.argv) != 2:
+        sys.stderr.write("Usage: %s REPOS_PATH\n"
+                         % (os.path.basename(sys.argv[0])))
+        sys.exit(1)
+
+    # Canonicalize the repository path.
+    repos_path = svn.core.svn_dirent_canonicalize(sys.argv[1])
+
+    # Do the real work.
+    crawl_youngest(repos_path)
+</programlisting>
+      </example>
+
+      <!--
+      <para>This same program in C would need to deal with APR's
+        memory pool system.  But Python handles memory usage
+        automatically, and Subversion's Python bindings adhere to that
+        convention.  In C, you'd be working with custom datatypes
+        (such as those provided by the APR library) for representing
+        the hash of entries and the list of paths, but Python has
+        hashes (called <quote>dictionaries</quote>) and lists as
+        built-in datatypes, and it provides a rich collection of
+        functions for operating on those types.  So SWIG (with the
+        help of some customizations in Subversion's language bindings
+        layer) takes care of mapping those custom datatypes into the
+        native datatypes of the target language.  This provides a more
+        intuitive interface for users of that language.</para>
+      -->
+      <para>同样的程序如果用 C 语言实现, 那就需要考虑 APR 的内存池子系统,
+        但是 Python 自动处理内存的分配与释放. 在 C 语言里, 你需要考虑各种
+        定制化数据类型 (例如 APR 函数库提供的数据类型), 这些数据类型用于
+        表示哈希项和路径列表, 但是 Python 内建了用于表示哈希 (Python 将其
+        称为 <quote>字典</quote>) 和列表的数据类型, 而且提供了丰富的函数
+        用来管理这些数据结构. 于是 SWIG (在 Subversion 语言绑定层的某些
+        定制化修改的帮助下) 负责把这些定制化的数据类型映射到目标语言的本
+        地类型, 用户就能更加直观地使用目标语言.</para>
+
+      <!--
+      <para>The Subversion Python bindings can be used for working
+        copy operations, too.  In the previous section of this
+        chapter, we mentioned the <filename>libsvn_client</filename>
+        interface and how it exists for the sole purpose of
+        simplifying the process of writing a Subversion client.  <xref
+        linkend="svn.developer.usingapi.otherlangs.ex-2" /> is a brief
+        example of how that library can be accessed via the SWIG
+        Python bindings to re-create a scaled-down version of the
+        <command>svn status</command> command.</para>
+      -->
+      <para>Subversion 的 Python 绑定也能运用到工作副本的操作中. 在本章的
+        前一节里, 我们提到了 <filename>libsvn_client</filename> 接口, 以及
+        它存在的唯一目标就是简化 Subversion 客户端程序的开发. <xref
+          linkend="svn.developer.usingapi.otherlangs.ex-2" /> 展示了如何使用
+        SWIG Python 绑定访问 <filename>libsvn_client</filename> 函数库, 来
+        实现一个简化版的 <command>svn status</command> 命令.</para>
+
+      <example id="svn.developer.usingapi.otherlangs.ex-2">
+      <!--
+        <title>A Python status crawler</title>
+      -->
+        <title>用 Python 实现 svn status</title>
+
+        <programlisting>
+#!/usr/bin/env python
+
+"""Crawl a working copy directory, printing status information."""
+
+import sys
+import os.path
+import getopt
+import svn.core, svn.client, svn.wc
+
+def generate_status_code(status):
+    """Translate a status value into a single-character status code,
+    using the same logic as the Subversion command-line client."""
+    code_map = { svn.wc.svn_wc_status_none        : ' ',
+                 svn.wc.svn_wc_status_normal      : ' ',
+                 svn.wc.svn_wc_status_added       : 'A',
+                 svn.wc.svn_wc_status_missing     : '!',
+                 svn.wc.svn_wc_status_incomplete  : '!',
+                 svn.wc.svn_wc_status_deleted     : 'D',
+                 svn.wc.svn_wc_status_replaced    : 'R',
+                 svn.wc.svn_wc_status_modified    : 'M',
+                 svn.wc.svn_wc_status_conflicted  : 'C',
+                 svn.wc.svn_wc_status_obstructed  : '~',
+                 svn.wc.svn_wc_status_ignored     : 'I',
+                 svn.wc.svn_wc_status_external    : 'X',
+                 svn.wc.svn_wc_status_unversioned : '?',
+               }
+    return code_map.get(status, '?')
+
+def do_status(wc_path, verbose, prefix):
+    # Build a client context baton.
+    ctx = svn.client.svn_client_create_context()
+
+    def _status_callback(path, status):
+        """A callback function for svn_client_status."""
+
+        # Print the path, minus the bit that overlaps with the root of
+        # the status crawl
+        text_status = generate_status_code(status.text_status)
+        prop_status = generate_status_code(status.prop_status)
+        prefix_text = ''
+        if prefix is not None:
+            prefix_text = prefix + " "
+        print '%s%s%s  %s' % (prefix_text, text_status, prop_status, path)
+        
+    # Do the status crawl, using _status_callback() as our callback function.
+    revision = svn.core.svn_opt_revision_t()
+    revision.type = svn.core.svn_opt_revision_head
+    svn.client.svn_client_status2(wc_path, revision, _status_callback,
+                                  svn.core.svn_depth_infinity, verbose,
+                                  0, 0, 1, ctx)
+
+def usage_and_exit(errorcode):
+    """Print usage message, and exit with ERRORCODE."""
+    stream = errorcode and sys.stderr or sys.stdout
+    stream.write("""Usage: %s OPTIONS WC-PATH
+
+  Print working copy status, optionally with a bit of prefix text.
+
+Options:
+  --help, -h    : Show this usage message
+  --prefix ARG  : Print ARG, followed by a space, before each line of output
+  --verbose, -v : Show all statuses, even uninteresting ones
+""" % (os.path.basename(sys.argv[0])))
+    sys.exit(errorcode)
+    
+if __name__ == '__main__':
+    # Parse command-line options.
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hv",
+                                   ["help", "prefix=", "verbose"])
+    except getopt.GetoptError:
+        usage_and_exit(1)
+    verbose = 0
+    prefix = None
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            usage_and_exit(0)
+        if opt in ("--prefix"):
+            prefix = arg
+        if opt in ("-v", "--verbose"):
+            verbose = 1
+    if len(args) != 1:
+        usage_and_exit(2)
+            
+    # Canonicalize the working copy path.
+    wc_path = svn.core.svn_dirent_canonicalize(args[0])
+
+    # Do the real work.
+    try:
+        do_status(wc_path, verbose, prefix)
+    except svn.core.SubversionException, e:
+        sys.stderr.write("Error (%d): %s\n" % (e.apr_err, e.message))
+        sys.exit(1)
+</programlisting>
+      </example>
+
+      <!--
+      <para>As was the case in
+        <xref linkend="svn.developer.usingapi.otherlangs.ex-1" />,
+        this program is pool-free and uses, for the most part, normal
+        Python datatypes.</para>
+      -->
+      <para>和 <xref linkend="svn.developer.usingapi.otherlangs.ex-1" />
+        一样, 上面的程序不使用内存池, 大部分情况下都是用的 Python 内建的
+        数据类型.</para>
+
+      <warning>
+      <!--
+        <para>Run user-provided paths
+          through the appropriate canonicalization function
+          (<function>svn_dirent_canonicalize()</function> or
+          <function>svn_uri_canonicalize()</function>) before passing
+          them to other API functions.  Failure to do so can trigger
+          assertions in the underlying Subversion C library which
+          translate into rather immediate and unceremonious program
+          abortion.</para>
+      -->
+        <para>先把用户提供的路径参数转化成规范化形式 (调用
+          <function>svn_dirent_canonicalize()</function> 或
+          <function>svn_uri_canonicalize()</function>), 然后再传递给其他
+          API, 否则的话可能会导致 Subversion C 库函数断言失败, 引起程序
+          异常退出.</para>
+      </warning>
+
+      <!--
+      <para>Of particular interest to users of the Python flavor of
+        Subversion's API is the implementation of callback functions.
+        As previously mentioned, Subversion's C API makes liberal use
+        of the callback function/baton paradigm.  API functions which
+        in C accept a function and baton pair only accept a callback
+        function parameter in Python.  How, then, does the caller pass
+        arbitrary context information to the callback function?  In
+        Python, this is done by taking advantage of Python's scoping
+        rules and default argument values.  You can see this in action
+        in <xref linkend="svn.developer.usingapi.otherlangs.ex-2" />.
+        The <function>svn_client_status2()</function> function is
+        given a callback function
+        (<function>_status_callback()</function>) but no
+        baton&mdash;<function>_status_callback()</function> gets
+        access to the user-provided prefix string because that
+        variable falls into the scope of the function
+        automatically.</para>
+      -->
+      <para>使用 Python 调用 Subversion API 的用户可能对回调函数在 Python
+        中的实现比较感兴趣. 前面已经说过, Subversion C API 对编程范式
+        &mdash;回调函数/baton&mdash;的使用非常广泛, C 函数如果接受一个回调
+        函数和 baton,
+        那么 在 Python 中将只接受一个回调函数, 那么主调函数如何向回调函数
+        传递任意的上下文信息呢? 在 Python 里, 这是通过作用域规则和参数的
+        默认值来实现的. 你可以从 <xref
+          linkend="svn.developer.usingapi.otherlangs.ex-2" /> 看到具体的
+        例子, 函数 <function>svn_client_status2()</function> 得到了一个
+        回调函数 (<function>_status_callback()</function>), 但却没有
+        baton&mdash;函数 <function>_status_callback()</function> 能够访问
+        到用户提供的前缀字符串是因为变量 <literal>prefix</literal> 自动落
+        到了函数的作用域内.</para>
+
+    </sect2>
+  </sect1>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <sect1 id="svn.developer.summary">
+      <!--
+    <title>Summary</title>
+      -->
+    <title>小结</title>
+
+      <!--
+    <para>One of Subversion's greatest features isn't something you
+      get from running its command-line client or other tools.  It's
+      the fact that Subversion was designed modularly and provides a
+      stable, public API so that others&mdash;like yourself,
+      perhaps&mdash;can write custom software that drives Subversion's
+      core logic.</para>
+      -->
+    <para>Subversion 最伟大的特性之一并不是从它的命令行客户端或其他工具中
+      得到, 而是 Subversion 以模块化的方式进行设计, 提供了稳定而公开的
+      API, 于是其他人&mdash;例如你&mdash;就可以自己开发驱动 Subversion 的
+      软件.</para>
+
+      <!--
+    <para>In this chapter, we took a closer look at Subversion's
+      architecture, examining its logical layers and describing that
+      public API, the very same API that Subversion's own layers use
+      to communicate with each other.  Many developers have found
+      interesting uses for the Subversion API, from simple repository
+      hook scripts, to integrations between Subversion and some other
+      application, to completely different version control systems.
+      ### TODO
+      What unique itch will <emphasis>you</emphasis> scratch with
+      it?</para>
+      -->
+    <para>本章, 我们从更底层地角度介绍了 Subversion 的架构和逻辑层, 并描述
+      了它的公共 API, 以及类似的用于各层之间通信的 API. 许多开发人员都发现
+      了 Subversion API 的有趣用法, 从简单的仓库钩子脚本, 到 Subversion 与
+      其他应用程序的集成, 再到完全不同的版本控制系统. 你还能想到更奇妙的用
+      法吗?</para>
+
+  </sect1>
+
+</chapter>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "chapter")
+end:
+-->

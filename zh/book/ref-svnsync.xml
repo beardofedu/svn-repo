@@ -1,0 +1,938 @@
+<!-- -*- sgml -*- -->
+
+<reference id="svn.ref.svnsync">
+      <!--
+  <title>svnsync Reference&mdash;Subversion Repository Mirroring</title>
+      -->
+  <title>svnsync 参考手册&mdash;Subversion 仓库镜像工具</title>
+    
+  <partintro>
+      <!--
+    <para><command>svnsync</command> is the Subversion remote
+      repository mirroring tool.  Put simply, it allows you to replay
+      the revisions of one repository into another one.</para>
+      -->
+    <para><command>svnsync</command> 是 Subversion 的远程仓库镜像工具, 简单
+      地说, 它允许你在仓库中重放另一个仓库的版本号.</para>
+
+      <!--
+    <para>In any mirroring scenario, there are two repositories: the
+                                            ### TODO
+      source repository, and the mirror (or <quote>sink</quote>)
+      repository.  The source repository is the repository from which
+      <command>svnsync</command> pulls revisions.  The mirror
+      repository is the destination for the revisions pulled from the
+      source repository.  Each of the repositories may be local or
+      remote&mdash;they are only ever addressed by their URLs.</para>
+      -->
+    <para>在做镜像时, 总是存在两个仓库: 源仓库和镜像仓库.
+      <command>svnsync</command> 从源仓库获取版本号, 再到镜像仓库中重放版本
+      号. 任意一个仓库都可以是远程的或本地的&mdash;<command>svnsync</command>
+      只是通过 URL 对它们进行寻址.</para>
+
+      <!--
+    <para>The <command>svnsync</command> process requires only read
+      access to the source repository; it never attempts to modify it.
+      But obviously, <command>svnsync</command> requires both read and
+      write access to the mirror repository.</para>
+      -->
+    <para><command>svnsync</command> 只要求对源仓库具有读取权限, 它不会试图
+      去修改源仓库的任何数据. 当然, <command>svnsync</command> 要求对镜像
+      仓库具有读写权限.</para>
+
+    <warning>
+      <!--
+      <para><command>svnsync</command> is very sensitive to changes
+        made in the mirror repository that weren't made as part of a
+        mirroring operation.  To prevent this from happening, it's
+        best if the <command>svnsync</command> process is the only
+        process permitted to modify the mirror repository.</para>
+      -->
+      <para><command>svnsync</command> 对于不是由镜像操作产生的修改非常
+        敏感, 因此最好的做法是仅允许 <command>svnsync</command> 对镜像
+        仓库进行修改.</para>
+    </warning>
+
+      <!--
+    <para>Options in <command>svnsync</command> are global, just
+      as they are in <command>svn</command> and
+      <command>svnadmin</command>:</para>
+      -->
+    <para><command>svnsync</command> 的选项都是全局的:</para>
+
+    <variablelist id="svn.ref.svnsync.sw">
+      <!--
+      <title>svnsync Options</title>
+      -->
+      <title>svnsync 选项</title>
+
+      <varlistentry id="svn.ref.svnsync.sw.allow_non_empty">
+        <term><option>--allow-non-empty</option></term>
+        <listitem>
+      <!--
+          <para>Disables the verification (which <command>svnsync
+            initialize</command> performs by default) that the
+            repository being initialized is empty of history
+            version.</para>
+      -->
+          <para>不去核实被初始化的仓库是否是一个版本历史为空的仓库
+            (默认情况下, <command>svnsync initialize</command> 会去核实).
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.config_dir">
+        <term><option>--config-dir</option> <replaceable>DIR</replaceable></term>
+        <listitem>
+      <!--
+          <para>Instructs Subversion to read configuration
+            information from the specified directory instead of the
+            default location (<filename>.subversion</filename> in
+            the user's home directory).</para>
+      -->
+          <para>告诉 Subversion 从指定的目录中读取配置信息, 而不是从默认目录
+            (用户家目录里的 <filename>.subversion</filename>) 中读取.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.config_option">
+        <term><option>--config-option</option> <replaceable>CONFSPEC</replaceable></term>
+        <listitem>
+      <!--
+          <para>Sets, for the duration of the command, the value of
+            a runtime configuration
+            option.  <replaceable>CONFSPEC</replaceable> is a string
+            which specifies the configuration option namespace, name
+            and value that you'd like to assign, formatted as
+            <replaceable>FILE</replaceable>:<replaceable>SECTION</replaceable>:<replaceable>OPTION</replaceable>=[<replaceable>VALUE</replaceable>].
+            In this syntax, <replaceable>FILE</replaceable>
+            and <replaceable>SECTION</replaceable> are the runtime
+            configuration file (either <literal>config</literal>
+            or <literal>servers</literal>) and the section thereof,
+            respectively, which contain the option whose value you
+            wish to change.  <replaceable>OPTION</replaceable> is,
+            of course, the option itself,
+            and <replaceable>VALUE</replaceable> the value (if any)
+            you wish to assign to the option.  For example, to
+            temporarily disable the use of the compression in the
+            HTTP protocol,
+            use <option>- -config-option=servers:global:http-compression=no</option>.
+            You can use this option multiple times to change
+            multiple option values simultaneously.</para>
+      -->
+          <para>在命令运行期间, 设置运行时配置选项的值.
+            <replaceable>CONFSPEC</replaceable> 是一个字符串, 指定了运行时
+            配置选项的名字空间, 选项名和选项值, 格式是
+            <replaceable>FILE</replaceable>:<replaceable>SECTION</replaceable>:<replaceable>OPTION</replaceable>=[<replaceable>VALUE</replaceable>].
+            其中, <replaceable>FILE</replaceable> 和
+            <replaceable>SECTION</replaceable> 分别是运行时配置文件
+            (<filename>config</filename> 或 <filename>servers</filename>)
+            和节, 它们包含了用户希望修改的选项.
+            <replaceable>OPTION</replaceable> 是选项名,
+            <replaceable>VALUE</replaceable> 是选项值 (如果有的话). 例如,
+            为了临时禁止 HTTP 压缩, 可以写成
+            <option>--config-option=servers:global:http-compression=no</option>.
+            选项 <option>--config-option</option> 可以在命令行上出现多次,
+            从而同时修改多个选项.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.disable_locking">
+        <term><option>--disable-locking</option></term>
+        <listitem>
+      <!--
+          <para>Causes <command>svnsync</command> to bypass its own
+            exclusive access mechanisms and operate on the
+            assumption that its exclusive access to the mirror
+            repository is being guaranteed through some other,
+            out-of-band mechanism.</para>
+      -->
+          <para>告诉 <command>svnsync</command> 不要使用自己的互斥访问机制,
+            而是假定镜像仓库的互斥访问已经通过其他带外机制实现了.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.no_auth_cache">
+        <term><option>--no-auth-cache</option></term>
+        <listitem>
+      <!--
+          <para>Prevents caching of authentication information
+            (e.g., username and password) in the Subversion
+            runtime configuration directories.</para>
+      -->
+          <para>禁止在 Subversion 运行时配置目录中缓存认证信息
+            (例如用户名和密码).</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.non_interactive">
+        <term><option>--non-interactive</option></term>
+        <listitem>
+      <!--
+          <para>In the case of an authentication failure or
+            insufficient credentials, prevents prompting for
+            credentials (e.g., username or password).  This is useful
+            if you're running Subversion inside an automated
+            script and it's more appropriate to have Subversion fail
+            than to prompt for more information.</para>
+      -->
+          <para>如果认证失败, 或者证书不充分, 将不再提示输入证书 (例如
+            用户名和密码). 如果在一个自动化运行的脚本中使用 Subversion,
+            那么这个选项就会很有用, 当遇到错误时, 更好的做法是立刻失败退出,
+            而不是请求输入更多的数据.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.quiet">
+        <term><option>--quiet</option> (<option>-q</option>)</term>
+        <listitem>
+      <!--
+          <para>Requests that the client print only essential
+            information while performing an operation.</para>
+      -->
+          <para>只输出重要的信息.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.revision">
+        <term><option>--revision</option> (<option>-r</option>) <replaceable>ARG</replaceable></term>
+        <listitem>
+      <!--
+          <para>Used by <command>svnsync copy-revprops</command> to
+            specify a particular revision or revision range on which
+            to operate.</para>
+      -->
+          <para>为 <command>svnsync copy-revprops</command> 指定版本号或
+            版本号范围.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.source_password">
+        <term><option>--source-password</option> <replaceable>PASSWD</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies the password for the Subversion server
+            from which you are syncing.  If not provided, or if
+            incorrect, Subversion will prompt you for this
+            information as needed.</para>
+      -->
+          <para>指定源仓库的密码, 如果没有指定或者密码不正确, Subversion
+            在需要时会提示用户输入密码.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.source_prop_encoding ">
+        <term><option>--source-prop-encoding <replaceable>ARG</replaceable></option></term>
+        <listitem>
+      <!--
+          <para>Instructs <command>svnsync</command> to assume that
+            translatable Subversion revision properties found in the
+            source repository are stored using the character
+            encoding <replaceable>ARG</replaceable> and to transcode
+            those into UTF-8 when copying them into the mirror
+            repository.</para>
+      -->
+          <para>告诉 <command>svnsync</command> 在源仓库发现的版本号属性,
+            如果它是可翻译的, 则假定属性使用的字符编码是
+            <replaceable>ARG</replaceable>, 把这些属性复制到镜像仓库时,
+            把字符编码转换成 UTF-8.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.source_username">
+        <term><option>--source-username</option> <replaceable>NAME</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies the username for the Subversion server
+            from which you are syncing.  If not provided, or if
+            incorrect, Subversion will prompt you for this
+            information as needed.</para>
+      -->
+          <para>指定源仓库的用户名, 如果没有指定或用户名不正确, Subversion
+            在需要时会提示用户输入用户名.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.steal_lock">
+        <term><option>--steal-lock</option></term>
+        <listitem>
+      <!--
+          <para>Causes <command>svnsync</command> to steal, as
+            necessary, the lock which it uses on the mirror
+            repository to ensure exclusive repository access.  (This
+            option should only be used when a lock exists in the
+            mirror repository and is known to be stale&mdash;that
+            is, when you are certain that there are no
+            other <command>svnsync</command> processes accessing
+            that repository.)</para>
+      -->
+          <para>使得 <command>svnsync</command> 在必要时去窃取锁, 从而保证对
+            镜像仓库的互斥访问. (用户应该只在以下情况下才去使用该选项&mdash;
+            锁在镜像仓库中存在, 并且不再新鲜了, 即没有其他
+            <command>svnsync</command> 进程正在访问仓库.)</para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnsync.sw.sync_password">
+        <term><option>--sync-password</option> <replaceable>PASSWD</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies the password for the Subversion server to
+            which you are syncing.  If not provided, or if
+            incorrect, Subversion will prompt you for this
+            information as needed.</para>
+      -->
+          <para>指定镜像仓库的密码. 如果没有指定或者密码不正确, Subversion
+            在需要时会提示用户输入密码.</para>
+        </listitem>
+      </varlistentry>
+      
+      <varlistentry id="svn.ref.svnsync.sw.sync_username">
+        <term><option>--sync-username</option> <replaceable>NAME</replaceable></term>
+        <listitem>
+      <!--
+          <para>Specifies the username for the Subversion server to
+            which you are syncing.  If not provided, or if
+            incorrect, Subversion will prompt you for this
+            information as needed.</para>
+      -->
+          <para>指定镜像仓库的用户名, 如果没有指定或用户名不正确, Subversion
+            在需要时会提示用户输入用户名.</para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry id="svn.ref.svnsync.sw.trust_server_cert">
+        <term><option>--trust-server-cert</option></term>
+        <listitem>
+      <!--
+          <para>Used with <option>- -non-interactive</option> to accept
+            any unknown SSL server certificates without prompting.</para>
+      -->
+          <para>和 <option>--non-interactive</option> 一起使用, 告诉
+            Subversion 接受任意一个未知的 SSL 服务器证书, 不要向用户提示.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+
+  </partintro>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnsync.c.copy-revprops">
+
+    <indexterm>
+      <primary>svnsync</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>copy-revprops</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnsync copy-revprops</refname>
+      <!--
+      <refpurpose>Copy all revision properties for a particular
+        revision (or range of revisions) from the source
+        repository to the mirror repository.</refpurpose>
+      -->
+      <refpurpose>把源仓库中的某个特定版本号或版本号范围上的所有版本号属性都
+        复制到镜像仓库中.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnsync copy-revprops <replaceable>DEST_URL</replaceable>
+        [<replaceable>SOURCE_URL</replaceable>]</literal></para>
+      <para><literal>svnsync copy-revprops <replaceable>DEST_URL</replaceable>
+        <replaceable>REV</replaceable>[:<replaceable>REV2</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>Because Subversion revision properties can be changed
+        at any time, it's possible that the properties for some
+        revision might be changed after that revision has already
+        been synchronized to another repository.  Because the
+        <command>svnsync synchronize</command> command operates
+        only on the range of revisions that have not yet been
+        synchronized, it won't notice a revision property change
+        outside that range.  Left as is, this causes a deviation
+        in the values of that revision's properties between the
+        source and mirror repositories.  <command>svnsync
+        copy-revprops</command> is the answer to this problem.
+        Use it to resynchronize the revision properties for a
+        particular revision or range of revisions.</para>
+      -->
+      <para>由于 Subversion 的版本号属性可以在任意时刻发生变化, 因此在把版本
+        号属性复制到镜像仓库后, 源仓库中的版本号属性可能又发生了变化. 由于
+        <command>svnsync synchronize</command> 只能处理还未被同步的版本号
+        范围, 它不会注意到范围之外的版本号属性是否发生了变化, 这就造成了源
+        仓库和镜像仓库在版本号属性上出现了不一致. 命令 <command>svnsync
+          copy-revprops</command> 正是这一问题的解决办法, 可以用它重新同步
+        某个版本号或版本号范围上的版本号属性.</para>
+
+      <!--
+      <para>When <replaceable>SOURCE_URL</replaceable> is
+        provided, <command>svnsync</command> will use it as the
+        repository URL which the destination repository is
+        mirroring. Generally, <replaceable>SOURCE_URL</replaceable>
+        will be exactly the same source URL as was used with
+        the <command>svnsync initialize</command> command when the
+        mirror was first set up.  You may choose, however, to
+        omit <replaceable>SOURCE_URL</replaceable>, in which
+        case <command>svnsync</command> will consult the mirror
+        repository's records to determine the source URL which
+        should be used.</para>
+      -->
+      <para>如果指定了 <replaceable>SOURCE_URL</replaceable>, 它将作为
+        <command>svnsync</command> 的源仓库. 通常来说,
+        <replaceable>SOURCE_URL</replaceable> 和命令 <command>svnsync
+          initialize</command> 中的源仓库 URL 是相同的. 如果省略了
+        <replaceable>SOURCE_URL</replaceable>, <command>svnsync</command>
+        将通过询问镜像仓库来确定源仓库的 URL.</para>
+
+      <warning>
+      <!--
+        <para>We strongly recommend that you specify the source
+          URL on the command-line, especially when untrusted users
+          have write access to the revision 0 properties
+          which <command>svnsync</command> uses to coordinate its
+          efforts.</para>
+      -->
+        <para>我们强烈建议在命令行上显式地指定源仓库的 URL, 尤其是当不受
+          信任的用户对版本号 0 的版本号属性具有写权限时, 这是因为
+          <command>svnsync</command> 通过版本号 0 的版本号属性来协调很多
+          工作.</para>
+      </warning>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnsync.sw.config_dir" />
+<xref linkend="svn.ref.svnsync.sw.config_option" />
+<xref linkend="svn.ref.svnsync.sw.disable_locking" />
+<xref linkend="svn.ref.svnsync.sw.no_auth_cache" />
+<xref linkend="svn.ref.svnsync.sw.non_interactive" />
+<xref linkend="svn.ref.svnsync.sw.quiet" />
+<xref linkend="svn.ref.svnsync.sw.revision" />
+<xref linkend="svn.ref.svnsync.sw.source_password" />
+<xref linkend="svn.ref.svnsync.sw.source_prop_encoding" />
+<xref linkend="svn.ref.svnsync.sw.source_username" />
+<xref linkend="svn.ref.svnsync.sw.steal_lock" />
+<xref linkend="svn.ref.svnsync.sw.sync_password" />
+<xref linkend="svn.ref.svnsync.sw.sync_username" />
+<xref linkend="svn.ref.svnsync.sw.trust_server_cert" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Resynchronize the revision properties associated with
+        a single revision (r6):</para>
+      -->
+      <para>重新同步版本号 6 的版本号属性:</para>
+
+      <informalexample>
+        <screen>
+$ svnsync copy-revprops -r 6 file:///var/svn/repos-mirror \
+                             http://svn.example.com/repos
+Copied properties for revision 6.
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnsync.c.help">
+
+    <indexterm>
+      <primary>svnsync</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>help</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnsync help</refname>
+      <!--
+      <refpurpose>Help!</refpurpose>
+      -->
+      <refpurpose>获取帮助信息.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnsync help</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>This subcommand is useful when you're trapped in a
+        foreign prison with neither a Net connection nor a copy of
+        this book, but you do have a local Wi-Fi network running
+        and you'd like to sync a copy of your repository over to
+        the backup server that Ira The Knife is running over in
+        cell block D.</para>
+      -->
+      <para>如果你被关到了一座监狱中, 不能访问因特网, 手中也没有这本书, 那
+        就只能通过该命令来学习如何使用 <command>svnsync</command>.</para>
+        
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      <para>None</para>
+      -->
+      <title>选项</title>
+      <para>无</para>
+    </refsect1>
+
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnsync.c.info">
+
+    <indexterm>
+      <primary>svnsync</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>info</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnsync info</refname>
+      <!--
+      <refpurpose>Print information about the synchronization
+        of a destination repository.</refpurpose>
+      -->
+      <refpurpose>打印目标仓库中, 与同步有关的信息.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnsync info <replaceable>DEST_URL</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+      
+      <!--
+      <para>Print the synchronization source URL, source repository
+        UUID and the last revision merged from the source to the
+        destination repository at <replaceable>DEST_URL</replaceable>.</para>
+      -->
+      <para>打印的信息有源仓库的 URL, 源仓库的 UUID, 以及最后一个被同步的
+        版本号.</para>
+    </refsect1>
+    
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>描述</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnsync.sw.config_dir" />
+<xref linkend="svn.ref.svnsync.sw.config_option" />
+<xref linkend="svn.ref.svnsync.sw.no_auth_cache" />
+<xref linkend="svn.ref.svnsync.sw.non_interactive" />
+<xref linkend="svn.ref.svnsync.sw.source_password" />
+<xref linkend="svn.ref.svnsync.sw.source_username" />
+<xref linkend="svn.ref.svnsync.sw.sync_password" />
+<xref linkend="svn.ref.svnsync.sw.sync_username" />
+<xref linkend="svn.ref.svnsync.sw.trust_server_cert" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Print the synchronization information of a mirror
+        repository:</para>
+      -->
+      <para>打印镜像仓库中, 与同步有关的信息:</para>
+
+      <informalexample>
+        <screen>
+$ svnsync info file:///var/svn/repos-mirror
+Source URL: http://svn.example.com/repos
+Source Repository UUID: e7fe1b91-8cd5-0310-98dd-2f12e793c5e8
+Last Merged Revision: 47
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnsync.c.init">
+
+    <indexterm>
+      <primary>svnsync</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>initialize</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnsync initialize (init)</refname>
+      <!--
+      <refpurpose>Initialize a mirror repository for
+        synchronization from the source repository.</refpurpose>
+      -->
+      <refpurpose>初始化一个镜像仓库.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnsync initialize <replaceable>MIRROR_URL</replaceable>
+        <replaceable>SOURCE_URL</replaceable></literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para><command>svnsync initialize</command> verifies that a
+        repository meets the basic requirements of a new mirror
+        repository and records the initial administrative
+        information that associates the mirror repository with the
+        source repository (specified
+        by <replaceable>SOURCE_URL</replaceable>).  This is the
+        first <command>svnsync</command> operation you run on a
+        would-be mirror repository.</para>
+      -->
+      <para><command>svnsync initialize</command> 先检查目标仓库是否符合
+        作为镜像仓库的基本要求, 然后把初始的管理信息记录到镜像仓库中,
+        初始的管理信息把镜像仓库与源仓库 (由参数
+        <replaceable>SOURCE_URL</replaceable> 指定) 关联起来. 这是针对
+        镜像仓库的第一步操作.</para>
+
+      <!--
+      <para>Ordinarily, <replaceable>SOURCE_URL</replaceable> is
+        the URL of the root directory of the Subversion repository
+        you wish to mirror.  Subversion 1.5 and newer allow you to
+        use <command>svnsync</command> for partial repository
+        mirroring, though &mdash; simply specify the URL of the
+        source repository subdirectory you wish to mirror
+        as <replaceable>SOURCE_URL</replaceable>.</para>
+      -->
+      <para>一般情况下, <replaceable>SOURCE_URL</replaceable> 是源仓库
+        根目录的 URL. Subversion 1.5 及更新的版本允许用户针对仓库的子目录
+        进行同步&mdash;方法是把 <replaceable>SOURCE_URL</replaceable>
+        写成欲同步的仓库子目录的 URL.</para>
+
+      <!--
+      <para>By default, the aforementioned basic requirements of a
+        mirror are that it allows revision property modifications
+        and that it contains no version history.  However, as of
+        Subversion 1.7, you may now optionally disable the
+        verification that the target repository is empty using
+        the <option>- -allow-non-empty</option> option.  While the
+        use of this option should not become habitual (as it
+        bypasses a valuable safeguard mechanism), it does aid in
+        one very common use-case: initializing a copy of a
+        repository as a mirror of the original.  This is
+        especially handy when setting up new mirrors of
+        repositories which contain a large amount of version
+        history.  Rather than initialize a brand new repository as
+        a mirror and then syncronize all of the history into it,
+        administrators will find it <emphasis>significantly</emphasis>
+        faster to first make a copy of the mature repository
+        (perhaps using <command>svnadmin hotcopy</command>) and
+        then use <command>svnsync initialize
+        - -allow-non-empty</command> to initialize that copy as a
+        mirror which is now already up-to-date with the
+        original.</para>
+      -->
+      <para>默认情况下, 上面提到的作为镜像仓库的基本要求指的是仓库
+        允许修改版本号属性, 并且不含有任何版本历史. 然而, 从 Subversion
+        1.7 开始, 用户可以通过选项 <option>--allow-non-empty</option> 来
+        允许含有版本历史的仓库作为镜像仓库. 但是用户不应该习惯性地使用该
+        选项 (因为它同时还会关掉保护机制), 而是只在这样一种情景下使用:
+        初始化一个已有的仓库副本, 用它作为源仓库的镜像仓库. 如果仓库已经
+        包含了大量的版本历史, 那么直接把它作为镜像仓库将会非常方便. 为了
+        创建一个镜像仓库, 比较普通的做法是先初始化一个空仓库, 然后再同步
+        全部的版本历史, 但是更好的做法是先复制出一个仓库副本 (例如使用命令
+        <command>svnadmin hotcopy</command>), 再用
+        <command>svnsync initialize --allow-non-empty</command> 把仓库副本
+        初始化成一个镜像仓库, 管理员将会看到后面这种做法会快得多.</para>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnsync.sw.allow_non_empty" />
+<xref linkend="svn.ref.svnsync.sw.config_dir" />
+<xref linkend="svn.ref.svnsync.sw.config_option" />
+<xref linkend="svn.ref.svnsync.sw.disable_locking" />
+<xref linkend="svn.ref.svnsync.sw.no_auth_cache" />
+<xref linkend="svn.ref.svnsync.sw.non_interactive" />
+<xref linkend="svn.ref.svnsync.sw.quiet" />
+<xref linkend="svn.ref.svnsync.sw.source_password" />
+<xref linkend="svn.ref.svnsync.sw.source_prop_encoding" />
+<xref linkend="svn.ref.svnsync.sw.source_username" />
+<xref linkend="svn.ref.svnsync.sw.steal_lock" />
+<xref linkend="svn.ref.svnsync.sw.sync_password" />
+<xref linkend="svn.ref.svnsync.sw.sync_username" />
+<xref linkend="svn.ref.svnsync.sw.trust_server_cert" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Fail to initialize a mirror repository due to
+        inability to modify revision properties:</para>
+      -->
+      <para>如果目标仓库禁止修改版本号属性, <command>svnsync
+          initialize</command> 将会失败:</para>
+
+      <informalexample>
+        <screen>
+$ svnsync initialize file:///var/svn/repos-mirror \
+                     http://svn.example.com/repos
+svnsync: Repository has not been enabled to accept revision propchanges;
+ask the administrator to create a pre-revprop-change hook
+$
+</screen>
+      </informalexample>
+
+      <!--
+      <para>Initialize a repository as a mirror, having already
+        created a <literal>pre-revprop-change</literal> hook that
+        permits all revision property changes:</para>
+      -->
+      <para>把一个仓库初始化镜像仓库, 该仓库已经通过钩子脚本
+        pre-revprop-change 来允许修改版本号属性:</para>
+
+      <informalexample>
+        <screen>
+$ svnsync initialize file:///var/svn/repos-mirror \
+                     http://svn.example.com/repos
+Copied properties for revision 0.
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <!-- ================================================================= -->
+  <refentry id="svn.ref.svnsync.c.sync">
+
+    <indexterm>
+      <primary>svnsync</primary>
+      <secondary>subcommands</secondary>
+      <tertiary>synchronize</tertiary>
+    </indexterm>
+
+    <refnamediv>
+      <refname>svnsync synchronize (sync)</refname>
+      <!--
+      <refpurpose>Transfer all pending revisions from the source
+        repository to the mirror repository.</refpurpose>
+      -->
+      <refpurpose>把源仓库中未同步过的版本号同步到镜像仓库中.</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+      <para><literal>svnsync synchronize <replaceable>DEST_URL</replaceable>
+        [<replaceable>SOURCE_URL</replaceable>]</literal></para>
+    </refsynopsisdiv>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Description</title>
+      -->
+      <title>描述</title>
+
+      <!--
+      <para>The <command>svnsync synchronize</command> command
+        does all the heavy lifting of a repository mirroring
+        operation.  After consulting with the mirror repository to
+        see which revisions have already been copied into it, it
+        then begins to copy any not-yet-mirrored revisions from
+        the source repository.</para>
+      -->
+      <para>命令 <command>svnsync syncronize</command> 负责镜像操作的大
+        部分工作. 命令首先询问镜像仓库已经复制了哪些版本号, 然后再从源
+        仓库复制那些还未被同步的版本号.</para>
+
+      <!--
+      <para><command>svnsync synchronize</command> can be
+        gracefully canceled and restarted.</para>
+      -->
+      <para><command>svnsync synchronize</command> 可以被任意地中止或重启.
+      </para>
+
+      <!--
+      <para>When <replaceable>SOURCE_URL</replaceable> is
+        provided, <command>svnsync</command> will use it as the
+        repository URL which the destination repository is
+        mirroring. Generally, <replaceable>SOURCE_URL</replaceable>
+        will be exactly the same source URL as was used with
+        the <command>svnsync initialize</command> command when the
+        mirror was first set up.  You may choose, however, to
+        omit <replaceable>SOURCE_URL</replaceable>, in which
+        case <command>svnsync</command> will consult the mirror
+        repository's records to determine the source URL which
+        should be used.</para>
+      -->
+      <para>如果指定了 <replaceable>SOURCE_URL</replaceable>,
+        <command>svnsync</command> 将把它作为源仓库的 URL. 通常来说,
+        <replaceable>SOURCE_URL</replaceable> 和命令 <command>svnsync
+          initialize</command> 中的源仓库 URL 是相同的. 如果省略了
+        <replaceable>SOURCE_URL</replaceable>, <command>svnsync</command>
+        将通过询问镜像仓库来确定源仓库的 URL.</para>
+
+      <warning>
+      <!--
+        <para>We strongly recommend that you specify the source
+          URL on the command-line, especially when untrusted users
+          have write access to the revision 0 properties
+          which <command>svnsync</command> uses to coordinate its
+          efforts.</para>
+      -->
+        <para>我们强烈建议在命令行上显式地指定源仓库的 URL, 尤其是当不受
+          信任的用户对版本号 0 的版本号属性具有写权限时, 这是因为
+          <command>svnsync</command> 通过版本号 0 的版本号属性来协调很多
+          工作.</para>
+      </warning>
+
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Options</title>
+      -->
+      <title>选项</title>
+
+      <informalexample>
+        <screen>
+<xref linkend="svn.ref.svnsync.sw.config_dir" />
+<xref linkend="svn.ref.svnsync.sw.config_option" />
+<xref linkend="svn.ref.svnsync.sw.disable_locking" />
+<xref linkend="svn.ref.svnsync.sw.no_auth_cache" />
+<xref linkend="svn.ref.svnsync.sw.non_interactive" />
+<xref linkend="svn.ref.svnsync.sw.quiet" />
+<xref linkend="svn.ref.svnsync.sw.source_password" />
+<xref linkend="svn.ref.svnsync.sw.source_prop_encoding" />
+<xref linkend="svn.ref.svnsync.sw.source_username" />
+<xref linkend="svn.ref.svnsync.sw.steal_lock" />
+<xref linkend="svn.ref.svnsync.sw.sync_password" />
+<xref linkend="svn.ref.svnsync.sw.sync_username" />
+<xref linkend="svn.ref.svnsync.sw.trust_server_cert" />
+</screen>
+      </informalexample>
+    </refsect1>
+
+    <!-- =============================================================== -->
+    <refsect1>
+      <!--
+      <title>Examples</title>
+      -->
+      <title>示例</title>
+
+      <!--
+      <para>Copy unsynchronized revisions from the source
+        repository to the mirror repository:</para>
+      -->
+      <para>把源仓库中未同步过的版本号同步到镜像仓库中:</para>
+
+      <informalexample>
+        <screen>
+$ svnsync synchronize file:///var/svn/repos-mirror \
+                      http://svn.example.com/repos
+Committed revision 1.
+Copied properties for revision 1.
+Committed revision 2.
+Copied properties for revision 2.
+Committed revision 3.
+Copied properties for revision 3.
+&hellip;
+Committed revision 45.
+Copied properties for revision 45.
+Committed revision 46.
+Copied properties for revision 46.
+Committed revision 47.
+Copied properties for revision 47.
+$
+</screen>
+      </informalexample>
+
+    </refsect1>
+  </refentry>
+
+</reference>
+
+<!--
+local variables: 
+sgml-parent-document: ("book.xml" "reference")
+end:
+-->
